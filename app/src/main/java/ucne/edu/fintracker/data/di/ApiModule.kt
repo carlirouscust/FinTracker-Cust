@@ -1,4 +1,47 @@
 package ucne.edu.fintracker.data.di
 
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
+import ucne.edu.fintracker.presentation.remote.FinTrackerApi
+import javax.inject.Singleton
+import ucne.edu.fintracker.presentation.remote.LocalDateAdapter
+
+@InstallIn(SingletonComponent::class)
+@Module
 object ApiModule {
+    const val BASE_URL =  "https://fintrackerapp.azurewebsites.net/"
+
+    @Provides
+    @Singleton
+    fun providesMoshi(): Moshi =
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+
+    @Provides
+    @Singleton
+    fun providesGitHubApi(moshi: Moshi): FinTrackerApi {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(FinTrackerApi::class.java)
+    }
+
+
+    val moshi = Moshi.Builder()
+        .add(LocalDateAdapter())
+        .build()
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl("https://api.tuservicio.com/")
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .build()
+
 }
