@@ -25,6 +25,7 @@ kotlinSerializationPlugin = "2.0.21"
 hilt = "2.51.1"
 javapoet = "1.13.0"
 roomRuntime = "2.7.0"
+threetenabp = "1.4.5"
 
 [libraries]
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
@@ -60,6 +61,7 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose" }
+threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabp" }
 
 
 [plugins]
