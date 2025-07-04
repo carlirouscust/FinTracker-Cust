@@ -1,4 +1,11 @@
 package ucne.edu.fintracker.presentation.navegation
 
-class Screen {
+import kotlinx.serialization.Serializable
+
+sealed class Screen {
+    @Serializable
+    data object LoginList : Screen()
+    @Serializable
+    data class Login (val name: String) : Screen()
+
 }
