@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,11 +18,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginRegisterScreen(
     modifier: Modifier = Modifier,
+    navController: NavController,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -44,35 +47,48 @@ fun LoginRegisterScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         TabRow(
-            selectedTabIndex = state.usuarioId,
+            selectedTabIndex = state.tabIndex,
             containerColor = Color.White
         ) {
             Tab(
-                selected = state.usuarioId == 0,
+                selected = state.tabIndex == 0,
                 onClick = { viewModel.changeTab(0) },
                 text = { Text("Login", fontWeight = FontWeight.Bold) }
             )
             Tab(
-                selected = state.usuarioId == 1,
+                selected = state.tabIndex == 1,
                 onClick = { viewModel.changeTab(1) },
                 text = { Text("Sign up", color = Color(0xFF8A8A8A)) }
             )
         }
 
+
         Spacer(modifier = Modifier.height(20.dp))
 
-        if (state.usuarioId == 0) {
+        LaunchedEffect(state.usuarioId) {
+            if (state.usuarioId != 0) {
+                navController.navigate("gastos") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+        }
+
+        if (state.tabIndex == 0) {
             LoginForm(
                 email = state.loginEmail,
                 password = state.loginPassword,
                 onEmailChange = viewModel::onLoginEmailChange,
                 onPasswordChange = viewModel::onLoginPasswordChange,
                 onLoginClick = {
-                    println("Login con: ${state.loginEmail} - ${state.loginPassword}")
+                    viewModel.login()
                 },
                 onNavigateToRegister = {
                     viewModel.changeTab(1)
-                }
+                },
+                onForgotPassword = {
+                    navController.navigate("reset_password")
+                },
+                 loginError = state.loginError
             )
         } else {
             RegisterForm(
@@ -85,13 +101,17 @@ fun LoginRegisterScreen(
                 onRegisterClick = {
                     scope.launch {
                         viewModel.registerUser(
-                            onSuccess = { println("Registrado exitosamente") },
-                            onError = { e -> println("Error al registrar: ${e.message}") }
+                            onSuccess = {
+                                println("Registrado correctamente")
+                                viewModel.changeTab(0)
+                            },
+                            onError = { e -> println("Error: ${e.message}") }
                         )
                     }
                 }
             )
         }
+
     }
 }
 
@@ -102,7 +122,9 @@ fun LoginForm(
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    loginError: Boolean,
+    onForgotPassword: () -> Unit
 ) {
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
@@ -171,12 +193,23 @@ fun LoginForm(
         if (passwordError) {
             Text("La contraseña es obligatoria", color = Color.Red, fontSize = 12.sp)
         }
+        if (loginError) {
+            Text(
+                "Usuario o Contraseña incorrectos",
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+        }
 
         Text(
             text = "¿Olvidaste tu contraseña?",
             modifier = Modifier
                 .align(Alignment.End)
-                .padding(top = 4.dp),
+                .padding(top = 4.dp)
+                .clickable {
+                    onForgotPassword()
+                },
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.primary
         )

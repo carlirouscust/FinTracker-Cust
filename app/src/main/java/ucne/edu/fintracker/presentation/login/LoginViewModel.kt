@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
+import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import javax.inject.Inject
 
@@ -19,8 +20,55 @@ class LoginViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun changeTab(index: Int) {
-        _uiState.update { it.copy(usuarioId = index) }
+    fun login() {
+        viewModelScope.launch {
+            try {
+                val usuarios = api.getUsuario()
+                val usuario = usuarios.find {
+                    it.email == _uiState.value.loginEmail &&
+                            it.contraseña == _uiState.value.loginPassword
+                }
+
+                if (usuario != null) {
+                    _uiState.update {
+                        it.copy(usuarioId = usuario.usuarioId ?: 0, loginError = false)
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(loginError = true)
+                    }
+                }
+            } catch (e: Exception) {
+                println("Error al intentar login: ${e.message}")
+                _uiState.update {
+                    it.copy(loginError = true)
+                }
+            }
+        }
+    }
+
+
+    fun registerUser(
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val state = uiState.value
+                val newUser = UsuarioDto(
+                    usuarioId = 0,
+                    nombre = state.registerNombre,
+                    apellido = "ApellidoEjemplo",
+                    email = state.registerEmail,
+                    contraseña = state.registerPassword,
+                    divisa = "DOP"
+                )
+                api.createUsuario(newUser)
+                onSuccess()
+            } catch (e: Exception) {
+                onError(e)
+            }
+        }
     }
 
     fun onLoginEmailChange(value: String) {
@@ -43,28 +91,28 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(registerPassword = value) }
     }
 
-    fun registerUser(
-        onSuccess: () -> Unit,
-        onError: (Throwable) -> Unit
-    ) {
+    fun onResetEmailChange(value: String) {
+        _uiState.update { it.copy(resetEmail = value, resetError = null, resetSuccess = null) }
+    }
+
+    fun resetPassword() {
         viewModelScope.launch {
             try {
-                val state = uiState.value
-                val newUser = UsuarioDto(
-                    usuarioId= 0,
-                    nombre = state.registerNombre,
-                    apellido = "ApellidoEjemplo",
-                    email = state.registerEmail,
-                    contraseña = state.registerPassword,
-                    divisa = "DOP"
-                )
-                api.createUsuario(newUser)
-                onSuccess()
+                val email = uiState.value.resetEmail
+                val response = api.enviarLinkResetPassword(ResetPasswordRequest(email))
+                if (response.isSuccessful) {
+                    println("Enlace enviado")
+                } else {
+                    println("Error: ${response.code()}")
+                }
             } catch (e: Exception) {
-                onError(e)
+                println("Excepción: ${e.message}")
             }
         }
     }
-}
 
+    fun changeTab(index: Int) {
+        _uiState.update { it.copy(tabIndex = index) }
+    }
+}
 
