@@ -39,9 +39,9 @@ object ApiModule {
         .add(LocalDateAdapter())
         .build()
 
-    val retrofit = Retrofit.Builder()
-        .baseUrl("https://api.tuservicio.com/")
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .build()
+//    val retrofit = Retrofit.Builder()
+//        .baseUrl("https://api.tuservicio.com/")
+//        .addConverterFactory(MoshiConverterFactory.create(moshi))
+//        .build()
 
 }
