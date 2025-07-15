@@ -6,6 +6,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import ucne.edu.fintracker.presentation.categoria.CategoriaListScreen
+import ucne.edu.fintracker.presentation.categoria.CategoriaViewModel
 import ucne.edu.fintracker.presentation.gasto.GastoListScreen
 import ucne.edu.fintracker.presentation.gasto.GastoScreen
 import ucne.edu.fintracker.presentation.gasto.GastoViewModel
@@ -55,9 +57,11 @@ fun FinTrackerNavHost(
                 viewModel = gastoViewModel,
                 onNuevoClick = {
                     navHostController.navigate("gasto_nuevo")
-                }
+                },
+                navController = navHostController
             )
         }
+
 
         composable("gasto_nuevo") {
             val gastoViewModel = hiltViewModel<GastoViewModel>()
@@ -83,5 +87,39 @@ fun FinTrackerNavHost(
             )
         }
 
+        composable("categorias") {
+            val categoriaVM = hiltViewModel<CategoriaViewModel>()
+            CategoriaListScreen(
+                viewModel = categoriaVM,
+                onBackClick = { navHostController.popBackStack() },
+                onAgregarCategoriaClick = {
+                    navHostController.navigate("categoria_nueva")
+                },
+                onCategoriaClick = { categoria ->
+                     navHostController.navigate("categoria_detalle/${categoria.categoriaId}")
+                }
+            )
+        }
+
+//        composable("categoria_nueva") {
+//            CategoriaScreen(
+//                onGuardar = { nombre, tipo, icono, color ->
+//                    val categoriaVM = hiltViewModel<CategoriaViewModel>()
+//                    categoriaVM.agregarCategoria(
+//                        CategoriaDto(
+//                            categoriaId = 0,
+//                            nombre = nombre,
+//                            tipo = tipo,
+//                            icono = icono,
+//                            colorFondo = color
+//                        )
+//                    )
+//                    navHostController.popBackStack()
+//                },
+//                onCancel = {
+//                    navHostController.popBackStack()
+//                }
+//            )
+//        }
     }
 }

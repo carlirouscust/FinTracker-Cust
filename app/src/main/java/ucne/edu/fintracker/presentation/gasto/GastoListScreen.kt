@@ -28,7 +28,6 @@ import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.components.MenuScreen
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 
-// --- COMPONENTES QUE USAS EN LA PANTALLA ---
 
 @Composable
 fun ToggleTextButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
@@ -124,7 +123,8 @@ fun GastoPieChart(
 @Composable
 fun GastoListScreen(
     viewModel: GastoViewModel,
-    onNuevoClick: () -> Unit
+    onNuevoClick: () -> Unit,
+    navController: androidx.navigation.NavController
 ) {
     val state by viewModel.uiState.collectAsState()
     var tipo by remember { mutableStateOf("Gastos") }
@@ -136,8 +136,7 @@ fun GastoListScreen(
 
     MenuScreen(
         drawerState = drawerState,
-        onItemClick = { label ->
-        }
+        navController = navController
     ) {
         Scaffold(
             topBar = {
@@ -194,25 +193,25 @@ fun GastoListScreen(
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(
                         selected = true,
-                        onClick = {},
+                        onClick = { navController.navigate("gastos") },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home") }
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = {},
+                        onClick = { /* otra ruta */ },
                         icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                         label = { Text("IA Asesor") }
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = {},
+                        onClick = { /* otra ruta */ },
                         icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
                         label = { Text("Metas") }
                     )
                 }
             }
-        ) { padding ->
+        ){ padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
