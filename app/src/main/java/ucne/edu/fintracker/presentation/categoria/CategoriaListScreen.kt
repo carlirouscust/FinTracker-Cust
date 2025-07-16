@@ -2,7 +2,6 @@ package ucne.edu.fintracker.presentation.categoria
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,28 +37,33 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.ui.unit.sp
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 
 @Composable
 fun CategoriaListScreen(
-    viewModel: CategoriaViewModel = viewModel(),
+    viewModel: CategoriaViewModel,
+    tipoFiltro: String = "Gasto",
     onBackClick: () -> Unit = {},
-    onAgregarCategoriaClick: () -> Unit = {},
+    onAgregarCategoriaClick: (String) -> Unit = {},
     onCategoriaClick: (CategoriaDto) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val categorias = viewModel.categoriasFiltradas()
+    var tipo by remember { mutableStateOf(tipoFiltro) }
 
-    // Estado para filtrar por tipo ("Ingresos" o "Gastos")
-    var tipo by remember { mutableStateOf("Gastos") }
+    LaunchedEffect(tipoFiltro) {
+        tipo = tipoFiltro
+        viewModel.onTipoChange(tipoFiltro)
+    }
+
+    val categorias = uiState.categorias.filter { it.tipo == tipo }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // Fondo blanco
+            .background(Color.White)
             .padding(16.dp)
     ) {
-        // Barra superior con botón de volver
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBackClick) {
                 Icon(
@@ -79,37 +82,39 @@ fun CategoriaListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botones Gastos / Ingresos
         Row(modifier = Modifier.fillMaxWidth()) {
             Button(
-                onClick = { tipo = "Gastos" },
-                colors = if (tipo == "Gastos")
+                onClick = {
+                    tipo = "Gasto"
+                    viewModel.onTipoChange("Gasto")
+                },
+                colors = if (tipo == "Gasto")
                     ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                 else
                     ButtonDefaults.buttonColors(containerColor = Color.LightGray),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Gastos", color = if (tipo == "Gastos") Color.White else Color.Black)
+                Text("Gastos", color = if (tipo == "Gasto") Color.White else Color.Black)
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
-                onClick = { tipo = "Ingresos" },
-                colors = if (tipo == "Ingresos")
+                onClick = {
+                    tipo = "Ingreso"
+                    viewModel.onTipoChange("Ingreso")
+                },
+                colors = if (tipo == "Ingreso")
                     ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                 else
                     ButtonDefaults.buttonColors(containerColor = Color.LightGray),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Ingresos", color = if (tipo == "Ingresos") Color.White else Color.Black)
+                Text("Ingresos", color = if (tipo == "Ingreso") Color.White else Color.Black)
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Lista de categorías filtradas por tipo
-        val filteredCategorias = categorias.filter { it.tipo == tipo }
-
-        if (filteredCategorias.isEmpty()) {
+        if (categorias.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -128,24 +133,20 @@ fun CategoriaListScreen(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                items(filteredCategorias) { categoria ->
-                    CategoriaItem(
-                        categoria = categoria,
-                        onClick = { onCategoriaClick(categoria) }
-                    )
+                items(categorias) { cat ->
+                    CategoriaBody(cat) { onCategoriaClick(cat) }
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón flotante para agregar categoría
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.CenterEnd
         ) {
             FloatingActionButton(
-                onClick = onAgregarCategoriaClick,
+                onClick = { onAgregarCategoriaClick(tipo) },
                 containerColor = Color(0xFF85D844),
                 shape = RoundedCornerShape(24.dp)
             ) {
@@ -163,7 +164,7 @@ fun CategoriaListScreen(
 }
 
 @Composable
-fun CategoriaItem(
+fun CategoriaBody(
     categoria: CategoriaDto,
     onClick: () -> Unit
 ) {
@@ -187,7 +188,8 @@ fun CategoriaItem(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = categoria.nombre.take(1).uppercase(),
+                text = categoria.icono,
+                fontSize = 24.sp,
                 color = Color.White,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
