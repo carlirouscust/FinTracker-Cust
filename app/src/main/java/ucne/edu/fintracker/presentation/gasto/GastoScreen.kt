@@ -163,6 +163,7 @@ fun GastoScreen(
                 }
             }
 
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -29,15 +29,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
+
 
 data class DrawerItem(val label: String, val icon: ImageVector)
 
 val drawerItems = listOf(
     DrawerItem("Inicio", Icons.Default.Home),
+    DrawerItem("Gráficos", Icons.Default.PieChart),
+    DrawerItem("Pagos Recurrentes", Icons.Default.Schedule),
     DrawerItem("Categorías", Icons.Default.Category),
-    DrawerItem("Gráfico", Icons.Default.PieChart),
-    DrawerItem("Pagos recurrentes", Icons.Default.Schedule),
-    DrawerItem("Límites de gastos", Icons.Default.Warning),
+    DrawerItem("Limite de gastos", Icons.Default.Warning),
     DrawerItem("Ajustes", Icons.Default.Settings)
 )
 
@@ -45,7 +51,8 @@ val drawerItems = listOf(
 fun MenuScreen(
     drawerState: DrawerState,
     navController: NavController,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
+    userName: String = "Sofía Rodriguez"
 ) {
     val scope = rememberCoroutineScope()
 
@@ -54,27 +61,30 @@ fun MenuScreen(
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
-                    .background(Color.White)
+                    .background(color = Color(0xFFE0E0E0))
                     .widthIn(max = 280.dp)
             ) {
-                // Encabezado del Drawer
-                TextButton(
-                    onClick = { /* Acción perfil */ },
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                        .background(Color.White)
+                        .padding(start = 12.dp, top = 24.dp, end = 12.dp, bottom = 24.dp)
                 ) {
                     Text(
-                        text = "👤 Cliente: Juan Pérez",
+                        text = userName,
+                        color = Color.Black,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        modifier = Modifier
+                            .background(
+                                color = Color(0xFF85D844),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .align(Alignment.CenterStart),
+                        fontSize = 18.sp
                     )
                 }
+                Divider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
-                Divider()
-
-                // Items del Drawer
                 drawerItems.forEach { item ->
                     NavigationDrawerItem(
                         icon = {
@@ -87,22 +97,24 @@ fun MenuScreen(
                         label = {
                             Text(
                                 text = item.label,
-                                color = Color.Black
+                                color = Color.Black,
+                                fontSize = 16.sp
                             )
                         },
                         selected = false,
                         onClick = {
-                            // Cerramos el drawer primero
                             scope.launch { drawerState.close() }
-
-                            // Navegación según el label
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
-                                "Categorías" -> navController.navigate("categorias")
-                                // puedes agregar otros destinos más adelante
+                                "Gráficos" -> navController.navigate("graficos")
+                                "Pagos Recurrentes" -> navController.navigate("pagos_recurrentes")
+                                "Categorías" -> navController.navigate("categoria/{tipo}")
+                                "Limite de gastos" -> navController.navigate("limite_gastos")
+                                "Ajustes" -> navController.navigate("ajustes")
                             }
                         },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                        modifier = Modifier
+                            .padding(NavigationDrawerItemDefaults.ItemPadding)
                     )
                 }
             }

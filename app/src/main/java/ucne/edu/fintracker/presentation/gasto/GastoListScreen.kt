@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.components.MenuScreen
@@ -124,7 +125,7 @@ fun GastoPieChart(
 fun GastoListScreen(
     viewModel: GastoViewModel,
     onNuevoClick: () -> Unit,
-    navController: androidx.navigation.NavController
+    navController: NavController
 ) {
     val state by viewModel.uiState.collectAsState()
     var tipo by remember { mutableStateOf("Gastos") }
@@ -136,210 +137,217 @@ fun GastoListScreen(
 
     MenuScreen(
         drawerState = drawerState,
-        navController = navController
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Balance", fontSize = 14.sp, color = Color.Gray)
-                            Text(
-                                text = "%,.0f RD$".format(total),
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF4CAF50)
-                                )
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch { drawerState.open() }
-                        }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { /* perfil */ }) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.Gray)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-                )
-            },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = onNuevoClick,
-                    containerColor = Color(0xFF8BC34A),
-                    shape = RoundedCornerShape(24.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Nuevo", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                }
-            },
-            bottomBar = {
-                NavigationBar(containerColor = Color.White) {
-                    NavigationBarItem(
-                        selected = true,
-                        onClick = { navController.navigate("gastos") },
-                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home") }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { /* otra ruta */ },
-                        icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                        label = { Text("IA Asesor") }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { /* otra ruta */ },
-                        icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                        label = { Text("Metas") }
-                    )
-                }
-            }
-        ){ padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-                    .padding(padding)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
-            ) {
-                // Botones tipo
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Button(
-                        onClick = { tipo = "Gastos" },
-                        colors = if (tipo == "Gastos")
-                            ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
-                        else
-                            ButtonDefaults.buttonColors(containerColor = Color.LightGray),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Gastos", color = if (tipo == "Gastos") Color.White else Color.Black)
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = { tipo = "Ingresos" },
-                        colors = if (tipo == "Ingresos")
-                            ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
-                        else
-                            ButtonDefaults.buttonColors(containerColor = Color.LightGray),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Ingresos", color = if (tipo == "Ingresos") Color.White else Color.Black)
-                    }
-                }
-
-                // Filtros
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF0F0F0), RoundedCornerShape(24.dp))
-                        .border(1.dp, Color.LightGray, RoundedCornerShape(24.dp))
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    listOf("Día", "Semana", "Mes", "Año").forEach { filtro ->
-                        ToggleTextButton(
-                            text = filtro,
-                            isSelected = state.filtro == filtro,
-                            onClick = { viewModel.cambiarFiltro(filtro) }
-                        )
-                    }
-                }
-
-                Text(
-                    text = "Julio 2025",
-                    modifier = Modifier.fillMaxWidth(),
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
-                )
-
-                if (transaccionesFiltradas.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .size(200.dp)
-                            .align(Alignment.CenterHorizontally),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            val outerRadius = size.minDimension / 2
-                            val innerRadius = outerRadius * 0.6f
-
-                            drawCircle(color = Color(0xFFB0BEC5), radius = outerRadius)
-
-                            drawContext.canvas.nativeCanvas.apply {
-                                val paint = android.graphics.Paint().apply {
-                                    color = android.graphics.Color.DKGRAY
-                                    style = android.graphics.Paint.Style.STROKE
-                                    strokeWidth = 8f
-                                    pathEffect = android.graphics.DashPathEffect(floatArrayOf(10f, 10f), 0f)
-                                    isAntiAlias = true
-                                }
-                                drawCircle(center.x, center.y, innerRadius, paint)
-                            }
-                        }
-
-                        Text(
-                            text = "No hubo\ngastos esta\nsemana",
-                            color = Color.White,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    GastoPieChart(
-                        transacciones = transaccionesFiltradas,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
-                }
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(transaccionesFiltradas) { transaccion ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(2.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column {
-                                    Text(transaccion.categoria.nombre, fontWeight = FontWeight.Bold)
-                                    Text(
-                                        transaccion.fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                        color = Color.Gray
+        navController = navController,
+        content = {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Balance", fontSize = 14.sp, color = Color.Gray)
+                                Text(
+                                    text = "%,.0f RD$".format(total),
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF4CAF50)
                                     )
+                                )
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch { drawerState.open() }
+                            }) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menu")
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { /* perfil */ }) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Gray)
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    )
+                },
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = onNuevoClick,
+                        containerColor = Color(0xFF8BC34A),
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Nuevo", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                },
+                bottomBar = {
+                    NavigationBar(containerColor = Color.White) {
+                        NavigationBarItem(
+                            selected = true,
+                            onClick = { navController.navigate("gastos") },
+                            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                            label = { Text("Home") }
+                        )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { /* otra ruta */ },
+                            icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
+                            label = { Text("IA Asesor") }
+                        )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { /* otra ruta */ },
+                            icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
+                            label = { Text("Metas") }
+                        )
+                    }
+                }
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                        .padding(padding)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                ) {
+                    // Botones tipo
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = { tipo = "Gastos" },
+                            colors = if (tipo == "Gastos")
+                                ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
+                            else
+                                ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                "Gastos",
+                                color = if (tipo == "Gastos") Color.White else Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { tipo = "Ingresos" },
+                            colors = if (tipo == "Ingresos")
+                                ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
+                            else
+                                ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                "Ingresos",
+                                color = if (tipo == "Ingresos") Color.White else Color.Black
+                            )
+                        }
+                    }
+
+                    // Filtros
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF0F0F0), RoundedCornerShape(24.dp))
+                            .border(1.dp, Color.LightGray, RoundedCornerShape(24.dp))
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        listOf("Día", "Semana", "Mes", "Año").forEach { filtro ->
+                            ToggleTextButton(
+                                text = filtro,
+                                isSelected = state.filtro == filtro,
+                                onClick = { viewModel.cambiarFiltro(filtro) }
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "Julio 2025",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
+
+                    if (transaccionesFiltradas.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                val outerRadius = size.minDimension / 2
+                                val innerRadius = outerRadius * 0.6f
+
+                                drawCircle(color = Color(0xFFB0BEC5), radius = outerRadius)
+
+                                drawContext.canvas.nativeCanvas.apply {
+                                    val paint = android.graphics.Paint().apply {
+                                        color = android.graphics.Color.DKGRAY
+                                        style = android.graphics.Paint.Style.STROKE
+                                        strokeWidth = 8f
+                                        pathEffect = android.graphics.DashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                        isAntiAlias = true
+                                    }
+                                    drawCircle(center.x, center.y, innerRadius, paint)
                                 }
-                                Text("%,.2f RD$".format(transaccion.monto), fontWeight = FontWeight.Bold)
+                            }
+
+                            Text(
+                                text = "No hubo\ngastos esta\nsemana",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        GastoPieChart(
+                            transacciones = transaccionesFiltradas,
+                            modifier = Modifier
+                                .size(200.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(transaccionesFiltradas) { transaccion ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = CardDefaults.cardElevation(2.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column {
+                                        Text(transaccion.categoria.nombre, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            transaccion.fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                                            color = Color.Gray
+                                        )
+                                    }
+                                    Text("%,.2f RD$".format(transaccion.monto), fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
                 }
             }
         }
-    }
+    )
 }
