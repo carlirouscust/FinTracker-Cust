@@ -1,12 +1,14 @@
 package ucne.edu.fintracker.presentation.navegation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import ucne.edu.fintracker.presentation.categoria.CategoriaListScreen
+import ucne.edu.fintracker.presentation.categoria.CategoriaScreen
 import ucne.edu.fintracker.presentation.categoria.CategoriaViewModel
 import ucne.edu.fintracker.presentation.gasto.GastoListScreen
 import ucne.edu.fintracker.presentation.gasto.GastoScreen
@@ -87,39 +89,41 @@ fun FinTrackerNavHost(
             )
         }
 
-        composable("categorias") {
+        composable("categoria/{tipo}") { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
             val categoriaVM = hiltViewModel<CategoriaViewModel>()
             CategoriaListScreen(
                 viewModel = categoriaVM,
+                tipoFiltro = tipo,
                 onBackClick = { navHostController.popBackStack() },
-                onAgregarCategoriaClick = {
-                    navHostController.navigate("categoria_nueva")
+                onAgregarCategoriaClick = { tipoActual ->
+                    navHostController.navigate("categoria_nueva/${tipoActual}")
                 },
                 onCategoriaClick = { categoria ->
-                     navHostController.navigate("categoria_detalle/${categoria.categoriaId}")
+                    navHostController.navigate("categoria_detalle/${categoria.categoriaId}")
                 }
             )
         }
 
-//        composable("categoria_nueva") {
-//            CategoriaScreen(
-//                onGuardar = { nombre, tipo, icono, color ->
-//                    val categoriaVM = hiltViewModel<CategoriaViewModel>()
-//                    categoriaVM.agregarCategoria(
-//                        CategoriaDto(
-//                            categoriaId = 0,
-//                            nombre = nombre,
-//                            tipo = tipo,
-//                            icono = icono,
-//                            colorFondo = color
-//                        )
-//                    )
-//                    navHostController.popBackStack()
-//                },
-//                onCancel = {
-//                    navHostController.popBackStack()
-//                }
-//            )
-//        }
+        composable("categoria_nueva/{tipo}") { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+            val categoriaVM = hiltViewModel<CategoriaViewModel>()
+            LaunchedEffect(tipo) {
+                categoriaVM.onTipoChange(tipo)
+            }
+            CategoriaScreen(
+                navController = navHostController,
+                viewModel = categoriaVM,
+                tipo = tipo,
+                onGuardar = { _, _, _, _ ->
+                    categoriaVM.saveCategoria {
+                        navHostController.popBackStack()
+                    }
+                },
+                onCancel = {
+                    navHostController.popBackStack()
+                }
+            )
+        }
     }
 }
