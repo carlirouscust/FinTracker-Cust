@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,9 +25,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.threeten.bp.format.DateTimeFormatter
+import ucne.edu.fintracker.presentation.categoria.CategoriaViewModel
 import ucne.edu.fintracker.presentation.components.MenuScreen
+import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
-
 
 @Composable
 fun ToggleTextButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
@@ -47,6 +47,7 @@ fun ToggleTextButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
 @Composable
 fun GastoPieChart(
     transacciones: List<TransaccionDto>,
+    categorias: List<CategoriaDto>,
     modifier: Modifier = Modifier
         .size(200.dp)
         .padding(16.dp)
@@ -54,24 +55,25 @@ fun GastoPieChart(
     if (transacciones.isEmpty()) return
 
     val total = transacciones.sumOf { it.monto }
-    val categorias = transacciones.groupBy { it.categoria }
-
+    // Agrupa las transacciones por el id de la categoría
+    val transaccionesPorCategoria = transacciones.groupBy { it.categoriaId }
+    // Asigna colores a las categorías (si hay más categorías que colores, se repiten)
     val colores = listOf(
         Color(0xFF4CAF50), Color(0xFFFF9800), Color(0xFF03A9F4),
         Color(0xFFF44336), Color(0xFF9C27B0), Color(0xFF009688)
     )
-
-    val categoriaColores = categorias.keys.zip(colores).toMap()
+    val categoriaIds = transaccionesPorCategoria.keys.toList()
+    val categoriaColores = categoriaIds.mapIndexed { i, id -> id to colores[i % colores.size] }.toMap()
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val radius = size.minDimension / 2
             var startAngle = -90f
 
-            categorias.forEach { (categoria, lista) ->
+            transaccionesPorCategoria.forEach { (categoriaId, lista) ->
                 val sweep = (lista.sumOf { it.monto } / total * 360f).toFloat()
                 drawArc(
-                    color = categoriaColores[categoria] ?: Color.Gray,
+                    color = categoriaColores[categoriaId] ?: Color.Gray,
                     startAngle = startAngle,
                     sweepAngle = sweep,
                     useCenter = true
@@ -99,7 +101,8 @@ fun GastoPieChart(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        categorias.forEach { (categoria, _) ->
+        transaccionesPorCategoria.forEach { (categoriaId, _) ->
+            val categoria = categorias.find { it.categoriaId == categoriaId }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -108,12 +111,12 @@ fun GastoPieChart(
                     modifier = Modifier
                         .size(12.dp)
                         .background(
-                            color = categoriaColores[categoria] ?: Color.Gray,
+                            color = categoriaColores[categoriaId] ?: Color.Gray,
                             shape = CircleShape
                         )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = categoria?.nombre ?: "")
+                Text(text = categoria?.nombre ?: "Desconocida")
             }
         }
     }
@@ -125,12 +128,14 @@ fun GastoPieChart(
 @Composable
 fun GastoListScreen(
     viewModel: GastoViewModel,
+    categoriaViewModel: CategoriaViewModel,
     onNuevoClick: () -> Unit,
     navController: NavController
 ) {
     val state by viewModel.uiState.collectAsState()
+    val categoriaState by categoriaViewModel.uiState.collectAsState()
     var tipo by remember { mutableStateOf("Gasto") }
-    val transaccionesFiltradas = state.transacciones.filter { it.tipo == state.tipoSeleccionado }
+    val transaccionesFiltradas = state.transacciones.filter { it.tipo == tipo }
     val total = transaccionesFiltradas.sumOf { it.monto }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -178,7 +183,7 @@ fun GastoListScreen(
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = {
-                            navController.navigate("gasto_nuevo/{tipo}")
+                            navController.navigate("gasto_nuevo/$tipo")
                         },
                         containerColor = Color(0xFF8BC34A),
                         shape = RoundedCornerShape(24.dp)
@@ -236,13 +241,13 @@ fun GastoListScreen(
                         ) {
                             Text(
                                 "Gastos",
-                                color = if (tipo == "Gastos") Color.White else Color.Black
+                                color = if (tipo == "Gasto") Color.White else Color.Black
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
-                            onClick = { tipo = "Ingresos" },
-                            colors = if (tipo == "Ingresos")
+                            onClick = { tipo = "Ingreso" },
+                            colors = if (tipo == "Ingreso")
                                 ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                             else
                                 ButtonDefaults.buttonColors(containerColor = Color.LightGray),
@@ -250,7 +255,7 @@ fun GastoListScreen(
                         ) {
                             Text(
                                 "Ingresos",
-                                color = if (tipo == "Ingresos") Color.White else Color.Black
+                                color = if (tipo == "Ingreso") Color.White else Color.Black
                             )
                         }
                     }
@@ -318,6 +323,7 @@ fun GastoListScreen(
                     } else {
                         GastoPieChart(
                             transacciones = transaccionesFiltradas,
+                            categorias = categoriaState.categorias, // <-- pasa aquí tu lista de categorías
                             modifier = Modifier
                                 .size(200.dp)
                                 .align(Alignment.CenterHorizontally)
@@ -329,6 +335,7 @@ fun GastoListScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(transaccionesFiltradas) { transaccion ->
+                            val categoria = categoriaState.categorias.find { it.categoriaId == transaccion.categoriaId }
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 elevation = CardDefaults.cardElevation(2.dp)
@@ -338,7 +345,7 @@ fun GastoListScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column {
-                                        Text(text = transaccion.categoria?.nombre ?: "", fontWeight = FontWeight.Bold)
+                                        Text(text = categoria?.nombre ?: "Desconocida", fontWeight = FontWeight.Bold)
                                         Text(
                                             transaccion.fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                                             color = Color.Gray

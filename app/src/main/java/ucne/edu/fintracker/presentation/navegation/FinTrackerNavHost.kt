@@ -58,14 +58,17 @@ fun FinTrackerNavHost(
         }
         composable("gastos") {
             val gastoViewModel = hiltViewModel<GastoViewModel>()
+            val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
             GastoListScreen(
                 viewModel = gastoViewModel,
+                categoriaViewModel = categoriaViewModel,
                 onNuevoClick = {
-                    navHostController.navigate("gasto_nuevo")
+                    navHostController.navigate("gasto_nuevo/{tipo}")
                 },
                 navController = navHostController
             )
         }
+
 
 
         composable("gasto_nuevo/{tipo}") { backStackEntry ->
