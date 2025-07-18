@@ -3,6 +3,7 @@ package ucne.edu.fintracker.presentation.gasto
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -10,10 +11,13 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,17 +27,11 @@ import java.util.*
 @Composable
 fun GastoScreen(
     categorias: List<String>,
-    onGuardar: (
-        tipo: String,
-        monto: Double,
-        categoria: String,
-        fecha: String,
-        notas: String
-    ) -> Unit,
+    onGuardar: (tipo: String, monto: Double, categoria: String, fecha: String, notas: String) -> Unit,
     onCancel: () -> Unit
 ) {
-    var tipo by remember { mutableStateOf("Gastos") }
-    var monto by remember { mutableStateOf("0.00") }
+    var tipo by remember { mutableStateOf("Gasto") }
+    var monto by remember { mutableStateOf(TextFieldValue("")) }
     var categoriaSeleccionada by remember { mutableStateOf<String?>(null) }
     var expandedCategoria by remember { mutableStateOf(false) }
     var fechaSeleccionada by remember { mutableStateOf("Hoy") }
@@ -68,7 +66,6 @@ fun GastoScreen(
                     navigationIconContentColor = Color.Black
                 )
             )
-
         }
     ) { padding ->
         Column(
@@ -84,18 +81,18 @@ fun GastoScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = { tipo = "Gastos" },
-                    colors = if (tipo == "Gastos")
+                    onClick = { tipo = "Gasto" },
+                    colors = if (tipo == "Gasto")
                         ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                     else
                         ButtonDefaults.buttonColors(containerColor = Color(0xFFD3D3D3)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Gastos", color = if (tipo == "Gastos") Color.White else Color.Black)
+                    Text("Gasto", color = if (tipo == "Gasto") Color.White else Color.Black)
                 }
                 Button(
-                    onClick = { tipo = "Ingresos" },
-                    colors = if (tipo == "Ingresos")
+                    onClick = { tipo = "Ingreso" },
+                    colors = if (tipo == "Ingreso")
                         ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                     else
                         ButtonDefaults.buttonColors(containerColor = Color(0xFFD3D3D3)),
@@ -103,17 +100,31 @@ fun GastoScreen(
                         .weight(1f)
                         .padding(start = 8.dp)
                 ) {
-                    Text("Ingresos", color = if (tipo == "Ingresos") Color.White else Color.Black)
+                    Text("Ingreso", color = if (tipo == "Ingreso") Color.White else Color.Black)
                 }
             }
 
             OutlinedTextField(
                 value = monto,
                 onValueChange = {
-                    if (it.matches(Regex("^\\d*\\.?\\d*\$"))) monto = it
+                    if (it.text.matches(Regex("^\\d*\\.?\\d*\$"))) {
+                        monto = it
+                    }
                 },
                 label = { Text("Monto") },
-                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            monto = monto.copy(selection = TextRange(0, monto.text.length))
+                        }
+                        if (!focusState.isFocused) {
+                            val numero = monto.text.toDoubleOrNull() ?: 0.0
+                            val redondeado = String.format("%.2f", numero)
+                            monto = TextFieldValue(redondeado, TextRange(redondeado.length))
+                        }
+                    },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
@@ -124,6 +135,8 @@ fun GastoScreen(
                 )
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             ExposedDropdownMenuBox(
                 expanded = expandedCategoria,
                 onExpandedChange = { expandedCategoria = !expandedCategoria }
@@ -133,6 +146,7 @@ fun GastoScreen(
                     onValueChange = {},
                     label = { Text("Categoría") },
                     readOnly = true,
+                    shape = RoundedCornerShape(16.dp),
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoria)
                     },
@@ -163,6 +177,7 @@ fun GastoScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -203,6 +218,8 @@ fun GastoScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = notas,
                 onValueChange = { notas = it },
@@ -211,6 +228,7 @@ fun GastoScreen(
                     .fillMaxWidth()
                     .height(120.dp),
                 maxLines = 5,
+                shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
@@ -222,7 +240,7 @@ fun GastoScreen(
 
             Button(
                 onClick = {
-                    val montoDouble = monto.toDoubleOrNull() ?: 0.0
+                    val montoDouble = monto.text.toDoubleOrNull() ?: 0.0
                     val cat = categoriaSeleccionada ?: ""
                     onGuardar(tipo, montoDouble, cat, fechaSeleccionada, notas)
                 },
@@ -238,4 +256,3 @@ fun GastoScreen(
         }
     }
 }
-

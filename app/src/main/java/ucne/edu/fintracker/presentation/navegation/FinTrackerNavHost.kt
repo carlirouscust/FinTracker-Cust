@@ -2,6 +2,7 @@ package ucne.edu.fintracker.presentation.navegation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -19,7 +20,9 @@ import ucne.edu.fintracker.presentation.login.ResetPasswordScreen
 import ucne.edu.fintracker.presentation.remote.DateUtil
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import org.threeten.bp.OffsetDateTime
+import org.threeten.bp.ZoneOffset
+
 
 @Composable
 fun FinTrackerNavHost(
@@ -65,23 +68,39 @@ fun FinTrackerNavHost(
         }
 
 
-        composable("gasto_nuevo") {
-            val gastoViewModel = hiltViewModel<GastoViewModel>()
+        composable("gasto_nuevo/{tipo}") { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+
+            val gastoViewModel: GastoViewModel = hiltViewModel()
+            val categoriaViewModel: CategoriaViewModel = hiltViewModel()
+
+            val categoriaUiState = categoriaViewModel.uiState.collectAsState().value
+
+            val categoriasFiltradas = categoriaUiState.categorias
+//                .filter { cat ->
+//                cat.tipo.equals(tipo, ignoreCase = true)
+//            }
 
             GastoScreen(
-                categorias = listOf("Comida", "Transporte", "Salario", "Internet", "Otros"),
-                onGuardar = { tipo, monto, categoria, fecha, notas ->
-                    val nuevaTransaccion = TransaccionDto(
-                        transaccionId = DateUtil.generateUniqueId(),
-                        monto = monto,
-                        categoriaId = 0,
-                        categoria = CategoriaDto(0, categoria),
-                        fecha = DateUtil.parseFecha(fecha),
-                        notas = notas,
-                        tipo = tipo
-                    )
-                    gastoViewModel.agregarTransaccion(nuevaTransaccion)
-                    navHostController.popBackStack()
+                categorias = categoriasFiltradas.map { it.nombre },
+                onGuardar = { tipoSeleccionado, monto, categoriaNombre, fecha, notas ->
+                    val categoriaSeleccionada =
+                        categoriasFiltradas.find { it.nombre == categoriaNombre }
+                    if (categoriaSeleccionada != null) {
+
+                        val fechaActualUtc = OffsetDateTime.now(ZoneOffset.UTC)
+
+                        gastoViewModel.crearTransaccion(
+                            TransaccionDto(
+                                transaccionId = 0,
+                                monto = monto,
+                                categoriaId = categoriaSeleccionada.categoriaId,
+                                fecha = fechaActualUtc,
+                                notas = notas,
+                                tipo = tipoSeleccionado
+                            )
+                        )
+                    }
                 },
                 onCancel = {
                     navHostController.popBackStack()
@@ -89,7 +108,10 @@ fun FinTrackerNavHost(
             )
         }
 
-        composable("categoria/{tipo}") { backStackEntry ->
+
+
+
+            composable("categoria/{tipo}") { backStackEntry ->
             val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
             val categoriaVM = hiltViewModel<CategoriaViewModel>()
             CategoriaListScreen(

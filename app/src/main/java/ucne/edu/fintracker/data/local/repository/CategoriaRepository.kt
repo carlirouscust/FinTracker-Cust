@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import javax.inject.Inject
 
 class CategoriaRepository @Inject constructor(
@@ -32,6 +33,8 @@ class CategoriaRepository @Inject constructor(
             emit(Resource.Error("Error al crear categoría: ${e.message}"))
         }
     }
+
+
 
 
 

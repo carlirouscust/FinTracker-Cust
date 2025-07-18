@@ -3,6 +3,7 @@ package ucne.edu.fintracker.presentation.remote
 import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import javax.inject.Inject
 
 class DataSource @Inject constructor(
@@ -40,4 +41,23 @@ class DataSource @Inject constructor(
 
     suspend fun deleteCategoria(id: Int) =
         api.deleteCategoria(id)
+
+    // ------------------- TRANSACCIONES -------------------
+    suspend fun getTransacciones(): List<TransaccionDto> =
+        api.getTransaccion()
+
+    suspend fun createTransaccion(transaccionDto: TransaccionDto): TransaccionDto =
+        api.createTransaccion(transaccionDto)
+
+    suspend fun getTransaccion(id: Int): TransaccionDto =
+        api.getTransaccion(id)
+
+    suspend fun updateTransaccion(id: Int, transaccionDto: TransaccionDto): TransaccionDto =
+        api.updateTransaccion(id, transaccionDto)
+
+    suspend fun deleteTransaccion(id: Int) =
+        api.deleteTransaccion(id)
+
 }
+
+

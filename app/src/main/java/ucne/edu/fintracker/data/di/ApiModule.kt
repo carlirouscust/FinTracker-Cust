@@ -10,7 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import javax.inject.Singleton
-import ucne.edu.fintracker.presentation.remote.LocalDateAdapter
+import ucne.edu.fintracker.presentation.remote.LocalDateTimeAdapter
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -21,27 +21,30 @@ object ApiModule {
     @Singleton
     fun providesMoshi(): Moshi =
         Moshi.Builder()
+            .add(LocalDateTimeAdapter())      // Aquí agregas tu adapter
             .add(KotlinJsonAdapterFactory())
             .build()
 
     @Provides
     @Singleton
-    fun providesGitHubApi(moshi: Moshi): FinTrackerApi {
+    fun providesFinTrackerApi(moshi: Moshi): FinTrackerApi {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(FinTrackerApi::class.java)
     }
-
-
-    val moshi = Moshi.Builder()
-        .add(LocalDateAdapter())
-        .build()
-
-//    val retrofit = Retrofit.Builder()
-//        .baseUrl("https://api.tuservicio.com/")
-//        .addConverterFactory(MoshiConverterFactory.create(moshi))
-//        .build()
-
 }
+
+
+//    val moshi = Moshi.Builder()
+//        .add(LocalDateTimeAdapter())
+//        .build()
+//
+//
+////    val retrofit = Retrofit.Builder()
+////        .baseUrl("https://api.tuservicio.com/")
+////        .addConverterFactory(MoshiConverterFactory.create(moshi))
+////        .build()
+//
+//}

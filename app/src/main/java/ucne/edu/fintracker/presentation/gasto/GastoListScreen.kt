@@ -113,11 +113,12 @@ fun GastoPieChart(
                         )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = categoria.nombre)
+                Text(text = categoria?.nombre ?: "")
             }
         }
     }
 }
+
 
 // --- PANTALLA PRINCIPAL ---
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +129,7 @@ fun GastoListScreen(
     navController: NavController
 ) {
     val state by viewModel.uiState.collectAsState()
-    var tipo by remember { mutableStateOf("Gastos") }
+    var tipo by remember { mutableStateOf("Gasto") }
     val transaccionesFiltradas = state.transacciones.filter { it.tipo == state.tipoSeleccionado }
     val total = transaccionesFiltradas.sumOf { it.monto }
 
@@ -176,7 +177,9 @@ fun GastoListScreen(
                 },
                 floatingActionButton = {
                     FloatingActionButton(
-                        onClick = onNuevoClick,
+                        onClick = {
+                            navController.navigate("gasto_nuevo/{tipo}")
+                        },
                         containerColor = Color(0xFF8BC34A),
                         shape = RoundedCornerShape(24.dp)
                     ) {
@@ -224,8 +227,8 @@ fun GastoListScreen(
                     // Botones tipo
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Button(
-                            onClick = { tipo = "Gastos" },
-                            colors = if (tipo == "Gastos")
+                            onClick = { tipo = "Gasto" },
+                            colors = if (tipo == "Gasto")
                                 ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                             else
                                 ButtonDefaults.buttonColors(containerColor = Color.LightGray),
@@ -335,7 +338,7 @@ fun GastoListScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column {
-                                        Text(transaccion.categoria.nombre, fontWeight = FontWeight.Bold)
+                                        Text(text = transaccion.categoria?.nombre ?: "", fontWeight = FontWeight.Bold)
                                         Text(
                                             transaccion.fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                                             color = Color.Gray

@@ -34,7 +34,7 @@ interface FinTrackerApi {
         suspend fun getTransaccion(): List<TransaccionDto>
 
         @POST("api/Transacciones")
-        suspend fun createTransaccion(@Body usuarioDto: TransaccionDto): TransaccionDto
+        suspend fun createTransaccion(@Body transaccionDto: TransaccionDto): TransaccionDto
 
         @GET("api/Transacciones/{id}")
         suspend fun getTransaccion(@Path("id") id: Int): TransaccionDto
