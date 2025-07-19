@@ -22,15 +22,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.*
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastoScreen(
     categorias: List<String>,
-    onGuardar: (tipo: String, monto: Double, categoria: String, fecha: String, notas: String) -> Unit,
+    tipoInicial: String = "Gasto",
+    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String) -> Unit,
     onCancel: () -> Unit
 ) {
-    var tipo by remember { mutableStateOf("Gasto") }
+    var tipo by remember { mutableStateOf(tipoInicial) }
     var monto by remember { mutableStateOf(TextFieldValue("")) }
     var categoriaSeleccionada by remember { mutableStateOf<String?>(null) }
     var expandedCategoria by remember { mutableStateOf(false) }
@@ -76,6 +76,7 @@ fun GastoScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            // Botones Gasto / Ingreso
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -104,6 +105,7 @@ fun GastoScreen(
                 }
             }
 
+            // Campo monto
             OutlinedTextField(
                 value = monto,
                 onValueChange = {
@@ -135,8 +137,7 @@ fun GastoScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
+            // Categoría
             ExposedDropdownMenuBox(
                 expanded = expandedCategoria,
                 onExpandedChange = { expandedCategoria = !expandedCategoria }
@@ -177,8 +178,7 @@ fun GastoScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
+            // Fecha
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -218,8 +218,7 @@ fun GastoScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
+            // Notas
             OutlinedTextField(
                 value = notas,
                 onValueChange = { notas = it },
@@ -238,11 +237,20 @@ fun GastoScreen(
                 )
             )
 
+            // Botón Guardar
             Button(
                 onClick = {
                     val montoDouble = monto.text.toDoubleOrNull() ?: 0.0
                     val cat = categoriaSeleccionada ?: ""
+
                     onGuardar(tipo, montoDouble, cat, fechaSeleccionada, notas)
+
+                    // limpiar campos
+                    monto = TextFieldValue("")
+                    notas = ""
+                    categoriaSeleccionada = null
+                    fechaSeleccionada = "Hoy"
+                    tipo = tipoInicial
                 },
                 modifier = Modifier
                     .fillMaxWidth()

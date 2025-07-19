@@ -72,25 +72,21 @@ fun FinTrackerNavHost(
 
 
         composable("gasto_nuevo/{tipo}") { backStackEntry ->
-            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+            val tipoInicial = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
 
             val gastoViewModel: GastoViewModel = hiltViewModel()
             val categoriaViewModel: CategoriaViewModel = hiltViewModel()
 
             val categoriaUiState = categoriaViewModel.uiState.collectAsState().value
-
             val categoriasFiltradas = categoriaUiState.categorias
-//                .filter { cat ->
-//                cat.tipo.equals(tipo, ignoreCase = true)
-//            }
 
             GastoScreen(
                 categorias = categoriasFiltradas.map { it.nombre },
+                tipoInicial = tipoInicial,
                 onGuardar = { tipoSeleccionado, monto, categoriaNombre, fecha, notas ->
                     val categoriaSeleccionada =
                         categoriasFiltradas.find { it.nombre == categoriaNombre }
                     if (categoriaSeleccionada != null) {
-
                         val fechaActualUtc = OffsetDateTime.now(ZoneOffset.UTC)
 
                         gastoViewModel.crearTransaccion(
@@ -103,6 +99,10 @@ fun FinTrackerNavHost(
                                 tipo = tipoSeleccionado
                             )
                         )
+
+                        navHostController.navigate("gastos") {
+                            popUpTo("gastos") { inclusive = true }
+                        }
                     }
                 },
                 onCancel = {
@@ -114,7 +114,8 @@ fun FinTrackerNavHost(
 
 
 
-            composable("categoria/{tipo}") { backStackEntry ->
+
+        composable("categoria/{tipo}") { backStackEntry ->
             val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
             val categoriaVM = hiltViewModel<CategoriaViewModel>()
             CategoriaListScreen(
@@ -144,6 +145,10 @@ fun FinTrackerNavHost(
                     categoriaVM.saveCategoria {
                         navHostController.popBackStack()
                     }
+
+//                    navHostController.navigate("categoria/{tipo}") {
+//                        popUpTo("categoria/{tipo}") { inclusive = true }
+//                    }
                 },
                 onCancel = {
                     navHostController.popBackStack()
