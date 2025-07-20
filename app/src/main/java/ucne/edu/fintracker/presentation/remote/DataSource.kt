@@ -1,8 +1,10 @@
 package ucne.edu.fintracker.presentation.remote
 
+import retrofit2.Response
 import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import javax.inject.Inject
 
@@ -57,6 +59,23 @@ class DataSource @Inject constructor(
 
     suspend fun deleteTransaccion(id: Int) =
         api.deleteTransaccion(id)
+
+    // ------------------- Pago Recurrente -------------------
+    suspend fun getPagoRecurrente(): List<PagoRecurrenteDto> =
+        api.getPagoRecurrente()
+
+    suspend fun createPagoRecurrente(pagoRecurrenteDto: PagoRecurrenteDto): PagoRecurrenteDto =
+        api.createPagoRecurrente(pagoRecurrenteDto)
+
+    suspend fun getPagoRecurrente(id: Int): PagoRecurrenteDto =
+        api.getPagoRecurrente(id)
+
+    suspend fun updatePagoRecurrente(id: Int, pagoRecurrenteDto: PagoRecurrenteDto): Response<Void> {
+        return api.updatePagoRecurrente(id, pagoRecurrenteDto)
+    }
+
+    suspend fun deletePagoRecurrente(id: Int) =
+        api.deletePagoRecurrente(id)
 
 }
 
