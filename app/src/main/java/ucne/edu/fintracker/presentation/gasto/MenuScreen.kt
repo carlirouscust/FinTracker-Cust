@@ -107,7 +107,7 @@ fun MenuScreen(
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
                                 "Gráficos" -> navController.navigate("graficos")
-                                "Pagos Recurrentes" -> navController.navigate("pagos_recurrentes")
+                                "Pagos Recurrentes" -> navController.navigate("pagos")
                                 "Categorías" -> navController.navigate("categoria/{tipo}")
                                 "Limite de gastos" -> navController.navigate("limite_gastos")
                                 "Ajustes" -> navController.navigate("ajustes")
