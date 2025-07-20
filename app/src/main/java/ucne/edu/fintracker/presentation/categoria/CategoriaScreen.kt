@@ -157,11 +157,12 @@ fun CategoriaScreen(
                 }
 
                 Button(
-                    onClick = { viewModel.saveCategoria{
-                        onGuardar("", "", "", "")
-                        viewModel.fetchCategorias()
-                        navController.popBackStack()
-                    } },
+                    onClick = {
+                        viewModel.saveCategoria {
+                            viewModel.fetchCategorias()
+                            navController.popBackStack()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
@@ -169,6 +170,7 @@ fun CategoriaScreen(
                 ) {
                     Text("Guardar")
                 }
+
             }
         }
     }

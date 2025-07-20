@@ -56,6 +56,9 @@ fun CategoriaListScreen(
         viewModel.onTipoChange(tipoFiltro)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchCategorias()
+    }
     val categorias = uiState.categorias.filter { it.tipo == tipo }
 
     Column(

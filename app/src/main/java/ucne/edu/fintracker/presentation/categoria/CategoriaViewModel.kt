@@ -80,7 +80,6 @@ class CategoriaViewModel @Inject constructor(
         _uiState.update { it.copy(colorFondo = value) }
     }
 
-    // Guardar categoría en el backend
     fun saveCategoria(onSuccess: () -> Unit) {
         val current = _uiState.value
         viewModelScope.launch {
@@ -96,15 +95,9 @@ class CategoriaViewModel @Inject constructor(
             ).collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        result.data?.let { nuevaCategoria ->
-                            _uiState.update { old ->
-                                old.copy(
-                                    categorias = old.categorias + nuevaCategoria,
-                                    isLoading = false
-                                )
-                            }
-                            onSuccess()
-                        }
+                        _uiState.update { it.copy(isLoading = false) }
+                        fetchCategorias()
+                        onSuccess()
                     }
                     is Resource.Error -> {
                         _uiState.update { it.copy(error = result.message, isLoading = false) }
@@ -116,6 +109,5 @@ class CategoriaViewModel @Inject constructor(
             }
         }
     }
-
 }
 
