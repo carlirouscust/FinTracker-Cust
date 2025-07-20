@@ -1,14 +1,14 @@
 package ucne.edu.fintracker.presentation.remote.dto
 
-import org.threeten.bp.LocalDate
+import org.threeten.bp.OffsetDateTime
 
 data class PagoRecurrenteDto(
     val pagoRecurrenteId: Int = 0,
     val monto: Double,
     val categoriaId: Int,
-    val categoria: CategoriaDto,
+//    val categoria: CategoriaDto,
     val frecuencia: String, // "Mensual", "Semanal", etc.
-    val fechaInicio: LocalDate,
-    val fechaFin: LocalDate? = null,
+    val fechaInicio: OffsetDateTime,
+    val fechaFin: OffsetDateTime? = null,
     val activo: Boolean = true
 )

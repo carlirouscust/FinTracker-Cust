@@ -237,7 +237,6 @@ fun GastoScreen(
                 )
             )
 
-            // Botón Guardar
             Button(
                 onClick = {
                     val montoDouble = monto.text.toDoubleOrNull() ?: 0.0
