@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.navegation
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,6 +23,14 @@ import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
+import androidx.navigation.NavType
+import androidx.compose.runtime.getValue
+import androidx.navigation.navArgument
+import ucne.edu.fintracker.presentation.pagorecurrente.PagoDetalleScreen
+import ucne.edu.fintracker.presentation.pagorecurrente.PagoListScreen
+import ucne.edu.fintracker.presentation.pagorecurrente.PagoScreen
+import ucne.edu.fintracker.presentation.pagorecurrente.PagoViewModel
+import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 
 
 @Composable
@@ -155,5 +164,131 @@ fun FinTrackerNavHost(
                 }
             )
         }
+
+        composable("pagos") {
+            val pagoViewModel = hiltViewModel<PagoViewModel>()
+
+            val categorias by pagoViewModel.categorias.collectAsState()
+
+            LaunchedEffect(Unit) {
+                pagoViewModel.cargarPagosRecurrentes()
+                pagoViewModel.cargarCategorias()
+            }
+
+            PagoListScreen(
+                viewModel = pagoViewModel,
+                categorias = categorias,
+                onAgregarPagoClick = {
+                    navHostController.navigate("pago_nuevo")
+                },
+                onBackClick = {
+                    navHostController.popBackStack()
+                },
+                onPagoClick = { pagoId ->
+                    navHostController.navigate("pago_detalle/$pagoId")
+                }
+            )
+        }
+
+        composable("pago_nuevo") {
+            val pagoViewModel = hiltViewModel<PagoViewModel>()
+
+            PagoScreen(
+                viewModel = pagoViewModel,
+                pagoParaEditar = null,
+                onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin ->
+                    pagoViewModel.crearPagoRecurrente(
+                        PagoRecurrenteDto(
+                            monto = monto,
+                            categoriaId = categoriaId,
+                            frecuencia = frecuencia,
+                            fechaInicio = fechaInicio,
+                            fechaFin = fechaFin
+                        )
+                    )
+
+                    navHostController.navigate("pagos") {
+                        popUpTo("pagos") { inclusive = true }
+                    }
+                },
+                onCancel = {
+                    navHostController.popBackStack()
+                }
+            )
+        }
+
+
+        composable(
+            route = "pago_detalle/{pagoId}",
+            arguments = listOf(navArgument("pagoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
+            val pagoViewModel = hiltViewModel<PagoViewModel>()
+
+            val uiState by pagoViewModel.uiState.collectAsState()
+            val categorias by pagoViewModel.categorias.collectAsState()
+
+            val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
+            if (pago != null) {
+                val categoria = categorias.find { it.categoriaId == pago.categoriaId }
+                val categoriaIcono = categoria?.icono ?: "💵"
+                val categoriaNombre = categoria?.nombre ?: "Sin categoría"
+
+                PagoDetalleScreen(
+                    pagoId = pagoId,
+                    pago = pago,
+                    categoriaIcono = categoriaIcono,
+                    categoriaNombre = categoriaNombre,
+                    onBackClick = { navHostController.popBackStack() },
+                    onEditarClick = {
+                        navHostController.navigate("pago_editar/$pagoId")
+                    },
+                    onEliminarClick = {
+                        // aquí puedes mostrar diálogo si quieres
+                    },
+                    onEliminarConfirmado = {
+                        pagoViewModel.eliminarPagoRecurrente(pagoId)
+                        navHostController.navigate("pagos") {
+                            popUpTo("pagos") { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(
+            route = "pago_editar/{pagoId}",
+            arguments = listOf(navArgument("pagoId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
+            val pagoViewModel = hiltViewModel<PagoViewModel>()
+            val uiState by pagoViewModel.uiState.collectAsState()
+
+            val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
+
+            if (pago != null) {
+                PagoScreen(
+                    viewModel = pagoViewModel,
+                    pagoParaEditar = pago,
+                    onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin ->
+                        val pagoActualizado = PagoRecurrenteDto(
+                            pagoRecurrenteId = pagoId,
+                            monto = monto,
+                            categoriaId = categoriaId,
+                            frecuencia = frecuencia,
+                            fechaInicio = fechaInicio,
+                            fechaFin = fechaFin
+                        )
+                        pagoViewModel.actualizarPagoRecurrente(pagoId, pagoActualizado)
+                        navHostController.navigate("pagos") {
+                            popUpTo("pagos") { inclusive = true }
+                        }
+                    },
+                    onCancel = { navHostController.popBackStack() }
+                )
+            }
+        }
+
+
     }
 }
