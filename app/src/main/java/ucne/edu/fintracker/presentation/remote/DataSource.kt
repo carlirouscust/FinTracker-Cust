@@ -4,6 +4,8 @@ import retrofit2.Response
 import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import javax.inject.Inject
@@ -77,6 +79,37 @@ class DataSource @Inject constructor(
     suspend fun deletePagoRecurrente(id: Int) =
         api.deletePagoRecurrente(id)
 
+    // ------------------- LIMITE DE GASTO -------------------
+    suspend fun getLimiteGasto(): List<LimiteGastoDto> =
+        api.getLimiteGasto()
+
+    suspend fun createLimiteGasto(limiteGastoDto: LimiteGastoDto): LimiteGastoDto =
+        api.createLimiteGasto(limiteGastoDto)
+
+    suspend fun getLimiteGasto(id: Int): LimiteGastoDto =
+        api.getLimiteGasto(id)
+
+    suspend fun updateLimiteGasto(id: Int, limiteGastoDto: LimiteGastoDto): LimiteGastoDto =
+        api.updateLimiteGasto(id, limiteGastoDto)
+
+    suspend fun deleteLimiteGasto(id: Int) =
+        api.deleteLimiteGasto(id)
+
+    // ------------------- META DE AHORRO -------------------
+    suspend fun getMetaAhorro(): List<MetaAhorroDto> =
+        api.getMetaAhorro()
+
+    suspend fun createMetaAhorro(metaAhorroDto: MetaAhorroDto): MetaAhorroDto =
+        api.createMetaAhorro(metaAhorroDto)
+
+    suspend fun getMetaAhorro(id: Int): MetaAhorroDto =
+        api.getMetaAhorro(id)
+
+    suspend fun updateMetaAhorro(id: Int, metaAhorroDto: MetaAhorroDto): MetaAhorroDto =
+        api.updateMetaAhorro(id, metaAhorroDto)
+
+    suspend fun deleteMetaAhorro(id: Int) =
+        api.deleteMetaAhorro(id)
 }
 
 
