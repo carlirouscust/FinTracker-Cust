@@ -18,8 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.threeten.bp.ZoneOffset
-import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 
 @Composable
