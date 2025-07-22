@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
 import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.categoria.CategoriaViewModel
@@ -212,12 +213,24 @@ fun GastoListScreen(
                             icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                             label = { Text("IA Asesor") }
                         )
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = navBackStackEntry?.destination?.route
+
                         NavigationBarItem(
-                            selected = false,
-                            onClick = { /* otra ruta */ },
+                            selected = currentRoute == "metaahorros",
+                            onClick = {
+                                navController.navigate("metaahorros") {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                }
+                            },
                             icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
                             label = { Text("Metas") }
                         )
+
                     }
                 }
             ) { padding ->
