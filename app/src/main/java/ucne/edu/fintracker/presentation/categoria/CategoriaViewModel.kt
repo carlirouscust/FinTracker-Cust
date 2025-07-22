@@ -24,19 +24,21 @@ class CategoriaViewModel @Inject constructor(
         fetchCategorias()
     }
 
+    // 🔹 Cargar categorías
     fun fetchCategorias() {
         viewModelScope.launch {
             repository.getCategorias().collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         result.data?.let { categorias ->
-                            _uiState.update { it.copy(categorias = categorias) }
+                            _uiState.update { it.copy(categorias = categorias, isLoading = false, error = null) }
                         }
                     }
                     is Resource.Error -> {
-                        _uiState.update { it.copy(error = result.message) }
+                        _uiState.update { it.copy(error = result.message, isLoading = false) }
                     }
                     is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
                     }
                 }
             }
@@ -46,13 +48,6 @@ class CategoriaViewModel @Inject constructor(
     // Cambiar pestaña
     fun onTabSelected(index: Int) {
         _uiState.update { it.copy(selectedTabIndex = index) }
-    }
-
-    // Añadir categoría a la lista local
-    fun agregarCategoria(categoria: CategoriaDto) {
-        _uiState.update { state ->
-            state.copy(categorias = state.categorias + categoria)
-        }
     }
 
     // Filtrar categorías según pestaña
@@ -80,23 +75,42 @@ class CategoriaViewModel @Inject constructor(
         _uiState.update { it.copy(colorFondo = value) }
     }
 
+    // 🔹 Guardar categoría y actualizar la lista local inmediatamente
     fun saveCategoria(onSuccess: () -> Unit) {
         val current = _uiState.value
+        val nuevaCategoria = CategoriaDto(
+            categoriaId = 0,
+            nombre = current.nombre,
+            tipo = current.tipo,
+            icono = current.icono,
+            colorFondo = current.colorFondo
+        )
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            repository.createCategoria(
-                CategoriaDto(
-                    categoriaId = 0,
-                    nombre = current.nombre,
-                    tipo = current.tipo,
-                    icono = current.icono,
-                    colorFondo = current.colorFondo
-                )
-            ).collect { result ->
+            repository.createCategoria(nuevaCategoria).collect { result ->
                 when (result) {
                     is Resource.Success -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                        // ✅ Agregar directamente a la lista local
+                        result.data?.let { categoriaCreada ->
+                            _uiState.update { state ->
+                                state.copy(
+                                    isLoading = false,
+                                    categorias = state.categorias + categoriaCreada,
+                                    nombre = "",
+                                    tipo = "",
+                                    icono = "",
+                                    colorFondo = "",
+                                    error = null
+                                )
+                            }
+                        } ?: run {
+                            _uiState.update { it.copy(isLoading = false) }
+                        }
+
+                        // ✅ Si quieres asegurar sincronización, puedes recargar desde backend
                         fetchCategorias()
+
                         onSuccess()
                     }
                     is Resource.Error -> {
@@ -110,4 +124,3 @@ class CategoriaViewModel @Inject constructor(
         }
     }
 }
-
