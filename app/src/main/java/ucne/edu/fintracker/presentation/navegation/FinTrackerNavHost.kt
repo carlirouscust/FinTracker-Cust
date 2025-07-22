@@ -26,10 +26,20 @@ import org.threeten.bp.ZoneOffset
 import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
 import androidx.navigation.navArgument
+import ucne.edu.fintracker.presentation.limitegasto.LimiteDetalleScreen
+import ucne.edu.fintracker.presentation.limitegasto.LimiteScreen
+import ucne.edu.fintracker.presentation.limitegasto.LimiteListScreen
+import ucne.edu.fintracker.presentation.limitegasto.LimiteViewModel
+import ucne.edu.fintracker.presentation.metaahorro.MetaDetalleScreen
+import ucne.edu.fintracker.presentation.metaahorro.MetaListScreen
+import ucne.edu.fintracker.presentation.metaahorro.MetaViewModel
+import ucne.edu.fintracker.presentation.metaahorro.NuevaMetaScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoDetalleScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoListScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoViewModel
+import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 
 
@@ -289,6 +299,226 @@ fun FinTrackerNavHost(
             }
         }
 
+        composable("limites") {
+            val limiteViewModel = hiltViewModel<LimiteViewModel>()
+
+            val categorias by limiteViewModel.categorias.collectAsState()
+
+            LaunchedEffect(Unit) {
+                limiteViewModel.cargarLimites()
+                limiteViewModel.cargarCategorias()
+            }
+
+            LimiteListScreen(
+                viewModel = limiteViewModel,
+                onAgregarLimiteClick = {
+                    navHostController.navigate("limite_nuevo")
+                },
+                onBackClick = {
+                    navHostController.popBackStack()
+                },
+                onLimiteClick = { limiteId ->
+                    navHostController.navigate("limite_detalle/$limiteId")
+                }
+            )
+        }
+
+        composable("limite_nuevo") {
+            val limiteViewModel = hiltViewModel<LimiteViewModel>()
+
+            LimiteScreen(
+                viewModel = limiteViewModel,
+                limiteParaEditar = null,
+                onGuardar = { montoLimite, categoriaId, periodo ->
+                    limiteViewModel.crearLimite(
+                        LimiteGastoDto(
+                            montoLimite = montoLimite,
+                            categoriaId = categoriaId,
+                            periodo = periodo
+                        )
+                    )
+                    navHostController.navigate("limites") {
+                        popUpTo("limites") { inclusive = true }
+                    }
+                },
+                onCancel = { navHostController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "limite_detalle/{limiteId}",
+            arguments = listOf(navArgument("limiteId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
+            val limiteViewModel = hiltViewModel<LimiteViewModel>()
+
+            val uiState by limiteViewModel.uiState.collectAsState()
+            val categorias by limiteViewModel.categorias.collectAsState()
+
+            val limite = uiState.limites.find { it.limiteGastoId == limiteId }
+            if (limite != null) {
+                val categoria = categorias.find { it.categoriaId == limite.categoriaId }
+                val categoriaIcono = categoria?.icono ?: "💵"
+                val categoriaNombre = categoria?.nombre ?: "Sin categoría"
+
+                LimiteDetalleScreen(
+                    limite = limite,
+                    categoriaIcono = categoriaIcono,
+                    categoriaNombre = categoriaNombre,
+                    onBackClick = { navHostController.popBackStack() },
+                    onEditarClick = { navHostController.navigate("limite_editar/$limiteId") },
+                    onEliminarClick = { /* puedes abrir un diálogo */ },
+                    onEliminarConfirmado = {
+                        limiteViewModel.eliminarLimite(limiteId)
+                        navHostController.navigate("limites") {
+                            popUpTo("limites") { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(
+            route = "limite_editar/{limiteId}",
+            arguments = listOf(navArgument("limiteId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
+            val limiteViewModel = hiltViewModel<LimiteViewModel>()
+            val uiState by limiteViewModel.uiState.collectAsState()
+
+            val limite = uiState.limites.find { it.limiteGastoId == limiteId }
+
+            if (limite != null) {
+                LimiteScreen(
+                    viewModel = limiteViewModel,
+                    limiteParaEditar = limite,
+                    onGuardar = { montoLimite, categoriaId, periodo ->
+                        val limiteActualizado = LimiteGastoDto(
+                            limiteGastoId = limiteId,
+                            montoLimite = montoLimite,
+                            categoriaId = categoriaId,
+                            periodo = periodo
+                        )
+                        limiteViewModel.actualizarLimite(limiteId, limiteActualizado)
+                        navHostController.navigate("limites") {
+                            popUpTo("limites") { inclusive = true }
+                        }
+                    },
+                    onCancel = { navHostController.popBackStack() }
+                )
+            }
+        }
+
+        // 📌 LISTA DE METAS
+        composable("metaahorros") {
+            val metaViewModel = hiltViewModel<MetaViewModel>()
+
+            // Cargar datos al entrar
+            LaunchedEffect(Unit) {
+                metaViewModel.cargarMetas()
+            }
+
+            MetaListScreen(
+                viewModel = metaViewModel,
+                onBackClick = { navHostController.popBackStack() },
+                onAgregarMetaClick = {
+                    navHostController.navigate("meta_nueva")
+                },
+                onMetaClick = { metaId ->
+                    navHostController.navigate("meta_detalle/$metaId")
+                },
+                onAgregarMontoClick = { metaId ->
+                    navHostController.navigate("meta_montoahorro/$metaId")
+                }
+            )
+
+        }
+
+// 📌 NUEVA META
+        composable("meta_nueva") {
+            val metaViewModel = hiltViewModel<MetaViewModel>()
+
+            NuevaMetaScreen(
+                metaParaEditar = null,
+                onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen ->
+                    metaViewModel.crearMeta(
+                        MetaAhorroDto(
+                            nombreMeta = nombre,
+                            montoObjetivo = montoObjetivo,
+                            fechaFinalizacion = fechaFinal,
+                            contribucionRecurrente = if (contribucion) 0.0 else null,
+                            imagen = imagen,
+                            montoAhorrado = 0.0,
+                            fechaMontoAhorrado = fechaFinal // o la fecha actual
+                        )
+                    )
+                    navHostController.navigate("metaahorros") {
+                        popUpTo("metaahorros") { inclusive = true }
+                    }
+                },
+                onCancel = { navHostController.popBackStack() },
+                onImagenSeleccionada = { /* manejar imagen si deseas */ }
+            )
+        }
+
+// 📌 DETALLE META
+        composable(
+            route = "meta_detalle/{metaId}",
+            arguments = listOf(navArgument("metaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
+            val metaViewModel = hiltViewModel<MetaViewModel>()
+
+            val uiState by metaViewModel.uiState.collectAsState()
+            val meta = uiState.metas.find { it.metaAhorroId == metaId }
+
+            meta?.let {
+                MetaDetalleScreen(
+                    meta = it,
+                    onBackClick = { navHostController.popBackStack() },
+                    onEditarClick = { navHostController.navigate("meta_editar/$metaId") },
+                    onEliminarClick = {
+                    },
+                    onEliminarConfirmado = {
+                        metaViewModel.eliminarMeta(metaId)
+                        navHostController.popBackStack()
+                    }
+                )
+            }
+        }
+
+// 📌 EDITAR META
+        composable(
+            route = "meta_editar/{metaId}",
+            arguments = listOf(navArgument("metaId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
+            val metaViewModel = hiltViewModel<MetaViewModel>()
+            val uiState by metaViewModel.uiState.collectAsState()
+
+            val meta = uiState.metas.find { it.metaAhorroId == metaId }
+
+            meta?.let {
+                NuevaMetaScreen(
+                    metaParaEditar = it,
+                    onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen ->
+                        val metaActualizada = it.copy(
+                            nombreMeta = nombre,
+                            montoObjetivo = montoObjetivo,
+                            fechaFinalizacion = fechaFinal,
+                            contribucionRecurrente = if (contribucion) 0.0 else null,
+                            imagen = imagen
+                        )
+                        metaViewModel.actualizarMeta(metaId, metaActualizada)
+                        navHostController.navigate("metaahorros") {
+                            popUpTo("metaahorros") { inclusive = true }
+                        }
+                    },
+                    onCancel = { navHostController.popBackStack() },
+                    onImagenSeleccionada = { /* manejar imagen */ }
+                )
+            }
+        }
 
     }
 }
