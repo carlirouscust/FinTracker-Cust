@@ -109,7 +109,7 @@ fun MenuScreen(
                                 "Gráficos" -> navController.navigate("graficos")
                                 "Pagos Recurrentes" -> navController.navigate("pagos")
                                 "Categorías" -> navController.navigate("categoria/{tipo}")
-                                "Limite de gastos" -> navController.navigate("limite_gastos")
+                                "Limite de gastos" -> navController.navigate("limites")
                                 "Ajustes" -> navController.navigate("ajustes")
                             }
                         },
