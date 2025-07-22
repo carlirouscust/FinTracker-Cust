@@ -4,6 +4,7 @@ data class LoginUiState(
     val loginEmail: String = "",
     val loginPassword: String = "",
     val registerNombre: String = "",
+    val registerApellido: String = "",
     val registerEmail: String = "",
     val registerPassword: String = "",
     val usuarioId: Int = 0,
