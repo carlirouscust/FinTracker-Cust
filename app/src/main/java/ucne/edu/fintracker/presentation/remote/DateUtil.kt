@@ -1,6 +1,8 @@
 package ucne.edu.fintracker.presentation.remote
 
 import org.threeten.bp.LocalDate
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.LocalTime
 
 class DateUtil {
     companion object {
@@ -10,8 +12,8 @@ class DateUtil {
             return idCounter
         }
 
-        fun parseFecha(fechaTexto: String): LocalDate {
-            return when (fechaTexto) {
+        fun parseFecha(fechaTexto: String): LocalDateTime {
+            val localDate = when (fechaTexto) {
                 "Hoy" -> LocalDate.now()
                 "Ayer" -> LocalDate.now().minusDays(1)
                 else -> {
@@ -26,7 +28,9 @@ class DateUtil {
                     }
                 }
             }
+            return LocalDateTime.of(localDate, LocalTime.MIDNIGHT)
         }
     }
 }
+
 

@@ -93,9 +93,11 @@ fun LoginRegisterScreen(
         } else {
             RegisterForm(
                 nombre = state.registerNombre,
+                apellido = state.registerApellido,
                 email = state.registerEmail,
                 password = state.registerPassword,
                 onNombreChange = viewModel::onRegisterNombreChange,
+                onApellidoChange = viewModel::onRegisterApellidoChange,
                 onEmailChange = viewModel::onRegisterEmailChange,
                 onPasswordChange = viewModel::onRegisterPasswordChange,
                 onRegisterClick = {
@@ -259,18 +261,20 @@ fun LoginForm(
 
     }
 }
-
 @Composable
 fun RegisterForm(
     nombre: String,
+    apellido: String,
     email: String,
     password: String,
     onNombreChange: (String) -> Unit,
+    onApellidoChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRegisterClick: () -> Unit
 ) {
     var nombreError by remember { mutableStateOf(false) }
+    var apellidoError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -292,11 +296,38 @@ fun RegisterForm(
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
             )
         )
         if (nombreError) {
             Text("El nombre es obligatorio", color = Color.Red, fontSize = 12.sp)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = apellido,
+            onValueChange = {
+                onApellidoChange(it)
+                apellidoError = false
+            },
+            label = { Text("Apellido") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(65.dp),
+            shape = RoundedCornerShape(14.dp),
+            singleLine = true,
+            isError = apellidoError,
+            textStyle = LocalTextStyle.current.copy(color = Color.Black),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
+            )
+        )
+        if (apellidoError) {
+            Text("El apellido es obligatorio", color = Color.Red, fontSize = 12.sp)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -317,7 +348,8 @@ fun RegisterForm(
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
             )
         )
         if (emailError) {
@@ -351,7 +383,8 @@ fun RegisterForm(
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                unfocusedTextColor = Color.Black,
+                cursorColor = Color.Black
             )
         )
         if (passwordError) {
@@ -363,10 +396,11 @@ fun RegisterForm(
         Button(
             onClick = {
                 nombreError = nombre.isBlank()
+                apellidoError = apellido.isBlank()
                 emailError = email.isBlank()
                 passwordError = password.isBlank()
 
-                if (!nombreError && !emailError && !passwordError) {
+                if (!nombreError && !apellidoError && !emailError && !passwordError) {
                     onRegisterClick()
                 }
             },
@@ -380,6 +414,7 @@ fun RegisterForm(
         }
     }
 }
+
 @Composable
 fun PasswordTextField(
     value: String,

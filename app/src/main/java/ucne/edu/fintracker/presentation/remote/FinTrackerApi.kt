@@ -34,7 +34,7 @@ interface FinTrackerApi {
         suspend fun getTransaccion(): List<TransaccionDto>
 
         @POST("api/Transacciones")
-        suspend fun createTransaccion(@Body usuarioDto: TransaccionDto): TransaccionDto
+        suspend fun createTransaccion(@Body transaccionDto: TransaccionDto): TransaccionDto
 
         @GET("api/Transacciones/{id}")
         suspend fun getTransaccion(@Path("id") id: Int): TransaccionDto
@@ -46,7 +46,7 @@ interface FinTrackerApi {
         suspend fun deleteTransaccion(@Path("id") id: Int)
 
         @GET("api/PagoRecurrentes")
-        suspend fun getPagoRecurrenteo(): List<PagoRecurrenteDto>
+        suspend fun getPagoRecurrente(): List<PagoRecurrenteDto>
 
         @POST("api/PagoRecurrentes")
         suspend fun createPagoRecurrente(@Body pagoRecurrenteDto: PagoRecurrenteDto): PagoRecurrenteDto
@@ -54,8 +54,12 @@ interface FinTrackerApi {
         @GET("api/PagoRecurrentes/{id}")
         suspend fun getPagoRecurrente(@Path("id") id: Int): PagoRecurrenteDto
 
+
         @PUT("api/PagoRecurrentes/{id}")
-        suspend fun updatePagoRecurrente(@Path("id") id: Int, @Body pagoRecurrenteDto: PagoRecurrenteDto): PagoRecurrenteDto
+        suspend fun updatePagoRecurrente(
+                @Path("id") id: Int,
+                @Body pagoRecurrenteDto: PagoRecurrenteDto
+        ): Response<Void>
 
         @DELETE("api/PagoRecurrentes/{id}")
         suspend fun deletePagoRecurrente(@Path("id") id: Int)

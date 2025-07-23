@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
@@ -58,7 +61,7 @@ class LoginViewModel @Inject constructor(
                 val newUser = UsuarioDto(
                     usuarioId = 0,
                     nombre = state.registerNombre,
-                    apellido = "ApellidoEjemplo",
+                    apellido = state.registerApellido,
                     email = state.registerEmail,
                     contraseña = state.registerPassword,
                     divisa = "DOP"
@@ -83,6 +86,12 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(registerNombre = value) }
     }
 
+
+    fun onRegisterApellidoChange(value: String) {
+        _uiState.update { it.copy(registerApellido = value) }
+    }
+
+
     fun onRegisterEmailChange(value: String) {
         _uiState.update { it.copy(registerEmail = value) }
     }
@@ -90,6 +99,7 @@ class LoginViewModel @Inject constructor(
     fun onRegisterPasswordChange(value: String) {
         _uiState.update { it.copy(registerPassword = value) }
     }
+
 
     fun onResetEmailChange(value: String) {
         _uiState.update { it.copy(resetEmail = value, resetError = null, resetSuccess = null) }

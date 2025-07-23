@@ -1,0 +1,228 @@
+package ucne.edu.fintracker.presentation.pagorecurrente
+
+import android.app.DatePickerDialog
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import org.threeten.bp.OffsetDateTime
+import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
+import java.util.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PagoScreen(
+    viewModel: PagoViewModel,
+    pagoParaEditar: PagoRecurrenteDto? = null,
+    onGuardar: (Double, Int, String, OffsetDateTime, OffsetDateTime?) -> Unit,
+    onCancel: () -> Unit
+) {
+    val categorias by viewModel.categorias.collectAsState()
+    val context = LocalContext.current
+
+    // Estado de campos
+    var monto by remember { mutableStateOf(pagoParaEditar?.monto?.toString() ?: "") }
+    var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
+    var frecuencia by remember { mutableStateOf(pagoParaEditar?.frecuencia ?: "") }
+    var fechaInicio by remember { mutableStateOf(pagoParaEditar?.fechaInicio?.toString() ?: "") }
+    var fechaFin by remember { mutableStateOf(pagoParaEditar?.fechaFin?.toString() ?: "") }
+
+    // Cargar categoría si hay pago para editar
+    LaunchedEffect(categorias, pagoParaEditar) {
+        if (pagoParaEditar != null && categorias.isNotEmpty()) {
+            categoriaSeleccionada = categorias.find { it.categoriaId == pagoParaEditar.categoriaId }
+        }
+    }
+
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = if (pagoParaEditar == null) "Agregar Pago Recurrente" else "Editar Pago Recurrente",
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        color = Color.Black
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onCancel) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cerrar",
+                            tint = Color.Black
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black,
+                    navigationIconContentColor = Color.Black
+                )
+            )
+        },
+        bottomBar = {
+            Button(
+                onClick = {
+                    categoriaSeleccionada?.let { cat ->
+                        if (monto.isNotBlank() && frecuencia.isNotBlank() && fechaInicio.isNotBlank()) {
+                            onGuardar(
+                                monto.toDoubleOrNull() ?: 0.0,
+                                cat.categoriaId,
+                                frecuencia,
+                                OffsetDateTime.parse(fechaInicio),
+                                fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) }
+                            )
+
+                            // Limpia solo si es crear, si estás editando puedes navegar atrás
+                            if (pagoParaEditar == null) {
+                                monto = ""
+                                categoriaSeleccionada = null
+                                frecuencia = ""
+                                fechaInicio = ""
+                                fechaFin = ""
+                            }
+                        } else {
+                            Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+                        }
+                    } ?: Toast.makeText(context, "Selecciona una categoría", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
+            ) {
+                Text(if (pagoParaEditar == null) "Agregar Pago Recurrente" else "Guardar Cambios")
+            }
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = monto,
+                onValueChange = { monto = it },
+                label = { Text("Monto") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Dropdown Categorías
+            var expanded by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = categoriaSeleccionada?.nombre ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Categoría") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    categorias.forEach { cat ->
+                        DropdownMenuItem(
+                            text = { Text(cat.nombre) },
+                            onClick = {
+                                categoriaSeleccionada = cat
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value = frecuencia,
+                onValueChange = { frecuencia = it },
+                label = { Text("Frecuencia (Ej: Mensual)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Fecha Inicio
+            FechaSelector(
+                label = "Fecha de Inicio",
+                fecha = fechaInicio,
+                onFechaSeleccionada = { fechaInicio = it }
+            )
+
+            // Fecha Fin opcional
+            FechaSelector(
+                label = "Fecha de Finalización (Opcional)",
+                fecha = fechaFin,
+                onFechaSeleccionada = { fechaFin = it }
+            )
+        }
+    }
+}
+
+@Composable
+private fun FechaSelector(label: String, fecha: String, onFechaSeleccionada: (String) -> Unit) {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = fecha,
+            onValueChange = {},
+            label = { Text(label) },
+            modifier = Modifier.weight(1f),
+            readOnly = true
+        )
+        IconButton(
+            onClick = {
+                val calendario = Calendar.getInstance()
+                DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        val mes = (month + 1).toString().padStart(2, '0')
+                        val dia = dayOfMonth.toString().padStart(2, '0')
+                        onFechaSeleccionada("$year-$mes-${dia}T00:00:00Z")
+                    },
+                    calendario.get(Calendar.YEAR),
+                    calendario.get(Calendar.MONTH),
+                    calendario.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            }
+        ) {
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = "Seleccionar fecha"
+            )
+        }
+    }
+}
