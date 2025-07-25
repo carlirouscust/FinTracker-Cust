@@ -27,6 +27,7 @@ import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
 import androidx.navigation.navArgument
 import ucne.edu.fintracker.presentation.limitegasto.LimiteDetalleScreen
+import ucne.edu.fintracker.presentation.asesorIA.ChatIaScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteListScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteViewModel
@@ -265,6 +266,7 @@ fun FinTrackerNavHost(
                 )
             }
         }
+
 
         composable(
             route = "pago_editar/{pagoId}",
@@ -518,6 +520,10 @@ fun FinTrackerNavHost(
                     onImagenSeleccionada = { /* manejar imagen */ }
                 )
             }
+        }
+
+        composable("chatIA") {
+            ChatIaScreen()
         }
 
     }
