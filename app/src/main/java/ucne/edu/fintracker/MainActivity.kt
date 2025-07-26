@@ -26,9 +26,8 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 Scaffold { innerPadding ->
-                    FinTrackerNavHost(
-                        navHostController = navController,
-                        finTrackerApi = finTrackerApi,
+                    FinTrackerNavHost(navHostController = rememberNavController(),
+                    finTrackerApi = finTrackerApi,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
