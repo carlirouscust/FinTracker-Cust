@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,13 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
+import ucne.edu.fintracker.data.local.repository.LoginRepository
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val api: FinTrackerApi
+    private val loginRepository: LoginRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -26,35 +27,25 @@ class LoginViewModel @Inject constructor(
     fun login() {
         viewModelScope.launch {
             try {
-                val usuarios = api.getUsuario()
-                val usuario = usuarios.find {
-                    it.email == _uiState.value.loginEmail &&
-                            it.contraseña == _uiState.value.loginPassword
-                }
-
+                val usuario = loginRepository.login(
+                    _uiState.value.loginEmail,
+                    _uiState.value.loginPassword
+                )
                 if (usuario != null) {
+                    Log.d("LoginViewModel", "Usuario logueado: ${usuario.usuarioId}")
                     _uiState.update {
                         it.copy(usuarioId = usuario.usuarioId ?: 0, loginError = false)
                     }
                 } else {
-                    _uiState.update {
-                        it.copy(loginError = true)
-                    }
+                    _uiState.update { it.copy(loginError = true) }
                 }
             } catch (e: Exception) {
-                println("Error al intentar login: ${e.message}")
-                _uiState.update {
-                    it.copy(loginError = true)
-                }
+                _uiState.update { it.copy(loginError = true) }
             }
         }
     }
 
-
-    fun registerUser(
-        onSuccess: () -> Unit,
-        onError: (Throwable) -> Unit
-    ) {
+    fun registerUser(onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         viewModelScope.launch {
             try {
                 val state = uiState.value
@@ -66,10 +57,25 @@ class LoginViewModel @Inject constructor(
                     contraseña = state.registerPassword,
                     divisa = "DOP"
                 )
-                api.createUsuario(newUser)
+                loginRepository.register(newUser)
                 onSuccess()
             } catch (e: Exception) {
                 onError(e)
+            }
+        }
+    }
+
+    fun resetPassword() {
+        viewModelScope.launch {
+            try {
+                val success = loginRepository.enviarResetPassword(uiState.value.resetEmail)
+                if (success) {
+                    println("Enlace enviado")
+                } else {
+                    println("Error al enviar enlace")
+                }
+            } catch (e: Exception) {
+                println("Excepción: ${e.message}")
             }
         }
     }
@@ -105,21 +111,6 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(resetEmail = value, resetError = null, resetSuccess = null) }
     }
 
-    fun resetPassword() {
-        viewModelScope.launch {
-            try {
-                val email = uiState.value.resetEmail
-                val response = api.enviarLinkResetPassword(ResetPasswordRequest(email))
-                if (response.isSuccessful) {
-                    println("Enlace enviado")
-                } else {
-                    println("Error: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                println("Excepción: ${e.message}")
-            }
-        }
-    }
 
     fun changeTab(index: Int) {
         _uiState.update { it.copy(tabIndex = index) }

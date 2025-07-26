@@ -11,5 +11,6 @@ data class MetaAhorroDto(
     val imagen: String? = null,
     val montoActual: Double? = null,
     val montoAhorrado: Double? = null,
-    val fechaMontoAhorrado: OffsetDateTime? = null
+    val fechaMontoAhorrado: OffsetDateTime? = null,
+    val usuarioId: Int
 )

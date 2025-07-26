@@ -29,8 +29,9 @@ import java.util.*
 @Composable
 fun PagoScreen(
     viewModel: PagoViewModel,
+    usuarioId: Int,
     pagoParaEditar: PagoRecurrenteDto? = null,
-    onGuardar: (Double, Int, String, OffsetDateTime, OffsetDateTime?) -> Unit,
+    onGuardar: (Double, Int, String, OffsetDateTime, OffsetDateTime?, Int) -> Unit,
     onCancel: () -> Unit
 ) {
     val categorias by viewModel.categorias.collectAsState()
@@ -89,7 +90,8 @@ fun PagoScreen(
                                 cat.categoriaId,
                                 frecuencia,
                                 OffsetDateTime.parse(fechaInicio),
-                                fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) }
+                                fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) },
+                                usuarioId
                             )
 
                             // Limpia solo si es crear, si estás editando puedes navegar atrás

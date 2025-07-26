@@ -23,8 +23,9 @@ import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 @Composable
 fun LimiteScreen(
     viewModel: LimiteViewModel,
+    usuarioId: Int,
     limiteParaEditar: LimiteGastoDto? = null,
-    onGuardar: (Double, Int, String) -> Unit,
+    onGuardar: (Double, Int, String,  usuarioId: Int) -> Unit,
     onCancel: () -> Unit
 ) {
     val categorias by viewModel.categorias.collectAsState()
@@ -79,7 +80,8 @@ fun LimiteScreen(
                             onGuardar(
                                 montoLimite.toDoubleOrNull() ?: 0.0,
                                 cat.categoriaId,
-                                periodoSeleccionado
+                                periodoSeleccionado,
+                                usuarioId
                             )
 
                             if (limiteParaEditar == null) {

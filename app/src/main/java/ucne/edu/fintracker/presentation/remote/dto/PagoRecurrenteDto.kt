@@ -10,5 +10,6 @@ data class PagoRecurrenteDto(
     val frecuencia: String, // "Mensual", "Semanal", etc.
     val fechaInicio: OffsetDateTime,
     val fechaFin: OffsetDateTime? = null,
-    val activo: Boolean = true
+    val activo: Boolean = true,
+    val usuarioId: Int
 )
