@@ -8,48 +8,52 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 
+
 class TransaccionRepository @Inject constructor(
     private val dataSource: DataSource
 ) {
 
-    fun getTransacciones(): Flow<Resource<List<TransaccionDto>>> = flow {
+    // Obtener transacciones filtradas por usuarioId
+    fun getTransacciones(usuarioId: Int): Flow<Resource<List<TransaccionDto>>> = flow {
+        emit(Resource.Loading())
         try {
-            emit(Resource.Loading())
-            val transacciones = dataSource.getTransacciones()
+            val transacciones = dataSource.getTransaccionesPorUsuario(usuarioId)
             emit(Resource.Success(transacciones))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al obtener transacciones: ${e.message}"))
+            emit(Resource.Error("Error al obtener transacciones: ${e.message ?: "Error desconocido"}"))
         }
     }
 
+    // Crear una nueva transacción
     fun createTransaccion(transaccionDto: TransaccionDto): Flow<Resource<TransaccionDto>> = flow {
+        emit(Resource.Loading())
         try {
-            emit(Resource.Loading())
             val result = dataSource.createTransaccion(transaccionDto)
             emit(Resource.Success(result))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al crear transacción: ${e.message}"))
+            emit(Resource.Error("Error al crear transacción: ${e.message ?: "Error desconocido"}"))
         }
     }
 
+    // Actualizar una transacción existente
     fun updateTransaccion(id: Int, transaccionDto: TransaccionDto): Flow<Resource<TransaccionDto>> = flow {
+        emit(Resource.Loading())
         try {
-            emit(Resource.Loading())
             val result = dataSource.updateTransaccion(id, transaccionDto)
             emit(Resource.Success(result))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al actualizar transacción: ${e.message}"))
+            emit(Resource.Error("Error al actualizar transacción: ${e.message ?: "Error desconocido"}"))
         }
     }
 
+    // Eliminar una transacción
     fun deleteTransaccion(id: Int): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
         try {
-            emit(Resource.Loading())
             dataSource.deleteTransaccion(id)
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al eliminar transacción: ${e.message}"))
+            emit(Resource.Error("Error al eliminar transacción: ${e.message ?: "Error desconocido"}"))
         }
     }
 }
-
