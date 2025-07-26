@@ -28,13 +28,9 @@ class MetaViewModel @Inject constructor(
     )
     val uiState: StateFlow<MetaUiState> = _uiState
 
-    init {
-        cargarMetas()
-    }
-
-    fun cargarMetas() {
+    fun cargarMetas(usuarioId: Int) {
         viewModelScope.launch {
-            metaRepository.getMetas().collect { result ->
+            metaRepository.getMetas(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true, error = null) }

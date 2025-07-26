@@ -30,21 +30,16 @@ class LimiteViewModel @Inject constructor(
     )
     val uiState: StateFlow<LimiteUiState> = _uiState
 
-
-
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
-    init {
-        cargarCategorias()
-        cargarLimites()
-    }
-
-    fun cargarCategorias() {
+    fun fetchCategorias(usuarioId: Int) {
         viewModelScope.launch {
-            categoriaRepository.getCategorias().collect { result ->
+            categoriaRepository.getCategorias(usuarioId).collect { result ->
                 when (result) {
-                    is Resource.Loading -> {  }
+                    is Resource.Loading -> {
+
+                    }
                     is Resource.Success -> {
                         _categorias.value = result.data ?: emptyList()
                     }
@@ -56,9 +51,10 @@ class LimiteViewModel @Inject constructor(
         }
     }
 
-    fun cargarLimites() {
+
+    fun cargarLimites(usuarioId: Int) {
         viewModelScope.launch {
-            limiteRepository.getLimites().collect { result ->
+            limiteRepository.getLimites(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true, error = null) }
@@ -86,7 +82,6 @@ class LimiteViewModel @Inject constructor(
     }
 
     fun crearLimite(limiteDto: LimiteGastoDto) {
-        Log.d("LimiteVM", "Creando límite: $limiteDto")
         viewModelScope.launch {
             limiteRepository.createLimite(limiteDto).collect { result ->
                 when (result) {
@@ -98,7 +93,6 @@ class LimiteViewModel @Inject constructor(
                             _uiState.update { current ->
                                 current.copy(
                                     isLoading = false,
-                                    limiteCreado = true,
                                     limites = current.limites + nuevoLimite,
                                     error = null
                                 )
@@ -182,5 +176,6 @@ class LimiteViewModel @Inject constructor(
         }
     }
 }
+
 
 

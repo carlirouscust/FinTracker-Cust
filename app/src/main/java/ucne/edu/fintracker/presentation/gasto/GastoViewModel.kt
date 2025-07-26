@@ -35,9 +35,9 @@ class GastoViewModel @Inject constructor(
         _uiState.update { it.copy(tipoSeleccionado = tipo) }
     }
 
-    fun cargarTransacciones() {
+    fun cargarTransacciones(usuarioId: Int) {
         viewModelScope.launch {
-            transaccionRepository.getTransacciones().collect { result ->
+            transaccionRepository.getTransacciones(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true, error = null) }
@@ -53,13 +53,17 @@ class GastoViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         _uiState.update {
-                            it.copy(isLoading = false, error = result.message ?: "Error desconocido")
+                            it.copy(
+                                isLoading = false,
+                                error = result.message ?: "Error desconocido"
+                            )
                         }
                     }
                 }
             }
         }
     }
+
 
     fun crearTransaccion(transaccionDto: TransaccionDto) {
         Log.d("GastoViewModel", "Intentando crear transacción: $transaccionDto")
@@ -89,4 +93,6 @@ class GastoViewModel @Inject constructor(
         listaActual.add(transaccion)
         _uiState.update { it.copy(transacciones = listaActual) }
     }
+
+
 }

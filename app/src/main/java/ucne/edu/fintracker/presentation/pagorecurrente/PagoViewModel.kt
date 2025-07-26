@@ -33,17 +33,13 @@ class PagoViewModel @Inject constructor(
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
-    init {
-        cargarCategorias()
-        cargarPagosRecurrentes()
-    }
 
     // 🔹 Cargar categorías
-    fun cargarCategorias() {
+    fun cargarCategorias(usuarioId: Int) {
         viewModelScope.launch {
-            categoriaRepository.getCategorias().collect { result ->
+            categoriaRepository.getCategorias(usuarioId).collect { result ->
                 when (result) {
-                    is Resource.Loading -> { /* puedes manejar loading si quieres */ }
+                    is Resource.Loading -> { /* opcional manejar loading */ }
                     is Resource.Success -> {
                         _categorias.value = result.data ?: emptyList()
                     }
@@ -55,10 +51,10 @@ class PagoViewModel @Inject constructor(
         }
     }
 
-    // 🔹 Cargar pagos recurrentes
-    fun cargarPagosRecurrentes() {
+    /** 🔹 Cargar pagos recurrentes de un usuario */
+    fun cargarPagosRecurrentes(usuarioId: Int) {
         viewModelScope.launch {
-            pagoRecurrenteRepository.getPagosRecurrentes().collect { result ->
+            pagoRecurrenteRepository.getPagosRecurrentes(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true, error = null) }
