@@ -1,5 +1,9 @@
 package ucne.edu.fintracker.presentation.navegation
 
+import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +29,7 @@ import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
 import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.navigation.navArgument
 import ucne.edu.fintracker.presentation.limitegasto.LimiteDetalleScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteScreen
@@ -32,8 +37,8 @@ import ucne.edu.fintracker.presentation.limitegasto.LimiteListScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteViewModel
 import ucne.edu.fintracker.presentation.metaahorro.MetaDetalleScreen
 import ucne.edu.fintracker.presentation.metaahorro.MetaListScreen
+import ucne.edu.fintracker.presentation.metaahorro.MetaScreen
 import ucne.edu.fintracker.presentation.metaahorro.MetaViewModel
-import ucne.edu.fintracker.presentation.metaahorro.NuevaMetaScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoDetalleScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoListScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoScreen
@@ -47,7 +52,7 @@ import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 fun FinTrackerNavHost(
     navHostController: NavHostController,
     modifier: Modifier = Modifier,
-    loginViewModel: LoginViewModel = hiltViewModel(),
+    loginViewModel: LoginViewModel = hiltViewModel(),  // <-- aquí recibes loginViewModel
     finTrackerApi: FinTrackerApi = hiltViewModel()
 ) {
     NavHost(
@@ -56,25 +61,81 @@ fun FinTrackerNavHost(
         modifier = modifier
     ) {
         composable("login") {
-            val loginViewModel = hiltViewModel<LoginViewModel>()
             LoginRegisterScreen(
                 navController = navHostController,
                 viewModel = loginViewModel
             )
         }
         composable("register") {
-            val loginViewModel = hiltViewModel<LoginViewModel>()
             LoginRegisterScreen(
                 navController = navHostController,
                 viewModel = loginViewModel
             )
         }
-        composable("reset_password") {
-            ResetPasswordScreen(
-                navController = navHostController,
-                finTrackerApi = finTrackerApi
+
+
+
+        composable("categoria/{tipo}") { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+            val categoriaVM = hiltViewModel<CategoriaViewModel>()
+            val loginState = loginViewModel.uiState.collectAsState().value
+            val usuarioId = loginState.usuarioId
+
+            LaunchedEffect(usuarioId) {
+                if (usuarioId != 0) {
+                    categoriaVM.setUsuarioId(usuarioId)
+                }
+            }
+
+            CategoriaListScreen(
+                viewModel = categoriaVM,
+                tipoFiltro = tipo,
+                usuarioId = usuarioId,
+                onBackClick = { navHostController.popBackStack() },
+                onAgregarCategoriaClick = { tipoActual ->
+                    navHostController.navigate("categoria_nueva/$tipoActual")
+                },
+                onCategoriaClick = { categoria ->
+                    navHostController.navigate("categoria_detalle/${categoria.categoriaId}")
+                }
             )
         }
+
+        composable("categoria_nueva/{tipo}") { backStackEntry ->
+            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+            val categoriaVM = hiltViewModel<CategoriaViewModel>()
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+            Log.d("CategoriaNueva", "usuarioId: $usuarioId")
+
+
+            LaunchedEffect(usuarioId) {
+                if (usuarioId != 0) {
+                    categoriaVM.setUsuarioId(usuarioId)
+                    categoriaVM.onTipoChange(tipo)
+                }
+            }
+
+            if (usuarioId == 0) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                CategoriaScreen(
+                    navController = navHostController,
+                    viewModel = categoriaVM,
+                    usuarioId = usuarioId,
+                    tipo = tipo,
+                    onGuardar = { _, _, _, _ ->
+                        categoriaVM.saveCategoria(usuarioId) {
+                            navHostController.popBackStack()
+                        }
+                    },
+                    onCancel = { navHostController.popBackStack() }
+                )
+            }
+        }
+
+
         composable("gastos") {
             val gastoViewModel = hiltViewModel<GastoViewModel>()
             val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
@@ -95,6 +156,9 @@ fun FinTrackerNavHost(
 
             val gastoViewModel: GastoViewModel = hiltViewModel()
             val categoriaViewModel: CategoriaViewModel = hiltViewModel()
+            val loginViewModel: LoginViewModel = hiltViewModel()
+
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
             val categoriaUiState = categoriaViewModel.uiState.collectAsState().value
             val categoriasFiltradas = categoriaUiState.categorias
@@ -102,87 +166,39 @@ fun FinTrackerNavHost(
             GastoScreen(
                 categorias = categoriasFiltradas.map { it.nombre },
                 tipoInicial = tipoInicial,
-                onGuardar = { tipoSeleccionado, monto, categoriaNombre, fecha, notas ->
-                    val categoriaSeleccionada =
-                        categoriasFiltradas.find { it.nombre == categoriaNombre }
-                    if (categoriaSeleccionada != null) {
-                        val fechaActualUtc = OffsetDateTime.now(ZoneOffset.UTC)
-
-                        gastoViewModel.crearTransaccion(
-                            TransaccionDto(
-                                transaccionId = 0,
-                                monto = monto,
-                                categoriaId = categoriaSeleccionada.categoriaId,
-                                fecha = fechaActualUtc,
-                                notas = notas,
-                                tipo = tipoSeleccionado
-                            )
+                usuarioId = usuarioId,
+                onGuardar = { tipoSeleccionado, monto, categoriaNombre, fecha, notas, UsuarioId ->
+                    gastoViewModel.crearTransaccion(
+                        TransaccionDto(
+                            transaccionId = 0,
+                            monto = monto,
+                            categoriaId = categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0,
+                            fecha = OffsetDateTime.now(ZoneOffset.UTC),
+                            notas = notas,
+                            tipo = tipoSeleccionado,
+                            usuarioId = UsuarioId
                         )
-
-                        navHostController.navigate("gastos") {
-                            popUpTo("gastos") { inclusive = true }
-                        }
+                    )
+                    navHostController.navigate("gastos") {
+                        popUpTo("gastos") { inclusive = true }
                     }
                 },
-                onCancel = {
-                    navHostController.popBackStack()
-                }
+                onCancel = { navHostController.popBackStack() }
             )
         }
 
 
-
-
-
-        composable("categoria/{tipo}") { backStackEntry ->
-            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
-            val categoriaVM = hiltViewModel<CategoriaViewModel>()
-            CategoriaListScreen(
-                viewModel = categoriaVM,
-                tipoFiltro = tipo,
-                onBackClick = { navHostController.popBackStack() },
-                onAgregarCategoriaClick = { tipoActual ->
-                    navHostController.navigate("categoria_nueva/${tipoActual}")
-                },
-                onCategoriaClick = { categoria ->
-                    navHostController.navigate("categoria_detalle/${categoria.categoriaId}")
-                }
-            )
-        }
-
-        composable("categoria_nueva/{tipo}") { backStackEntry ->
-            val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
-            val categoriaVM = hiltViewModel<CategoriaViewModel>()
-            LaunchedEffect(tipo) {
-                categoriaVM.onTipoChange(tipo)
-            }
-            CategoriaScreen(
-                navController = navHostController,
-                viewModel = categoriaVM,
-                tipo = tipo,
-                onGuardar = { _, _, _, _ ->
-                    categoriaVM.saveCategoria {
-                        navHostController.popBackStack()
-                    }
-
-//                    navHostController.navigate("categoria/{tipo}") {
-//                        popUpTo("categoria/{tipo}") { inclusive = true }
-//                    }
-                },
-                onCancel = {
-                    navHostController.popBackStack()
-                }
-            )
-        }
 
         composable("pagos") {
             val pagoViewModel = hiltViewModel<PagoViewModel>()
-
             val categorias by pagoViewModel.categorias.collectAsState()
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
-            LaunchedEffect(Unit) {
-                pagoViewModel.cargarPagosRecurrentes()
-                pagoViewModel.cargarCategorias()
+            LaunchedEffect(usuarioId) {
+                if (usuarioId != 0) {
+                    pagoViewModel.cargarPagosRecurrentes(usuarioId)
+                    pagoViewModel.cargarCategorias(usuarioId)
+                }
             }
 
             PagoListScreen(
@@ -202,18 +218,23 @@ fun FinTrackerNavHost(
 
         composable("pago_nuevo") {
             val pagoViewModel = hiltViewModel<PagoViewModel>()
+            val loginViewModel: LoginViewModel = hiltViewModel()
+
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
             PagoScreen(
                 viewModel = pagoViewModel,
                 pagoParaEditar = null,
-                onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin ->
+                usuarioId = usuarioId,
+                onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioId ->
                     pagoViewModel.crearPagoRecurrente(
                         PagoRecurrenteDto(
                             monto = monto,
                             categoriaId = categoriaId,
                             frecuencia = frecuencia,
                             fechaInicio = fechaInicio,
-                            fechaFin = fechaFin
+                            fechaFin = fechaFin,
+                            usuarioId = usuarioId
                         )
                     )
 
@@ -254,7 +275,7 @@ fun FinTrackerNavHost(
                         navHostController.navigate("pago_editar/$pagoId")
                     },
                     onEliminarClick = {
-                        // aquí puedes mostrar diálogo si quieres
+
                     },
                     onEliminarConfirmado = {
                         pagoViewModel.eliminarPagoRecurrente(pagoId)
@@ -273,6 +294,9 @@ fun FinTrackerNavHost(
             val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
             val pagoViewModel = hiltViewModel<PagoViewModel>()
             val uiState by pagoViewModel.uiState.collectAsState()
+            val loginViewModel: LoginViewModel = hiltViewModel()
+
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
             val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
 
@@ -280,14 +304,16 @@ fun FinTrackerNavHost(
                 PagoScreen(
                     viewModel = pagoViewModel,
                     pagoParaEditar = pago,
-                    onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin ->
+                    usuarioId = usuarioId,
+                    onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioId ->
                         val pagoActualizado = PagoRecurrenteDto(
                             pagoRecurrenteId = pagoId,
                             monto = monto,
                             categoriaId = categoriaId,
                             frecuencia = frecuencia,
                             fechaInicio = fechaInicio,
-                            fechaFin = fechaFin
+                            fechaFin = fechaFin,
+                            usuarioId = usuarioId
                         )
                         pagoViewModel.actualizarPagoRecurrente(pagoId, pagoActualizado)
                         navHostController.navigate("pagos") {
@@ -302,11 +328,13 @@ fun FinTrackerNavHost(
         composable("limites") {
             val limiteViewModel = hiltViewModel<LimiteViewModel>()
 
-            val categorias by limiteViewModel.categorias.collectAsState()
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
-            LaunchedEffect(Unit) {
-                limiteViewModel.cargarLimites()
-                limiteViewModel.cargarCategorias()
+            LaunchedEffect(usuarioId) {
+                if (usuarioId != 0) {
+                    limiteViewModel.cargarLimites(usuarioId)
+                    limiteViewModel.fetchCategorias(usuarioId)
+                }
             }
 
             LimiteListScreen(
@@ -323,27 +351,32 @@ fun FinTrackerNavHost(
             )
         }
 
+
         composable("limite_nuevo") {
             val limiteViewModel = hiltViewModel<LimiteViewModel>()
+            val loginViewModel: LoginViewModel = hiltViewModel()
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
             LimiteScreen(
                 viewModel = limiteViewModel,
                 limiteParaEditar = null,
-                onGuardar = { montoLimite, categoriaId, periodo ->
+                onGuardar = { montoLimite, categoriaId, periodo, usuarioId ->
                     limiteViewModel.crearLimite(
                         LimiteGastoDto(
                             montoLimite = montoLimite,
                             categoriaId = categoriaId,
-                            periodo = periodo
+                            periodo = periodo,
+                            usuarioId = usuarioId
                         )
                     )
                     navHostController.navigate("limites") {
                         popUpTo("limites") { inclusive = true }
                     }
                 },
-                onCancel = { navHostController.popBackStack() }
+                onCancel = { navHostController.popBackStack() }, usuarioId = usuarioId
             )
         }
+
 
         composable(
             route = "limite_detalle/{limiteId}",
@@ -384,6 +417,8 @@ fun FinTrackerNavHost(
         ) { backStackEntry ->
             val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
             val limiteViewModel = hiltViewModel<LimiteViewModel>()
+            val loginViewModel: LoginViewModel = hiltViewModel()
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
             val uiState by limiteViewModel.uiState.collectAsState()
 
             val limite = uiState.limites.find { it.limiteGastoId == limiteId }
@@ -392,30 +427,34 @@ fun FinTrackerNavHost(
                 LimiteScreen(
                     viewModel = limiteViewModel,
                     limiteParaEditar = limite,
-                    onGuardar = { montoLimite, categoriaId, periodo ->
+                    onGuardar = { montoLimite, categoriaId, periodo, usuarioId ->
                         val limiteActualizado = LimiteGastoDto(
                             limiteGastoId = limiteId,
                             montoLimite = montoLimite,
                             categoriaId = categoriaId,
-                            periodo = periodo
+                            periodo = periodo,
+                            usuarioId = usuarioId
                         )
                         limiteViewModel.actualizarLimite(limiteId, limiteActualizado)
                         navHostController.navigate("limites") {
                             popUpTo("limites") { inclusive = true }
                         }
                     },
-                    onCancel = { navHostController.popBackStack() }
+                    onCancel = { navHostController.popBackStack() }, usuarioId = usuarioId
                 )
             }
         }
 
-        // 📌 LISTA DE METAS
+
+        //  LISTA DE METAS
         composable("metaahorros") {
             val metaViewModel = hiltViewModel<MetaViewModel>()
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
 
-            // Cargar datos al entrar
-            LaunchedEffect(Unit) {
-                metaViewModel.cargarMetas()
+            LaunchedEffect(usuarioId) {
+                if (usuarioId != 0) {
+                    metaViewModel.cargarMetas(usuarioId)
+                }
             }
 
             MetaListScreen(
@@ -431,16 +470,19 @@ fun FinTrackerNavHost(
                     navHostController.navigate("meta_montoahorro/$metaId")
                 }
             )
-
         }
 
-// 📌 NUEVA META
+    // NUEVA META
         composable("meta_nueva") {
             val metaViewModel = hiltViewModel<MetaViewModel>()
+            val loginViewModel: LoginViewModel = hiltViewModel()
 
-            NuevaMetaScreen(
+            val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+
+            MetaScreen(
                 metaParaEditar = null,
-                onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen ->
+                usuarioId = usuarioId,
+                onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen, usuarioId ->
                     metaViewModel.crearMeta(
                         MetaAhorroDto(
                             nombreMeta = nombre,
@@ -449,7 +491,8 @@ fun FinTrackerNavHost(
                             contribucionRecurrente = if (contribucion) 0.0 else null,
                             imagen = imagen,
                             montoAhorrado = 0.0,
-                            fechaMontoAhorrado = fechaFinal // o la fecha actual
+                            fechaMontoAhorrado = fechaFinal,
+                            usuarioId = usuarioId
                         )
                     )
                     navHostController.navigate("metaahorros") {
@@ -487,7 +530,7 @@ fun FinTrackerNavHost(
             }
         }
 
-// 📌 EDITAR META
+// EDITAR META
         composable(
             route = "meta_editar/{metaId}",
             arguments = listOf(navArgument("metaId") { type = NavType.IntType })
@@ -499,15 +542,17 @@ fun FinTrackerNavHost(
             val meta = uiState.metas.find { it.metaAhorroId == metaId }
 
             meta?.let {
-                NuevaMetaScreen(
+                MetaScreen(
                     metaParaEditar = it,
-                    onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen ->
+                    usuarioId = it.usuarioId,
+                    onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen, usuarioId ->
                         val metaActualizada = it.copy(
                             nombreMeta = nombre,
                             montoObjetivo = montoObjetivo,
                             fechaFinalizacion = fechaFinal,
                             contribucionRecurrente = if (contribucion) 0.0 else null,
-                            imagen = imagen
+                            imagen = imagen,
+                            usuarioId = usuarioId
                         )
                         metaViewModel.actualizarMeta(metaId, metaActualizada)
                         navHostController.navigate("metaahorros") {

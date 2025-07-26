@@ -2,18 +2,13 @@ package ucne.edu.fintracker.presentation.remote
 
 import retrofit2.Response
 import retrofit2.http.*
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
-import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
-import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.presentation.remote.dto.*
 
 interface FinTrackerApi {
 
+        // -------- Usuarios --------
         @GET("api/Usuarios")
-        suspend fun getUsuario(): List<UsuarioDto>
+        suspend fun getUsuarios(): List<UsuarioDto>
 
         @POST("api/Usuarios")
         suspend fun createUsuario(@Body usuarioDto: UsuarioDto): UsuarioDto
@@ -30,8 +25,12 @@ interface FinTrackerApi {
         @POST("usuarios/resetpassword")
         suspend fun enviarLinkResetPassword(@Body request: ResetPasswordRequest): Response<Unit>
 
+        // -------- Transacciones --------
         @GET("api/Transacciones")
-        suspend fun getTransaccion(): List<TransaccionDto>
+        suspend fun getTransacciones(): List<TransaccionDto>
+
+        @GET("api/Transacciones/PorUsuario/{usuarioId}")
+        suspend fun getTransaccionesPorUsuario(@Path("usuarioId") usuarioId: Int): List<TransaccionDto>
 
         @POST("api/Transacciones")
         suspend fun createTransaccion(@Body transaccionDto: TransaccionDto): TransaccionDto
@@ -45,15 +44,18 @@ interface FinTrackerApi {
         @DELETE("api/Transacciones/{id}")
         suspend fun deleteTransaccion(@Path("id") id: Int)
 
+        // -------- Pago recurrente --------
         @GET("api/PagoRecurrentes")
-        suspend fun getPagoRecurrente(): List<PagoRecurrenteDto>
+        suspend fun getPagoRecurrentes(): List<PagoRecurrenteDto>
+
+        @GET("api/PagoRecurrentes/PorUsuario/{usuarioId}")
+        suspend fun getPagoRecurrentesPorUsuario(@Path("usuarioId") usuarioId: Int): List<PagoRecurrenteDto>
 
         @POST("api/PagoRecurrentes")
         suspend fun createPagoRecurrente(@Body pagoRecurrenteDto: PagoRecurrenteDto): PagoRecurrenteDto
 
         @GET("api/PagoRecurrentes/{id}")
         suspend fun getPagoRecurrente(@Path("id") id: Int): PagoRecurrenteDto
-
 
         @PUT("api/PagoRecurrentes/{id}")
         suspend fun updatePagoRecurrente(
@@ -64,8 +66,12 @@ interface FinTrackerApi {
         @DELETE("api/PagoRecurrentes/{id}")
         suspend fun deletePagoRecurrente(@Path("id") id: Int)
 
+        // -------- Metas de ahorro --------
         @GET("api/MetaAhorros")
-        suspend fun getMetaAhorro(): List<MetaAhorroDto>
+        suspend fun getMetaAhorros(): List<MetaAhorroDto>
+
+        @GET("api/MetaAhorros/PorUsuario/{usuarioId}")
+        suspend fun getMetaAhorrosPorUsuario(@Path("usuarioId") usuarioId: Int): List<MetaAhorroDto>
 
         @POST("api/MetaAhorros")
         suspend fun createMetaAhorro(@Body metaAhorroDto: MetaAhorroDto): MetaAhorroDto
@@ -79,9 +85,12 @@ interface FinTrackerApi {
         @DELETE("api/MetaAhorros/{id}")
         suspend fun deleteMetaAhorro(@Path("id") id: Int)
 
-
+        // -------- Límites de gasto --------
         @GET("api/LimiteGastos")
-        suspend fun getLimiteGasto(): List<LimiteGastoDto>
+        suspend fun getLimiteGastos(): List<LimiteGastoDto>
+
+        @GET("api/LimiteGastos/PorUsuario/{usuarioId}")
+        suspend fun getLimiteGastosPorUsuario(@Path("usuarioId") usuarioId: Int): List<LimiteGastoDto>
 
         @POST("api/LimiteGastos")
         suspend fun createLimiteGasto(@Body limiteGastoDto: LimiteGastoDto): LimiteGastoDto
@@ -95,8 +104,12 @@ interface FinTrackerApi {
         @DELETE("api/LimiteGastos/{id}")
         suspend fun deleteLimiteGasto(@Path("id") id: Int)
 
+        // -------- Categorías --------
         @GET("api/Categorias")
-        suspend fun getCategoria(): List<CategoriaDto>
+        suspend fun getCategorias(): List<CategoriaDto>
+
+        @GET("api/Categorias/PorUsuario/{usuarioId}")
+        suspend fun getCategoriasPorUsuario(@Path("usuarioId") usuarioId: Int): List<CategoriaDto>
 
         @POST("api/Categorias")
         suspend fun createCategoria(@Body categoriaDto: CategoriaDto): CategoriaDto
@@ -110,5 +123,3 @@ interface FinTrackerApi {
         @DELETE("api/Categorias/{id}")
         suspend fun deleteCategoria(@Path("id") id: Int)
 }
-
-

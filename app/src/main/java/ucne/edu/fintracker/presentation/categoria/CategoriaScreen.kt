@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.categoria
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,10 +26,12 @@ import androidx.navigation.NavController
 fun CategoriaScreen(
     navController: NavController,
     viewModel: CategoriaViewModel,
+    usuarioId: Int,
     tipo: String,
     onGuardar: (nombre: String, tipo: String, icono: String, color: String) -> Unit,
     onCancel: () -> Unit
-) {
+)
+ {
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -158,10 +161,8 @@ fun CategoriaScreen(
 
                 Button(
                     onClick = {
-                        viewModel.saveCategoria {
-                            viewModel.fetchCategorias()
-                            navController.popBackStack()
-                        }
+                        Log.d("CategoriaScreen", "UsuarioId al guardar: $usuarioId")
+                        onGuardar(state.nombre, state.tipo, state.icono, state.colorFondo)
                     },
                     modifier = Modifier
                         .fillMaxWidth()

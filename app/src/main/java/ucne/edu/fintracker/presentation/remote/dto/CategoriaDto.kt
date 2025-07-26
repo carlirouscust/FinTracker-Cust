@@ -5,5 +5,6 @@ data class CategoriaDto(
     val nombre: String = "",
     val tipo: String = "Gasto", // "Gasto" o "Ingreso"
     val icono: String = "",
-    val colorFondo: String = "FFFFFF" // "#FF5733"
+    val colorFondo: String = "FFFFFF", // "#FF5733"
+    val usuarioId: Int
 )
