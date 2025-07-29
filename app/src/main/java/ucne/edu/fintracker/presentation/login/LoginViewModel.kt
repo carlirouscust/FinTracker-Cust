@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.login
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,9 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.flow.StateFlow
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import ucne.edu.fintracker.data.local.repository.LoginRepository
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
@@ -18,11 +17,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginRepository: LoginRepository
+    private val loginRepository: LoginRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
+    private val _usuarioLogueado = MutableStateFlow<UsuarioDto?>(null)
+    val usuarioLogueado: StateFlow<UsuarioDto?> = _usuarioLogueado
 
     fun login() {
         viewModelScope.launch {
@@ -33,13 +34,19 @@ class LoginViewModel @Inject constructor(
                 )
                 if (usuario != null) {
                     Log.d("LoginViewModel", "Usuario logueado: ${usuario.usuarioId}")
+                    _usuarioLogueado.value = usuario
                     _uiState.update {
-                        it.copy(usuarioId = usuario.usuarioId ?: 0, loginError = false)
+                        it.copy(
+                            usuarioId = usuario.usuarioId ?: 0,
+                            loginError = false
+                        )
                     }
                 } else {
+                    _usuarioLogueado.value = null
                     _uiState.update { it.copy(loginError = true) }
                 }
             } catch (e: Exception) {
+                _usuarioLogueado.value = null
                 _uiState.update { it.copy(loginError = true) }
             }
         }

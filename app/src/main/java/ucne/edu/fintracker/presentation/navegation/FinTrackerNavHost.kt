@@ -221,31 +221,38 @@ fun FinTrackerNavHost(
             val loginViewModel: LoginViewModel = hiltViewModel()
 
             val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+            Log.d("PagoNuevo", "usuarioId: $usuarioId")
 
-            PagoScreen(
-                viewModel = pagoViewModel,
-                pagoParaEditar = null,
-                usuarioId = usuarioId,
-                onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioId ->
-                    pagoViewModel.crearPagoRecurrente(
-                        PagoRecurrenteDto(
-                            monto = monto,
-                            categoriaId = categoriaId,
-                            frecuencia = frecuencia,
-                            fechaInicio = fechaInicio,
-                            fechaFin = fechaFin,
-                            usuarioId = usuarioId
-                        )
-                    )
-
-                    navHostController.navigate("pagos") {
-                        popUpTo("pagos") { inclusive = true }
-                    }
-                },
-                onCancel = {
-                    navHostController.popBackStack()
+            if (usuarioId == 0) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Usuario no autenticado")
                 }
-            )
+            } else {
+                PagoScreen(
+                    viewModel = pagoViewModel,
+                    pagoParaEditar = null,
+                    usuarioId = usuarioId,
+                    onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioIdGuardado ->
+                        pagoViewModel.crearPagoRecurrente(
+                            PagoRecurrenteDto(
+                                monto = monto,
+                                categoriaId = categoriaId,
+                                frecuencia = frecuencia,
+                                fechaInicio = fechaInicio,
+                                fechaFin = fechaFin,
+                                usuarioId = usuarioIdGuardado
+                            )
+                        )
+
+                        navHostController.navigate("pagos") {
+                            popUpTo("pagos") { inclusive = true }
+                        }
+                    },
+                    onCancel = {
+                        navHostController.popBackStack()
+                    }
+                )
+            }
         }
 
 
@@ -340,7 +347,7 @@ fun FinTrackerNavHost(
             LimiteListScreen(
                 viewModel = limiteViewModel,
                 onAgregarLimiteClick = {
-                    navHostController.navigate("limite_nuevo")
+                    navHostController.navigate("limite_nuevo/$usuarioId")
                 },
                 onBackClick = {
                     navHostController.popBackStack()
@@ -352,15 +359,22 @@ fun FinTrackerNavHost(
         }
 
 
-        composable("limite_nuevo") {
-            val limiteViewModel = hiltViewModel<LimiteViewModel>()
-            val loginViewModel: LoginViewModel = hiltViewModel()
+        composable(
+            "limite_nuevo/{usuarioId}",
+            arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+        ) { backStackEntry ->
+
             val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+            val limiteViewModel = hiltViewModel<LimiteViewModel>()
+
+            LaunchedEffect(usuarioId) {
+                limiteViewModel.inicializar(usuarioId)
+            }
 
             LimiteScreen(
                 viewModel = limiteViewModel,
                 limiteParaEditar = null,
-                onGuardar = { montoLimite, categoriaId, periodo, usuarioId ->
+                onGuardar = { montoLimite, categoriaId, periodo, _ ->
                     limiteViewModel.crearLimite(
                         LimiteGastoDto(
                             montoLimite = montoLimite,
@@ -373,9 +387,13 @@ fun FinTrackerNavHost(
                         popUpTo("limites") { inclusive = true }
                     }
                 },
-                onCancel = { navHostController.popBackStack() }, usuarioId = usuarioId
+                onCancel = { navHostController.popBackStack() },
+                usuarioId = usuarioId
             )
         }
+
+
+
 
 
         composable(
@@ -472,7 +490,7 @@ fun FinTrackerNavHost(
             )
         }
 
-    // NUEVA META
+        // NUEVA META
         composable("meta_nueva") {
             val metaViewModel = hiltViewModel<MetaViewModel>()
             val loginViewModel: LoginViewModel = hiltViewModel()

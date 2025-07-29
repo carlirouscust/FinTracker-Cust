@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.limitegasto
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,14 +14,17 @@ import ucne.edu.fintracker.data.local.repository.CategoriaRepository
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import javax.inject.Inject
 
 @HiltViewModel
 class LimiteViewModel @Inject constructor(
     private val limiteRepository: LimiteRepository,
-    private val categoriaRepository: CategoriaRepository
+    private val categoriaRepository: CategoriaRepository,
+
 ) : ViewModel() {
 
+    private var usuarioIdActual: Int? = null
     private val _uiState = MutableStateFlow(
         LimiteUiState(
             limites = emptyList(),
@@ -29,21 +33,32 @@ class LimiteViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<LimiteUiState> = _uiState
-
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
+
+    fun inicializar(usuarioId: Int) {
+        Log.d("LimiteViewModel", "Inicializando datos para usuario $usuarioId")
+        usuarioIdActual = usuarioId
+        fetchCategorias(usuarioId)
+        cargarLimites(usuarioId)
+    }
+
+
     fun fetchCategorias(usuarioId: Int) {
         viewModelScope.launch {
+            Log.d("LimiteViewModel", "Cargando categorías para usuario $usuarioId")
             categoriaRepository.getCategorias(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
 
                     }
                     is Resource.Success -> {
+                        Log.d("LimiteViewModel", "Categorías cargadas: ${result.data?.size}")
                         _categorias.value = result.data ?: emptyList()
                     }
                     is Resource.Error -> {
+                        Log.e("LimiteViewModel", "Error cargando categorías: ${result.message}")
                         _categorias.value = emptyList()
                     }
                 }
