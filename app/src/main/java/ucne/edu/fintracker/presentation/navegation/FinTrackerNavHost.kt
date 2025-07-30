@@ -136,12 +136,13 @@ fun FinTrackerNavHost(
         }
 
 
-        composable("gastos") {
+        composable("gastos") { backStackEntry ->
             val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
             Log.d("NavHost", "usuarioId en gastos: $usuarioId")
 
             val gastoViewModel = hiltViewModel<GastoViewModel>()
             val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
+            val loginViewModel = hiltViewModel<LoginViewModel>()
 
             LaunchedEffect(usuarioId) {
                 if (usuarioId != 0) {
@@ -172,6 +173,7 @@ fun FinTrackerNavHost(
                 }
             }
         }
+
 
 
         composable(
