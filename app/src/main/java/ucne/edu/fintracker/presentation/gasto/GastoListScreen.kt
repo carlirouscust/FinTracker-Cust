@@ -148,7 +148,7 @@ fun GastoListScreen(
                             }
                         },
                         actions = {
-                            IconButton(onClick = { /* perfil */ }) {
+                            IconButton(onClick = { navController.navigate("panel_usuario/$usuarioId") }) {
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
