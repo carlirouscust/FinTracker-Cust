@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.navigation.navArgument
+import ucne.edu.fintracker.presentation.ajustes.AjustesListScreen
 import org.threeten.bp.ZoneOffset
 import ucne.edu.fintracker.presentation.remote.DateUtil
 import ucne.edu.fintracker.presentation.limitegasto.LimiteDetalleScreen
@@ -746,6 +747,10 @@ fun FinTrackerNavHost(
 
         composable("chatIA") {
             ChatIaScreen()
+        }
+
+        composable("ajustes") {
+            AjustesListScreen( )
         }
 
     }
