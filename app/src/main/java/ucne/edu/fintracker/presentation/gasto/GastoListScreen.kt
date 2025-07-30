@@ -129,6 +129,7 @@ fun GastoPieChart(
 @Composable
 fun GastoListScreen(
     viewModel: GastoViewModel,
+    usuarioId: Int,
     categoriaViewModel: CategoriaViewModel,
     onNuevoClick: () -> Unit,
     navController: NavController
@@ -184,7 +185,7 @@ fun GastoListScreen(
                 floatingActionButton = {
                     FloatingActionButton(
                         onClick = {
-                            navController.navigate("gasto_nuevo/$tipo")
+                            navController.navigate("gasto_nuevo/$tipo/$usuarioId")
                         },
                         containerColor = Color(0xFF8BC34A),
                         shape = RoundedCornerShape(24.dp)
@@ -217,9 +218,9 @@ fun GastoListScreen(
                         val currentRoute = navBackStackEntry?.destination?.route
 
                         NavigationBarItem(
-                            selected = currentRoute == "metaahorros",
+                            selected = currentRoute == "metaahorros/$usuarioId",
                             onClick = {
-                                navController.navigate("metaahorros") {
+                                navController.navigate("metaahorros/$usuarioId") {
                                     launchSingleTop = true
                                     restoreState = true
                                     popUpTo(navController.graph.startDestinationId) {
@@ -336,7 +337,7 @@ fun GastoListScreen(
                     } else {
                         GastoPieChart(
                             transacciones = transaccionesFiltradas,
-                            categorias = categoriaState.categorias, // <-- pasa aquí tu lista de categorías
+                            categorias = categoriaState.categorias,
                             modifier = Modifier
                                 .size(200.dp)
                                 .align(Alignment.CenterHorizontally)
