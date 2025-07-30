@@ -110,7 +110,7 @@ fun MenuScreen(
                                 "Pagos Recurrentes" -> navController.navigate("pagos/{usuarioId}")
                                 "Categorías" -> navController.navigate("categoria/{tipo}")
                                 "Limite de gastos" -> navController.navigate("limites/{usuarioId}")
-                                "Ajustes" -> navController.navigate("ajustes")
+                                "Ajustes" -> navController.navigate("ajustes/{usuarioId}")
                             }
                         },
                         modifier = Modifier
