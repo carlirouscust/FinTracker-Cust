@@ -200,37 +200,47 @@ fun GastoListScreen(
                     }
                 },
                 bottomBar = {
-                    NavigationBar(containerColor = Color.White) {
-                        NavigationBarItem(
-                            selected = true,
-                            onClick = { navController.navigate("gastos") },
-                            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                            label = { Text("Home") }
-                        )
-                        NavigationBarItem(
-                            selected = false,
-                            onClick = { navController.navigate("chatIA")},
-                            icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                            label = { Text("IA Asesor") }
-                        )
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val currentRoute = navBackStackEntry?.destination?.route
+                    Box(modifier = Modifier.height(56.dp)) {
+                        NavigationBar(
+                            containerColor = Color.White,
+                            tonalElevation = 0.dp,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            NavigationBarItem(
+                                selected = true,
+                                onClick = { navController.navigate("gastos") },
+                                icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                                label = { Text("Home") }
+                            )
+                            NavigationBarItem(
+                                selected = false,
+                                onClick = { /* otra ruta */ },
+                                icon = {
+                                    Icon(
+                                        Icons.Default.Assistant,
+                                        contentDescription = "IA Asesor"
+                                    )
+                                },
+                                label = { Text("IA Asesor") }
+                            )
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val currentRoute = navBackStackEntry?.destination?.route
 
-                        NavigationBarItem(
-                            selected = currentRoute == "metaahorros",
-                            onClick = {
-                                navController.navigate("metaahorros") {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                            NavigationBarItem(
+                                selected = currentRoute == "metaahorros/$usuarioId",
+                                onClick = {
+                                    navController.navigate("metaahorros/$usuarioId") {
+                                        launchSingleTop = true
+                                        restoreState = true
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
                                     }
-                                }
-                            },
-                            icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                            label = { Text("Metas") }
-                        )
-
+                                },
+                                icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
+                                label = { Text("Metas") }
+                            )
+                        }
                     }
                 }
             ) { padding ->
