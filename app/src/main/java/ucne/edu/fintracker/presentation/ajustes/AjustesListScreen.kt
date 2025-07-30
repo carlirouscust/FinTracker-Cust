@@ -58,7 +58,7 @@ fun AjustesListScreen(
                             )
                         },
                         navigationIcon = {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(Icons.Default.ArrowBack, contentDescription = "Menu")
                             }
                         },
@@ -79,7 +79,7 @@ fun AjustesListScreen(
 
                         NavigationBarItem(
                             selected = currentRoute == "chatIA",
-                            onClick = { navController.navigate("chatIA") },
+                            onClick = { navController.navigate("chatIA/$usuarioId") },
                             icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                             label = { Text("IA Asesor") }
                         )
