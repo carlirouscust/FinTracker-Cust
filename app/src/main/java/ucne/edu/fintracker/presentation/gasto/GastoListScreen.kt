@@ -177,11 +177,8 @@ fun GastoListScreen(
                     }
                 },
                 bottomBar = {
-                    Box(modifier = Modifier.height(56.dp)) {
                         NavigationBar(
                             containerColor = Color.White,
-                            tonalElevation = 0.dp,
-                            modifier = Modifier.fillMaxSize()
                         ) {
                             NavigationBarItem(
                                 selected = true,
@@ -213,7 +210,7 @@ fun GastoListScreen(
                                 label = { Text("Metas") }
                             )
                         }
-                    }
+
                 }
             ) { paddingValues ->
                 Column(
