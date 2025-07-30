@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavHostController
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,10 +35,21 @@ fun PagoDetalleScreen(
     onBackClick: () -> Unit,
     onEditarClick: () -> Unit,
     onEliminarClick: () -> Unit,
-    onEliminarConfirmado: () -> Unit
+    onEliminarConfirmado: () -> Unit,
+    navHostController: NavHostController,
+    pagoViewModel: PagoViewModel
 ) {
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
+
+    LaunchedEffect(true) {
+        pagoViewModel.eventoEliminacion.collect {
+            navHostController.navigate("pagos") {
+                popUpTo("pagos") { inclusive = true }
+            }
+        }
+    }
+
 
     Scaffold(
         containerColor = Color.White,

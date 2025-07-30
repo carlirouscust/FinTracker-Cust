@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.data.local.repository.CategoriaRepository
@@ -29,27 +31,42 @@ class PagoViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<PagoUiState> = _uiState
+    private var usuarioIdActual: Int? = null
+
+    private val _eventoEliminacion = MutableSharedFlow<Unit>()
+    val eventoEliminacion = _eventoEliminacion.asSharedFlow()
 
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
+    fun inicializar(usuarioId: Int) {
+        Log.d("LimiteViewModel", "Inicializando datos para usuario $usuarioId")
+        usuarioIdActual = usuarioId
+        fetchCategorias(usuarioId)
+    }
 
-    // 🔹 Cargar categorías
-    fun cargarCategorias(usuarioId: Int) {
+
+    fun fetchCategorias(usuarioId: Int) {
         viewModelScope.launch {
+            Log.d("LimiteViewModel", "Cargando categorías para usuario $usuarioId")
             categoriaRepository.getCategorias(usuarioId).collect { result ->
                 when (result) {
-                    is Resource.Loading -> { /* opcional manejar loading */ }
+                    is Resource.Loading -> {
+
+                    }
                     is Resource.Success -> {
+                        Log.d("LimiteViewModel", "Categorías cargadas: ${result.data?.size}")
                         _categorias.value = result.data ?: emptyList()
                     }
                     is Resource.Error -> {
+                        Log.e("LimiteViewModel", "Error cargando categorías: ${result.message}")
                         _categorias.value = emptyList()
                     }
                 }
             }
         }
     }
+
 
     /** 🔹 Cargar pagos recurrentes de un usuario */
     fun cargarPagosRecurrentes(usuarioId: Int) {
@@ -81,7 +98,7 @@ class PagoViewModel @Inject constructor(
         }
     }
 
-    // 🔹 Crear pago recurrente
+    // Crear pago recurrente
     fun crearPagoRecurrente(pagoRecurrenteDto: PagoRecurrenteDto) {
         Log.d("PagoRecurrenteVM", "Creando pago recurrente: $pagoRecurrenteDto")
         viewModelScope.launch {
@@ -96,7 +113,7 @@ class PagoViewModel @Inject constructor(
                                 current.copy(
                                     isLoading = false,
                                     pagoCreado = true,
-                                    pagos = current.pagos + nuevoPago, // ✅ Se agrega a la lista existente
+                                    pagos = current.pagos + nuevoPago,
                                     error = null
                                 )
                             }
@@ -150,7 +167,6 @@ class PagoViewModel @Inject constructor(
         }
     }
 
-    // 🔹 Eliminar pago recurrente
     fun eliminarPagoRecurrente(id: Int) {
         viewModelScope.launch {
             pagoRecurrenteRepository.deletePagoRecurrente(id).collect { result ->
@@ -167,6 +183,7 @@ class PagoViewModel @Inject constructor(
                                 error = null
                             )
                         }
+                        _eventoEliminacion.emit(Unit)
                     }
                     is Resource.Error -> {
                         _uiState.update {
@@ -180,4 +197,5 @@ class PagoViewModel @Inject constructor(
             }
         }
     }
+
 }
