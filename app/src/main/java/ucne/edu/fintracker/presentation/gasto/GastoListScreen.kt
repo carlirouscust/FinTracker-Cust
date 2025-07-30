@@ -188,7 +188,7 @@ fun GastoListScreen(
                             )
                             NavigationBarItem(
                                 selected = false,
-                                onClick = { navController.navigate("chatIA") },
+                                onClick = { navController.navigate("chatIA/$usuarioId") },
                                 icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                                 label = { Text("IA Asesor") }
                             )
