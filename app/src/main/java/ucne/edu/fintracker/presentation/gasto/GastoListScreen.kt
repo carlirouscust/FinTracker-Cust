@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,11 +24,21 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
+import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.categoria.CategoriaViewModel
 import ucne.edu.fintracker.presentation.components.MenuScreen
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assistant
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.CardDefaults
+import org.threeten.bp.format.TextStyle
+import java.util.Locale
+
 
 @Composable
 fun ToggleTextButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
@@ -56,15 +65,19 @@ fun GastoPieChart(
     if (transacciones.isEmpty()) return
 
     val total = transacciones.sumOf { it.monto }
-    // Agrupa las transacciones por el id de la categoría
     val transaccionesPorCategoria = transacciones.groupBy { it.categoriaId }
-    // Asigna colores a las categorías (si hay más categorías que colores, se repiten)
-    val colores = listOf(
-        Color(0xFF4CAF50), Color(0xFFFF9800), Color(0xFF03A9F4),
-        Color(0xFFF44336), Color(0xFF9C27B0), Color(0xFF009688)
-    )
-    val categoriaIds = transaccionesPorCategoria.keys.toList()
-    val categoriaColores = categoriaIds.mapIndexed { i, id -> id to colores[i % colores.size] }.toMap()
+
+    val categoriaColores = categorias.associate { categoria ->
+        val hexColor = categoria.colorFondo.removePrefix("#")
+        val colorInt = try {
+            android.graphics.Color.parseColor("#$hexColor")
+        } catch (e: IllegalArgumentException) {
+            android.graphics.Color.GRAY
+        }
+        categoria.categoriaId to Color(colorInt)
+    }
+
+
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -96,49 +109,25 @@ fun GastoPieChart(
             )
         )
     }
-
-    Spacer(modifier = Modifier.height(12.dp))
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        transaccionesPorCategoria.forEach { (categoriaId, _) ->
-            val categoria = categorias.find { it.categoriaId == categoriaId }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(
-                            color = categoriaColores[categoriaId] ?: Color.Gray,
-                            shape = CircleShape
-                        )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = categoria?.nombre ?: "Desconocida")
-            }
-        }
-    }
 }
 
 
-// --- PANTALLA PRINCIPAL ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastoListScreen(
     viewModel: GastoViewModel,
     usuarioId: Int,
     categoriaViewModel: CategoriaViewModel,
-    onNuevoClick: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    onNuevoClick: () -> Unit
 ) {
-    val state by viewModel.uiState.collectAsState()
     val categoriaState by categoriaViewModel.uiState.collectAsState()
-    var tipo by remember { mutableStateOf("Gasto") }
-    val transaccionesFiltradas = state.transacciones.filter { it.tipo == tipo }
+    val state by viewModel.uiState.collectAsState()
+    val transaccionesFiltradas by viewModel.transaccionesFiltradas.collectAsState()
+
     val total = transaccionesFiltradas.sumOf { it.monto }
+
+    var tipo = state.tipoSeleccionado
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -151,21 +140,10 @@ fun GastoListScreen(
                 topBar = {
                     TopAppBar(
                         title = {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Balance", fontSize = 14.sp, color = Color.Gray)
-                                Text(
-                                    text = "%,.0f RD$".format(total),
-                                    style = MaterialTheme.typography.titleLarge.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF4CAF50)
-                                    )
-                                )
-                            }
+
                         },
                         navigationIcon = {
-                            IconButton(onClick = {
-                                scope.launch { drawerState.open() }
-                            }) {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(Icons.Default.Menu, contentDescription = "Menu")
                             }
                         },
@@ -184,9 +162,7 @@ fun GastoListScreen(
                 },
                 floatingActionButton = {
                     FloatingActionButton(
-                        onClick = {
-                            navController.navigate("gasto_nuevo/$tipo/$usuarioId")
-                        },
+                        onClick = { navController.navigate("gasto_nuevo/$tipo/$usuarioId") },
                         containerColor = Color(0xFF8BC34A),
                         shape = RoundedCornerShape(24.dp)
                     ) {
@@ -201,80 +177,96 @@ fun GastoListScreen(
                     }
                 },
                 bottomBar = {
-                    NavigationBar(containerColor = Color.White) {
-                        NavigationBarItem(
-                            selected = true,
-                            onClick = { navController.navigate("gastos") },
-                            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                            label = { Text("Home") }
-                        )
-                        NavigationBarItem(
-                            selected = false,
-                            onClick = { /* otra ruta */ },
-                            icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                            label = { Text("IA Asesor") }
-                        )
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val currentRoute = navBackStackEntry?.destination?.route
+                    Box(modifier = Modifier.height(56.dp)) {
+                        NavigationBar(
+                            containerColor = Color.White,
+                            tonalElevation = 0.dp,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            NavigationBarItem(
+                                selected = true,
+                                onClick = { navController.navigate("gastos") },
+                                icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                                label = { Text("Home") }
+                            )
+                            NavigationBarItem(
+                                selected = false,
+                                onClick = { /* otra ruta */ },
+                                icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
+                                label = { Text("IA Asesor") }
+                            )
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val currentRoute = navBackStackEntry?.destination?.route
 
-                        NavigationBarItem(
-                            selected = currentRoute == "metaahorros/$usuarioId",
-                            onClick = {
-                                navController.navigate("metaahorros/$usuarioId") {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                            NavigationBarItem(
+                                selected = currentRoute == "metaahorros/$usuarioId",
+                                onClick = {
+                                    navController.navigate("metaahorros/$usuarioId") {
+                                        launchSingleTop = true
+                                        restoreState = true
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
                                     }
-                                }
-                            },
-                            icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                            label = { Text("Metas") }
-                        )
-
+                                },
+                                icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
+                                label = { Text("Metas") }
+                            )
+                        }
                     }
                 }
-            ) { padding ->
+            ) { paddingValues ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.White)
-                        .padding(padding)
+                        .padding(paddingValues)
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
-                    // Botones tipo
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Button(
-                            onClick = { tipo = "Gasto" },
+                            onClick = { viewModel.cambiarTipo("Gasto") },
                             colors = if (tipo == "Gasto")
                                 ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                             else
                                 ButtonDefaults.buttonColors(containerColor = Color.LightGray),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                         ) {
+                            Text("Gastos", fontSize = 12.sp, color = if (tipo == "Gasto") Color.White else Color.Black)
+                        }
+
+                        Column(
+                            modifier = Modifier.weight(2f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text("Balance", fontSize = 14.sp, color = Color.Gray)
                             Text(
-                                "Gastos",
-                                color = if (tipo == "Gasto") Color.White else Color.Black
+                                text = "%,.0f RD$".format(total),
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF4CAF50)
+                                )
                             )
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
+
                         Button(
-                            onClick = { tipo = "Ingreso" },
+                            onClick = { viewModel.cambiarTipo("Ingreso") },
                             colors = if (tipo == "Ingreso")
                                 ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                             else
                                 ButtonDefaults.buttonColors(containerColor = Color.LightGray),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                         ) {
-                            Text(
-                                "Ingresos",
-                                color = if (tipo == "Ingreso") Color.White else Color.Black
-                            )
+                            Text("Ingresos", fontSize = 12.sp, color = if (tipo == "Ingreso") Color.White else Color.Black)
                         }
                     }
 
-                    // Filtros
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -292,8 +284,12 @@ fun GastoListScreen(
                         }
                     }
 
+                    val mesActual =
+                        OffsetDateTime.now().month.getDisplayName(TextStyle.FULL, Locale("es"))
+                    val anioActual = OffsetDateTime.now().year
+
                     Text(
-                        text = "Julio 2025",
+                        text = "${mesActual.replaceFirstChar { it.uppercase() }} $anioActual",
                         modifier = Modifier.fillMaxWidth(),
                         fontSize = 16.sp,
                         color = Color.Gray,
@@ -319,15 +315,20 @@ fun GastoListScreen(
                                         color = android.graphics.Color.DKGRAY
                                         style = android.graphics.Paint.Style.STROKE
                                         strokeWidth = 8f
-                                        pathEffect = android.graphics.DashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                        pathEffect = android.graphics.DashPathEffect(
+                                            floatArrayOf(10f, 10f),
+                                            0f
+                                        )
                                         isAntiAlias = true
                                     }
                                     drawCircle(center.x, center.y, innerRadius, paint)
                                 }
                             }
 
+                            val mensajeNoHay = if (tipo == "Gasto") "No hubo gastos esta semana" else "No hubo ingresos esta semana"
+
                             Text(
-                                text = "No hubo\ngastos esta\nsemana",
+                                text = mensajeNoHay,
                                 color = Color.White,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
@@ -344,28 +345,99 @@ fun GastoListScreen(
                         )
                     }
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Box(
+                        modifier = Modifier.weight(1f)
                     ) {
-                        items(transaccionesFiltradas) { transaccion ->
-                            val categoria = categoriaState.categorias.find { it.categoriaId == transaccion.categoriaId }
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                elevation = CardDefaults.cardElevation(2.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                        when {
+                            state.isLoading -> {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    color = Color(0xFF8BC34A)
+                                )
+                            }
+
+                            state.error != null -> {
+                                Text(
+                                    text = state.error ?: "Error desconocido",
+                                    color = Color.Red,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+
+                            transaccionesFiltradas.isEmpty() -> {
+                                Text(
+                                    text = "No hay transacciones.",
+                                    modifier = Modifier.align(Alignment.Center),
+                                    color = Color.Gray
+                                )
+                            }
+
+                            else -> {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Column {
-                                        Text(text = categoria?.nombre ?: "Desconocida", fontWeight = FontWeight.Bold)
-                                        Text(
-                                            transaccion.fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                            color = Color.Gray
-                                        )
+                                    items(transaccionesFiltradas) { transaccion ->
+
+                                        val categoria = categoriaState.categorias.find {
+                                            it.categoriaId == transaccion.categoriaId
+                                        }
+
+                                        val colorFondo = try {
+                                            Color(android.graphics.Color.parseColor("#${categoria?.colorFondo?.removePrefix("#") ?: "CCCCCC"}"))
+                                        } catch (e: Exception) {
+                                            Color.Gray
+                                        }
+
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            elevation = CardDefaults.cardElevation(2.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .padding(16.dp)
+                                                    .fillMaxWidth(),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(40.dp)
+                                                            .clip(CircleShape)
+                                                            .background(colorFondo),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = categoria?.icono ?: "❓",
+                                                            fontSize = 18.sp
+                                                        )
+                                                    }
+
+                                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                                    Column {
+                                                        Text(
+                                                            text = categoria?.nombre ?: "Desconocida",
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        Text(
+                                                            transaccion.fecha.format(
+                                                                DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                                            ),
+                                                            color = Color.Gray
+                                                        )
+                                                    }
+                                                }
+
+                                                Text(
+                                                    text = "%,.2f RD$".format(transaccion.monto),
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
                                     }
-                                    Text("%,.2f RD$".format(transaccion.monto), fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
