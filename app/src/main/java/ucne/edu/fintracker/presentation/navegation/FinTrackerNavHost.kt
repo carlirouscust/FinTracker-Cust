@@ -32,6 +32,7 @@ import androidx.navigation.navArgument
 import org.threeten.bp.ZoneOffset
 import ucne.edu.fintracker.presentation.remote.DateUtil
 import ucne.edu.fintracker.presentation.limitegasto.LimiteDetalleScreen
+import ucne.edu.fintracker.presentation.asesorIA.ChatIaScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteListScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteViewModel
@@ -375,6 +376,7 @@ fun FinTrackerNavHost(
                 )
             }
         }
+
 
         composable(
             route = "pago_editar/{usuarioId}/{pagoId}",
@@ -740,6 +742,10 @@ fun FinTrackerNavHost(
                     onImagenSeleccionada = { /* imagen */ }
                 )
             }
+        }
+
+        composable("chatIA") {
+            ChatIaScreen()
         }
 
     }
