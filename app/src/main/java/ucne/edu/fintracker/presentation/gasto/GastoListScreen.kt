@@ -215,12 +215,7 @@ fun GastoListScreen(
                             NavigationBarItem(
                                 selected = false,
                                 onClick = { /* otra ruta */ },
-                                icon = {
-                                    Icon(
-                                        Icons.Default.Assistant,
-                                        contentDescription = "IA Asesor"
-                                    )
-                                },
+                                icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                                 label = { Text("IA Asesor") }
                             )
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
