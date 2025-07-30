@@ -42,10 +42,12 @@ class LoginViewModel @Inject constructor(
                         )
                     }
                 } else {
+                    Log.d("LoginViewModel", "Login fallido")
                     _usuarioLogueado.value = null
                     _uiState.update { it.copy(loginError = true) }
                 }
             } catch (e: Exception) {
+                Log.e("LoginViewModel", "Error login: ${e.message}")
                 _usuarioLogueado.value = null
                 _uiState.update { it.copy(loginError = true) }
             }
