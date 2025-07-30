@@ -312,8 +312,8 @@ fun FinTrackerNavHost(
                                 usuarioId = usuarioIdGuardado
                             )
                         )
-                        navHostController.navigate("pagos") {
-                            popUpTo("pagos") { inclusive = true }
+                        navHostController.navigate("pagos/{usuarioId}") {
+                            popUpTo("pagos/{usuarioId}") { inclusive = true }
                         }
                     },
                     onCancel = {
