@@ -36,7 +36,7 @@ fun MetaScreen(
     usuarioId: Int,
     onGuardar: (String, Double, OffsetDateTime, Boolean, String?, Int) -> Unit,
     onCancel: () -> Unit,
-    onImagenSeleccionada: (String) -> Unit
+    onImagenSeleccionada: (String?) -> Unit
 ) {
     val contexto = LocalContext.current
 
