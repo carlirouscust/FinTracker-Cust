@@ -95,7 +95,7 @@ fun PanelUsuarioScreen(
 
                         NavigationBarItem(
                             selected = currentRoute == "chatIA",
-                            onClick = { navController.navigate("chatIA") },
+                            onClick = { navController.navigate("chatIA/$usuarioId") },
                             icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                             label = { Text("IA Asesor", fontSize = 10.sp) }
                         )
@@ -319,7 +319,7 @@ fun PanelUsuarioScreen(
                         OpcionItem(
                             titulo = "Ajustes",
                             icono = Icons.Default.Settings,
-                            onClick = onAjustes
+                            onClick = { navController.navigate("ajustes/$usuarioId") }
                         )
                     }
 
