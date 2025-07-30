@@ -46,6 +46,7 @@ import ucne.edu.fintracker.presentation.pagorecurrente.PagoDetalleScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoListScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoViewModel
+import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioScreen
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
@@ -759,7 +760,7 @@ fun FinTrackerNavHost(
                 navController = navHostController,
                 usuarioId = usuarioId,
                 onEditarPerfil = {
-                    navHostController.navigate("editar_perfil/$usuarioId")
+                    navHostController.navigate("panel_usuario/$usuarioId")
                 },
                 onCambiarContrasena = {
                     navHostController.navigate("cambiar_contrasena/$usuarioId")
@@ -781,6 +782,17 @@ fun FinTrackerNavHost(
                 onSoporte = {
                     navHostController.navigate("soporte")
                 }
+            )
+        }
+
+        composable("panel_usuario/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+
+            PanelUsuarioScreen(
+                navController = navHostController,
+                usuarioId = usuarioId,
+                onAjustes = { navHostController.navigate("ajustes/$usuarioId") },
+                onTransacciones = { navHostController.navigate("gastos") },
             )
         }
 
