@@ -748,9 +748,14 @@ fun FinTrackerNavHost(
             }
         }
 
-        composable("chatIA") {
-            ChatIaScreen()
+        composable("chatIA/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
+            ChatIaScreen(
+                navController = navHostController,
+                usuarioId = usuarioId
+            )
         }
+
 
         // En tu NavHost, el composable de ajustes ahora es más simple:
         composable("ajustes/{usuarioId}") { backStackEntry ->
