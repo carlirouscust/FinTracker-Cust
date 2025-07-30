@@ -7,6 +7,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assistant
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,35 +18,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.res.painterResource
-import ucne.edu.fintracker.R
 
 @Composable
 fun ChatIaScreen(
+    navController: NavHostController,
+    usuarioId: String,
     ChatIAViewModel: ChatIAViewModel = viewModel()
 ) {
     var prompt by remember { mutableStateOf("") }
     val uiState by ChatIAViewModel.uiState.collectAsState()
-
     var messages by remember { mutableStateOf(listOf<ChatMessage>()) }
-
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // ✅ Detectar cambios de estado y actualizar mensajes
     LaunchedEffect(uiState) {
         when (uiState) {
             is ChatIaUiState.Loading -> {
-                // ✅ Agregar animación de "escribiendo..."
                 messages = messages + ChatMessage("typing", isUser = false, isTyping = true)
             }
 
             is ChatIaUiState.Success -> {
-                // ✅ Quitar "escribiendo..." y mostrar respuesta
                 messages = messages.filterNot { it.isTyping } +
                         ChatMessage((uiState as ChatIaUiState.Success).outputText, isUser = false)
             }
@@ -56,7 +56,6 @@ fun ChatIaScreen(
         }
     }
 
-    // ✅ Scroll automático al último mensaje
     LaunchedEffect(messages.size) {
         coroutineScope.launch {
             if (messages.isNotEmpty()) {
@@ -65,74 +64,115 @@ fun ChatIaScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Text(
-            text = "Asesor de IA",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(8.dp)
-        )
+    Scaffold(
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 8.dp
+            ) {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            items(messages) { message ->
-                if (message.isTyping) {
-                    TypingBubble()
-                } else {
-                    ChatBubble(message = message)
-                }
+                NavigationBarItem(
+                    selected = currentRoute == "gastos",
+                    onClick = { navController.navigate("gastos") },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    label = { Text("Home", fontSize = 10.sp) }
+                )
+
+                NavigationBarItem(
+                    selected = currentRoute == "chatIA",
+                    onClick = { navController.navigate("chatIA/$usuarioId") },
+                    icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
+                    label = { Text("IA Asesor", fontSize = 10.sp) }
+                )
+
+                NavigationBarItem(
+                    selected = currentRoute == "metaahorros/$usuarioId",
+                    onClick = {
+                        navController.navigate("metaahorros/$usuarioId") {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
+                    label = { Text("Metas", fontSize = 10.sp) }
+                )
             }
         }
-
-        // ✅ Input con estilo WhatsApp
-        Row(
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(8.dp)
         ) {
-            OutlinedTextField(
-                value = prompt,
-                onValueChange = { prompt = it },
-                placeholder = {
-                    Text(
-                        "Pregúntame cualquier cosa...",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                },
-                shape = RoundedCornerShape(24.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    disabledBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent,
-                    focusedContainerColor = Color(0xFFF1F3F4), // ✅ Gris claro
-                    unfocusedContainerColor = Color(0xFFF1F3F4)
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
+            Text(
+                text = "Asesor de IA",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(8.dp)
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = {
-                    if (prompt.isNotBlank()) {
-                        messages = messages + ChatMessage(prompt, isUser = true)
-                        ChatIAViewModel.sendPrompt(prompt)
-                        prompt = ""
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                items(messages) { message ->
+                    if (message.isTyping) {
+                        TypingBubble()
+                    } else {
+                        ChatBubble(message = message)
                     }
                 }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Enviar")
+                OutlinedTextField(
+                    value = prompt,
+                    onValueChange = { prompt = it },
+                    placeholder = {
+                        Text(
+                            "Pregúntame cualquier cosa...",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent,
+                        disabledBorderColor = Color.Transparent,
+                        errorBorderColor = Color.Transparent,
+                        focusedContainerColor = Color(0xFFF1F3F4),
+                        unfocusedContainerColor = Color(0xFFF1F3F4)
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        if (prompt.isNotBlank()) {
+                            messages = messages + ChatMessage(prompt, isUser = true)
+                            ChatIAViewModel.sendPrompt(prompt)
+                            prompt = ""
+                        }
+                    }
+                ) {
+                    Text("Enviar")
+                }
             }
         }
     }
@@ -140,10 +180,8 @@ fun ChatIaScreen(
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
-    val bubbleColor =
-        if (message.isUser) Color(0xFF4CAF50) else MaterialTheme.colorScheme.surfaceVariant
-    val textColor =
-        if (message.isUser) Color.White else MaterialTheme.colorScheme.onSurface
+    val bubbleColor = if (message.isUser) Color(0xFF4CAF50) else MaterialTheme.colorScheme.surfaceVariant
+    val textColor = if (message.isUser) Color.White else MaterialTheme.colorScheme.onSurface
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -151,10 +189,7 @@ fun ChatBubble(message: ChatMessage) {
     ) {
         Box(
             modifier = Modifier
-                .background(
-                    color = bubbleColor,
-                    shape = RoundedCornerShape(16.dp)
-                )
+                .background(color = bubbleColor, shape = RoundedCornerShape(16.dp))
                 .padding(12.dp)
                 .widthIn(max = 280.dp)
         ) {
