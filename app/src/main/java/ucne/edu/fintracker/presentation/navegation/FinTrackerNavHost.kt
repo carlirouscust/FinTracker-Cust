@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +51,7 @@ import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinTrackerNavHost(
     navHostController: NavHostController,
@@ -749,8 +751,37 @@ fun FinTrackerNavHost(
             ChatIaScreen()
         }
 
-        composable("ajustes") {
-            AjustesListScreen( )
+        // En tu NavHost, el composable de ajustes ahora es más simple:
+        composable("ajustes/{usuarioId}") { backStackEntry ->
+            val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+
+            AjustesListScreen(
+                navController = navHostController,
+                usuarioId = usuarioId,
+                onEditarPerfil = {
+                    navHostController.navigate("editar_perfil/$usuarioId")
+                },
+                onCambiarContrasena = {
+                    navHostController.navigate("cambiar_contrasena/$usuarioId")
+                },
+                onCerrarSesion = {
+                    navHostController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNotificaciones = {
+                    navHostController.navigate("notificaciones/$usuarioId")
+                },
+                onApariencia = {
+                    navHostController.navigate("apariencia/$usuarioId")
+                },
+                onCentroAyuda = {
+                    navHostController.navigate("centro_ayuda")
+                },
+                onSoporte = {
+                    navHostController.navigate("soporte")
+                }
+            )
         }
 
     }
