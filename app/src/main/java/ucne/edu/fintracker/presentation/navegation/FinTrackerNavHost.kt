@@ -317,7 +317,11 @@ fun FinTrackerNavHost(
                 arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
             ) { backStackEntry ->
 
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 Log.d("PagoNuevo", "usuarioId recibido en ruta: $usuarioId")
 
                 val pagoViewModel = hiltViewModel<PagoViewModel>()
