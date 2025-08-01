@@ -119,9 +119,6 @@ fun FinTrackerNavHost(
                     onAgregarCategoriaClick = { tipoActual ->
                         navHostController.navigate("categoria_nueva/$tipoActual")
                     },
-                    onCategoriaClick = { categoria ->
-                        navHostController.navigate("categoria_detalle/${categoria.categoriaId}")
-                    }
                 )
             }
 
