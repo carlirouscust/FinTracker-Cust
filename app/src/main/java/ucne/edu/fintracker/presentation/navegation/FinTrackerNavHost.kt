@@ -714,6 +714,7 @@ fun FinTrackerNavHost(
                             limite = limite,
                             categoriaIcono = categoriaIcono,
                             categoriaNombre = categoriaNombre,
+                            limiteViewModel = limiteViewModel,
                             onBackClick = { navHostController.popBackStack() },
                             onEditarClick = { navHostController.navigate("limite_editar/$usuarioId/$limiteId") },
                             onEliminarClick = { /* diálogo */ },

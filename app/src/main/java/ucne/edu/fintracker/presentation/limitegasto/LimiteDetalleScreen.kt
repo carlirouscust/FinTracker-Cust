@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import ucne.edu.fintracker.presentation.gasto.GastoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +29,7 @@ fun LimiteDetalleScreen(
     limite: LimiteGastoDto,
     categoriaIcono: String,
     categoriaNombre: String,
+    limiteViewModel: LimiteViewModel,
     onBackClick: () -> Unit,
     onEditarClick: () -> Unit,
     onEliminarClick: () -> Unit,
@@ -34,8 +37,15 @@ fun LimiteDetalleScreen(
 ) {
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
-    val porcentaje = ((limite.gastadoActual ?: 0.0) / limite.montoLimite * 100).coerceAtMost(100.0)
+    val transacciones by limiteViewModel.transacciones.collectAsState()
 
+    val gastadoActual = remember(transacciones) {
+        transacciones
+            .filter { it.categoriaId == limite.categoriaId && it.tipo == "Gasto" }
+            .sumOf { it.monto }
+    }
+
+    val porcentaje = ((gastadoActual / limite.montoLimite) * 100).coerceAtMost(100.0)
     Scaffold(
         containerColor = Color.White,
         topBar = {
