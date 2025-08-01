@@ -60,6 +60,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
+import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 //import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 import java.time.OffsetDateTime
 
@@ -976,17 +977,17 @@ fun FinTrackerNavHost(
                 )
             }
 
-//            // Composable actualizado para el NavHost
-//            composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
-//                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
-//
-//                CambiarContrasenaScreen(
-//                    usuarioId = usuarioId,
-//                    onBack = {
-//                        navHostController.popBackStack()
-//                    }
-//                )
-//            }
+            // Composable actualizado para el NavHost
+            composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
+                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+
+                CambiarContrasenaScreen(
+                    usuarioId = usuarioId,
+                    onBack = {
+                        navHostController.popBackStack()
+                    }
+                )
+            }
 
             composable("panel_usuario/{usuarioId}") { backStackEntry ->
                 val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
