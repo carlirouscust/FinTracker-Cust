@@ -1,7 +1,6 @@
 package ucne.edu.fintracker.presentation.categoria
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,29 +38,34 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.unit.sp
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import androidx.compose.material3.TextButton
 
 @Composable
 fun CategoriaListScreen(
     viewModel: CategoriaViewModel,
     usuarioId: Int,
-    tipoFiltro: String = "Gasto",
+    tipoFiltro: String = "", // Por defecto vacío = mostrar todo
     onBackClick: () -> Unit = {},
-    onAgregarCategoriaClick: (String) -> Unit = {},
-    onCategoriaClick: (CategoriaDto) -> Unit = {}
+    onAgregarCategoriaClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var tipo by remember { mutableStateOf(tipoFiltro) }
-
-    LaunchedEffect(tipoFiltro) {
-        tipo = tipoFiltro
-        viewModel.onTipoChange(tipoFiltro)
-    }
 
     LaunchedEffect(usuarioId) {
         viewModel.fetchCategorias(usuarioId)
+        // Asegurar que se inicialice sin filtro para mostrar todas las categorías
+        if (tipoFiltro.isBlank()) {
+            viewModel.inicializarSinFiltro()
+        }
     }
 
-    val categorias = uiState.categorias.filter { it.tipo == tipo }
+    LaunchedEffect(tipoFiltro) {
+        if (tipoFiltro.isNotBlank()) {
+            viewModel.onFiltroTipoChange(tipoFiltro)
+        }
+    }
+
+    // Obtener categorías filtradas desde el ViewModel
+    val categorias = viewModel.getCategoriasFiltradas()
 
     Column(
         modifier = Modifier
@@ -87,38 +91,53 @@ fun CategoriaListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Botones de filtro
         Row(modifier = Modifier.fillMaxWidth()) {
             Button(
                 onClick = {
-                    tipo = "Gasto"
-                    viewModel.onTipoChange("Gasto")
+                    viewModel.onFiltroTipoChange("Gasto")
                 },
-                colors = if (tipo == "Gasto")
+                colors = if (uiState.filtroTipo == "Gasto")
                     ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                 else
                     ButtonDefaults.buttonColors(containerColor = Color.LightGray),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Gastos", color = if (tipo == "Gasto") Color.White else Color.Black)
+                Text("Gastos", color = if (uiState.filtroTipo == "Gasto") Color.White else Color.Black)
             }
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Button(
                 onClick = {
-                    tipo = "Ingreso"
-                    viewModel.onTipoChange("Ingreso")
+                    viewModel.onFiltroTipoChange("Ingreso")
                 },
-                colors = if (tipo == "Ingreso")
+                colors = if (uiState.filtroTipo == "Ingreso")
                     ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                 else
                     ButtonDefaults.buttonColors(containerColor = Color.LightGray),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Ingresos", color = if (tipo == "Ingreso") Color.White else Color.Black)
+                Text("Ingresos", color = if (uiState.filtroTipo == "Ingreso") Color.White else Color.Black)
+            }
+        }
+
+        // Botón para limpiar filtros cuando hay un filtro activo
+        if (uiState.filtroTipo.isNotBlank()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(
+                onClick = {
+                    viewModel.limpiarFiltro()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ver todas las categorías", color = Color(0xFF85D844))
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Lista de categorías o mensaje vacío
         if (categorias.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -127,7 +146,12 @@ fun CategoriaListScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Sin categorías aún",
+                    text = when {
+                        uiState.categorias.isEmpty() -> "Sin categorías aún"
+                        uiState.filtroTipo == "Gasto" -> "Sin categorías de gastos"
+                        uiState.filtroTipo == "Ingreso" -> "Sin categorías de ingresos"
+                        else -> "Sin categorías aún"
+                    },
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -139,19 +163,23 @@ fun CategoriaListScreen(
                     .weight(1f)
             ) {
                 items(categorias) { cat ->
-                    CategoriaBody(cat) { onCategoriaClick(cat) }
+                    CategoriaBody(categoria = cat)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Botón flotante para agregar
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.CenterEnd
         ) {
             FloatingActionButton(
-                onClick = { onAgregarCategoriaClick(tipo) },
+                onClick = {
+                    // Si no hay filtro seleccionado, por defecto crear Gasto
+                    onAgregarCategoriaClick(if (uiState.filtroTipo.isBlank()) "Gasto" else uiState.filtroTipo)
+                },
                 containerColor = Color(0xFF85D844),
                 shape = RoundedCornerShape(24.dp)
             ) {
@@ -168,10 +196,10 @@ fun CategoriaListScreen(
     }
 }
 
+
 @Composable
 fun CategoriaBody(
-    categoria: CategoriaDto,
-    onClick: () -> Unit
+    categoria: CategoriaDto
 ) {
     val backgroundColor = try {
         Color(android.graphics.Color.parseColor("#${categoria.colorFondo}"))
@@ -182,8 +210,7 @@ fun CategoriaBody(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable { onClick() },
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -217,3 +244,4 @@ fun CategoriaBody(
         )
     }
 }
+
