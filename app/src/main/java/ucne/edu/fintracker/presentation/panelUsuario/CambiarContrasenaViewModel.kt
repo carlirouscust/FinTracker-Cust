@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.panelUsuario
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,11 +30,14 @@ class CambiarContrasenaViewModel @Inject constructor(
                 )
 
                 val request = CambiarContrasenaRequest(
-                    contrasenaActual = contrasenaActual,
-                    nuevaContrasena = nuevaContrasena
+                    contraseñaActual = contrasenaActual,
+                    contraseñaNueva = nuevaContrasena
                 )
 
                 val response = api.cambiarContrasena(usuarioId, request)
+
+                Log.d("Contrasena", "request: $contrasenaActual")
+                Log.d("Response", "request: $response")
 
                 if (response.isSuccessful) {
                     _uiState.value = _uiState.value.copy(
