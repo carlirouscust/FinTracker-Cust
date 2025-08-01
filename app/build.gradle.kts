@@ -79,6 +79,7 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.google.cloud:google-cloud-aiplatform:3.69.0") {
         exclude(group = "org.threeten", module = "threetenbp")
