@@ -22,8 +22,11 @@ interface FinTrackerApi {
         @DELETE("api/Usuarios/{id}")
         suspend fun deleteUsuario(@Path("id") id: Int)
 
-        @POST("usuarios/resetpassword")
-        suspend fun enviarLinkResetPassword(@Body request: ResetPasswordRequest): Response<Unit>
+        @PUT("api/Usuarios/{id}")
+        suspend fun cambiarContrasena(
+                @Path("id") usuarioId: Int,
+                @Body request: CambiarContrasenaRequest
+        ): Response<Unit>
 
         // -------- Transacciones --------
         @GET("api/Transacciones")
