@@ -41,6 +41,9 @@ fun AjustesListScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Estado para controlar el popup de confirmación
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
     MenuScreen(
         drawerState = drawerState,
         navController = navController,
@@ -112,7 +115,10 @@ fun AjustesListScreen(
                     AjustesSeccion(titulo = "Cuenta") {
                         ItemAjuste("Información del perfil", "Editar información personal", Icons.Default.Person, onEditarPerfil)
                         ItemAjuste("Contraseña", "Cambiar contraseña", Icons.Default.Lock, onCambiarContrasena)
-                        ItemAjuste("Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp, onCerrarSesion, Color.Red)
+                        ItemAjuste("Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp,
+                            onClick = { showLogoutDialog = true }, // Mostrar el popup en lugar de cerrar directamente
+                            Color.Red
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -132,6 +138,46 @@ fun AjustesListScreen(
             }
         }
     )
+
+    // Popup de confirmación para cerrar sesión
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Text(
+                    text = "Cerrar sesión",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Está seguro que quiere cerrar la sesión?",
+                    color = Color.Black
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutDialog = false
+                        onCerrarSesion() // Ejecutar la acción de cerrar sesión
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Sí, cerrar sesión", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog = false }
+                ) {
+                    Text("Cancelar", color = Color(0xFF85D844))
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
 @Composable
