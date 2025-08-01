@@ -21,7 +21,6 @@ import ucne.edu.fintracker.presentation.categoria.CategoriaScreen
 import ucne.edu.fintracker.presentation.categoria.CategoriaViewModel
 import ucne.edu.fintracker.presentation.gasto.GastoListScreen
 import ucne.edu.fintracker.presentation.gasto.GastoScreen
-import ucne.edu.fintracker.presentation.gasto.GastoViewModel
 import ucne.edu.fintracker.presentation.login.LoginViewModel
 import ucne.edu.fintracker.presentation.login.LoginRegisterScreen
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
@@ -50,13 +49,16 @@ import ucne.edu.fintracker.presentation.pagorecurrente.PagoDetalleScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoListScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoViewModel
+import ucne.edu.fintracker.presentation.gasto.GastoViewModel
 import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioScreen
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
+import java.time.OffsetDateTime
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -234,7 +236,7 @@ fun FinTrackerNavHost(
 
                 if (usuarioId != 0) {
                     GastoScreen(
-                        categorias = categoriasFiltradas.map { it.nombre },
+                        categorias = categoriasFiltradas,
                         tipoInicial = tipoInicial,
                         usuarioId = usuarioId,
                         onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
@@ -275,6 +277,119 @@ fun FinTrackerNavHost(
                     }
                 }
             }
+
+            composable(
+                route = "gasto_detalle/{usuarioId}/{trasaccionId}",
+                arguments = listOf(
+                    navArgument("usuarioId") { type = NavType.IntType },
+                    navArgument("trasaccionId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
+                val trasaccionId = backStackEntry.arguments?.getInt("trasaccionId") ?: 0
+                val gastoViewModel = hiltViewModel<GastoViewModel>()
+
+                LaunchedEffect(usuarioId) {
+                    if (usuarioId != 0) {
+                        gastoViewModel.cargarTransacciones(usuarioId)
+                        gastoViewModel.fetchCategorias(usuarioId)
+                    }
+                }
+
+                val uiState by gastoViewModel.uiState.collectAsState()
+                val categorias by gastoViewModel.categorias.collectAsState()
+
+                val gasto = uiState.transacciones.find { it.transaccionId == trasaccionId }
+
+                if (gasto != null) {
+                    val categoria = categorias.find { it.categoriaId == gasto.categoriaId }
+                    val categoriaIcono = categoria?.icono ?: "💸"
+                    val categoriaNombre = categoria?.nombre ?: "Sin categoría"
+
+                    GastoDetalleScreen(
+                        transaccionId = trasaccionId,
+                        categoriaIcono = categoriaIcono,
+                        categoriaNombre = categoriaNombre,
+                        onBackClick = { navHostController.popBackStack() },
+                        onEditarClick = {
+                            navHostController.navigate("gasto_editar/$usuarioId/$trasaccionId")
+                        },
+                        onEliminarClick = { /* Mostrar diálogo */ },
+                        onEliminarConfirmado = {
+                            gastoViewModel.eliminarTransaccion(trasaccionId)
+                            navHostController.popBackStack()
+                        }
+                    )
+                }
+            }
+
+            composable(
+                route = "gasto_editar/{usuarioId}/{gastoId}",
+                arguments = listOf(
+                    navArgument("usuarioId") { type = NavType.IntType },
+                    navArgument("gastoId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
+                val gastoId = backStackEntry.arguments?.getInt("gastoId") ?: 0
+                val gastoViewModel = hiltViewModel<GastoViewModel>()
+                val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
+                val uiState by gastoViewModel.uiState.collectAsState()
+                val categoriaUiState by categoriaViewModel.uiState.collectAsState()
+
+                LaunchedEffect(usuarioId) {
+                    if (usuarioId != 0) {
+                        gastoViewModel.inicializar(usuarioId)
+                        categoriaViewModel.fetchCategorias(usuarioId)
+                    }
+                }
+
+                val transaccion = uiState.transacciones.find { it.transaccionId == gastoId }
+                val categoriasFiltradas = categoriaUiState.categorias
+
+                if (transaccion != null) {
+                    GastoScreen(
+                        categorias = categoriasFiltradas,
+                        tipoInicial = transaccion.tipo,
+                        transaccionParaEditar = transaccion,
+                        usuarioId = usuarioId,
+                        onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
+                            val categoriaId =
+                                categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0
+                            val fechaOffsetDateTime = DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
+
+                            gastoViewModel.crearTransaccion(
+                                TransaccionDto(
+                                    transaccionId = transaccion.transaccionId,
+                                    monto = monto,
+                                    categoriaId = categoriaId,
+                                    fecha = fechaOffsetDateTime,
+                                    notas = notas,
+                                    tipo = tipoSeleccionado,
+                                    usuarioId = usuarioIdGuardado
+                                )
+                            )
+
+                            navHostController.navigate("gastos") {
+                                popUpTo("gastos") { inclusive = true }
+                            }
+                        },
+                        onCancel = {
+                            navHostController.popBackStack()
+                        }
+                    )
+                }
+            }
+
+
 
             composable("pagos/{usuarioId}") {
                 val pagoViewModel = hiltViewModel<PagoViewModel>()
