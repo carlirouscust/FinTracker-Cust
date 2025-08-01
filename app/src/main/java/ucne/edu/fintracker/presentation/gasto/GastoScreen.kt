@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.gasto
 
 import android.app.DatePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,23 +22,49 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.threeten.bp.OffsetDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastoScreen(
-    categorias: List<String>,
+    categorias: List<CategoriaDto>,
     usuarioId: Int,
+    transaccionParaEditar: TransaccionDto? = null,
     tipoInicial: String = "Gasto",
     onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String, UsuarioId: Int) -> Unit,
     onCancel: () -> Unit
 ) {
-    var tipo by remember { mutableStateOf(tipoInicial) }
-    var monto by remember { mutableStateOf(TextFieldValue("")) }
-    var categoriaSeleccionada by remember { mutableStateOf<String?>(null) }
+    var tipo by remember { mutableStateOf(transaccionParaEditar?.tipo ?: tipoInicial) }
+    var monto by remember {
+        mutableStateOf(TextFieldValue(transaccionParaEditar?.monto?.toString() ?: ""))
+    }
+
     var expandedCategoria by remember { mutableStateOf(false) }
-    var fechaSeleccionada by remember { mutableStateOf("Hoy") }
-    var notas by remember { mutableStateOf("") }
+    var fechaSeleccionada by remember {
+        mutableStateOf(transaccionParaEditar?.fecha.toString() ?: "Hoy") }
+
+    var notas by remember { mutableStateOf(transaccionParaEditar?.notas ?: "") }
+
+    var categoriaSeleccionada by remember {
+        mutableStateOf<CategoriaDto?>(null)
+    }
+    val fechaFormato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    LaunchedEffect(transaccionParaEditar, categorias) {
+        if (transaccionParaEditar != null) {
+            categoriaSeleccionada = categorias.find { it.categoriaId == transaccionParaEditar.categoriaId }
+
+            fechaSeleccionada = transaccionParaEditar.fecha.format(fechaFormato)
+        } else {
+            categoriaSeleccionada = null
+            fechaSeleccionada = fechaFormato.format(OffsetDateTime.now())
+        }
+    }
+
 
     val context = LocalContext.current
 
@@ -46,7 +73,7 @@ fun GastoScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Agregar Transacción",
+                        text = if (transaccionParaEditar == null) "Agregar Transacción" else "Editar Transacción",
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
@@ -78,7 +105,6 @@ fun GastoScreen(
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // Botones Gasto / Ingreso
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -107,7 +133,6 @@ fun GastoScreen(
                 }
             }
 
-            // Campo monto
             OutlinedTextField(
                 value = monto,
                 onValueChange = {
@@ -139,13 +164,12 @@ fun GastoScreen(
                 )
             )
 
-            // Categoría
             ExposedDropdownMenuBox(
                 expanded = expandedCategoria,
                 onExpandedChange = { expandedCategoria = !expandedCategoria }
             ) {
                 OutlinedTextField(
-                    value = categoriaSeleccionada ?: "Seleccionar categoría",
+                    value = categoriaSeleccionada?.nombre ?: "Seleccionar categoría",
                     onValueChange = {},
                     label = { Text("Categoría") },
                     readOnly = true,
@@ -170,7 +194,7 @@ fun GastoScreen(
                 ) {
                     categorias.forEach { cat ->
                         DropdownMenuItem(
-                            text = { Text(cat) },
+                            text = { Text(cat.nombre) },
                             onClick = {
                                 categoriaSeleccionada = cat
                                 expandedCategoria = false
@@ -242,11 +266,15 @@ fun GastoScreen(
             Button(
                 onClick = {
                     val montoDouble = monto.text.toDoubleOrNull() ?: 0.0
-                    val cat = categoriaSeleccionada ?: ""
+                    val cat = categoriaSeleccionada?.nombre ?: ""
+
+                    if (cat.isBlank() || montoDouble <= 0.0) {
+                        Toast.makeText(context, "Completa los campos correctamente", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
                     onGuardar(tipo, montoDouble, cat, fechaSeleccionada, notas, usuarioId)
 
-                    // limpiar campos
                     monto = TextFieldValue("")
                     notas = ""
                     categoriaSeleccionada = null
@@ -260,7 +288,11 @@ fun GastoScreen(
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
             ) {
-                Text("Guardar", color = Color.White, fontSize = 18.sp)
+                Text(
+                    if (transaccionParaEditar == null) "Guardar" else "Guardar Cambios",
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
             }
         }
     }

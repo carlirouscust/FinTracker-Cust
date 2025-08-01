@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -37,7 +39,8 @@ class GastoViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<GastoUiState> = _uiState
-
+    private val _eventoEliminacion = MutableSharedFlow<Unit>()
+    val eventoEliminacion = _eventoEliminacion.asSharedFlow()
 
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
@@ -47,12 +50,19 @@ class GastoViewModel @Inject constructor(
             val filtradasPorFecha = filtrarTransaccionesPorFecha(state.transacciones, state.filtro)
 
             val resultado = filtradasPorFecha.filter {
-                val coincide = it.tipo.trim().equals(state.tipoSeleccionado.trim(), ignoreCase = true)
-                Log.d("FiltroTipo", "Transacción tipo=${it.tipo}, tipoSeleccionado=${state.tipoSeleccionado}, coincide=$coincide")
+                val coincide =
+                    it.tipo.trim().equals(state.tipoSeleccionado.trim(), ignoreCase = true)
+                Log.d(
+                    "FiltroTipo",
+                    "Transacción tipo=${it.tipo}, tipoSeleccionado=${state.tipoSeleccionado}, coincide=$coincide"
+                )
                 coincide
             }
 
-            Log.d("TransaccionesFiltradas", "Filtradas (${state.filtro} / ${state.tipoSeleccionado}): ${resultado.size}")
+            Log.d(
+                "TransaccionesFiltradas",
+                "Filtradas (${state.filtro} / ${state.tipoSeleccionado}): ${resultado.size}"
+            )
             resultado
         }.stateIn(
             scope = viewModelScope,
@@ -79,7 +89,6 @@ class GastoViewModel @Inject constructor(
     }
 
 
-
     fun fetchCategorias(usuarioId: Int? = usuarioIdActual) {
         usuarioId?.let {
             viewModelScope.launch {
@@ -91,6 +100,7 @@ class GastoViewModel @Inject constructor(
                             Log.d("GastoViewModel", "Categorías cargadas: ${result.data?.size}")
                             _categorias.value = result.data ?: emptyList()
                         }
+
                         is Resource.Error -> {
                             Log.e("GastoViewModel", "Error cargando categorías: ${result.message}")
                             _categorias.value = emptyList()
@@ -109,12 +119,15 @@ class GastoViewModel @Inject constructor(
                         is Resource.Loading -> {
                             _uiState.update { it.copy(isLoading = true, error = null) }
                         }
+
                         is Resource.Success -> {
                             val transacciones = result.data ?: emptyList()
-                            // Log para depurar tipos y confirmar datos
                             Log.d("GastoViewModel", "Transacciones cargadas: ${transacciones.size}")
                             transacciones.forEach { transaccion ->
-                                Log.d("GastoViewModel", "ID=${transaccion.transaccionId} Tipo=${transaccion.tipo} Monto=${transaccion.monto}")
+                                Log.d(
+                                    "GastoViewModel",
+                                    "ID=${transaccion.transaccionId} Tipo=${transaccion.tipo} Monto=${transaccion.monto}"
+                                )
                             }
 
                             _uiState.update {
@@ -125,6 +138,7 @@ class GastoViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         is Resource.Error -> {
                             _uiState.update {
                                 it.copy(
@@ -157,6 +171,7 @@ class GastoViewModel @Inject constructor(
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
+
                     is Resource.Success -> {
                         val listaActual = _uiState.value.transacciones.toMutableList()
                         result.data?.let { listaActual.add(it) }
@@ -167,6 +182,7 @@ class GastoViewModel @Inject constructor(
                             )
                         }
                     }
+
                     is Resource.Error -> {
                         _uiState.update {
                             it.copy(
@@ -180,7 +196,8 @@ class GastoViewModel @Inject constructor(
         }
     }
 
-    fun filtrarTransaccionesPorFecha(transacciones: List<TransaccionDto>, filtro: String
+    fun filtrarTransaccionesPorFecha(
+        transacciones: List<TransaccionDto>, filtro: String
     ): List<TransaccionDto> {
         val hoy = OffsetDateTime.now()
 
@@ -191,6 +208,7 @@ class GastoViewModel @Inject constructor(
                     it.fecha.toLocalDate().isEqual(hoyLocalDate)
                 }
             }
+
             "Semana" -> {
                 val lunes = hoy.toLocalDate().with(DayOfWeek.MONDAY)
                 val domingo = hoy.toLocalDate().with(DayOfWeek.SUNDAY)
@@ -199,25 +217,97 @@ class GastoViewModel @Inject constructor(
                     !fecha.isBefore(lunes) && !fecha.isAfter(domingo)
                 }
             }
+
             "Mes" -> {
                 transacciones.filter {
                     val fecha = it.fecha.toLocalDate()
                     fecha.month == hoy.toLocalDate().month && fecha.year == hoy.toLocalDate().year
                 }
             }
+
             "Año" -> {
                 transacciones.filter {
                     it.fecha.toLocalDate().year == hoy.toLocalDate().year
                 }
             }
+
             else -> transacciones
         }
     }
 
+    fun obtenerTransaccionPorId(id: Int): TransaccionDto? {
+        return _uiState.value.transacciones.find { it.transaccionId == id }
+    }
 
-//    fun agregarTransaccionLocal(transaccion: TransaccionDto) {
-//        val listaActual = _uiState.value.transacciones.toMutableList()
-//        listaActual.add(transaccion)
-//        _uiState.update { it.copy(transacciones = listaActual) }
-//    }
+    fun actualizarTransaccion(transaccionDto: TransaccionDto) {
+        viewModelScope.launch {
+            transaccionRepository.updateTransaccion(transaccionDto.transaccionId, transaccionDto)
+                .collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+
+                    is Resource.Success -> {
+                        val listaActual = _uiState.value.transacciones.toMutableList()
+                        val index = listaActual.indexOfFirst { it.transaccionId == transaccionDto.transaccionId }
+                        if (index != -1) {
+                            listaActual[index] = transaccionDto
+                        }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                transacciones = listaActual,
+                                error = null
+                            )
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.message ?: "Error actualizando transacción"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun eliminarTransaccion(id: Int) {
+        viewModelScope.launch {
+            transaccionRepository.deleteTransaccion(id).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+
+                    is Resource.Success -> {
+                        val listaFiltrada =
+                            _uiState.value.transacciones.filter { it.transaccionId != id }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                transacciones = listaFiltrada,
+                                error = null
+                            )
+                        }
+                        _eventoEliminacion.emit(Unit)
+                    }
+
+                    is Resource.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = result.message ?: "Error desconocido"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

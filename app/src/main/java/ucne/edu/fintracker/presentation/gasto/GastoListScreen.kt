@@ -410,7 +410,11 @@ fun GastoListScreen(
                                         }
 
                                         Card(
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    navController.navigate("gasto_detalle/$usuarioId/${transaccion.transaccionId}")
+                                                },
                                             elevation = CardDefaults.cardElevation(2.dp)
                                         ) {
                                             Row(
