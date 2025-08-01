@@ -1,7 +1,7 @@
 package ucne.edu.fintracker.presentation.remote
 
 import retrofit2.Response
-import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
+//import ucne.edu.fintracker.presentation.remote.dto.CambiarPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
@@ -19,10 +19,10 @@ class DataSource @Inject constructor(
     suspend fun getUsuario(id: Int): UsuarioDto = api.getUsuario(id)
     suspend fun updateUsuario(id: Int, usuario: UsuarioDto): UsuarioDto = api.updateUsuario(id, usuario)
     suspend fun deleteUsuario(id: Int) = api.deleteUsuario(id)
-    suspend fun enviarResetPassword(email: String): Boolean {
-        val response = api.enviarLinkResetPassword(ResetPasswordRequest(email))
-        return response.isSuccessful
-    }
+//    suspend fun enviarResetPassword(email: String): Boolean {
+//        val response = api.enviarLinkResetPassword(CambiarPasswordRequest(email))
+//        return response.isSuccessful
+//    }
 
     // ------------------- CATEGORÍAS -------------------
     suspend fun getCategorias(): List<CategoriaDto> = api.getCategorias()
