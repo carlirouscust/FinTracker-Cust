@@ -22,7 +22,7 @@ interface FinTrackerApi {
         @DELETE("api/Usuarios/{id}")
         suspend fun deleteUsuario(@Path("id") id: Int)
 
-        @PUT("api/Usuarios/{id}")
+        @PUT("api/Usuarios/{id}/cambiarContrasena")
         suspend fun cambiarContrasena(
                 @Path("id") usuarioId: Int,
                 @Body request: CambiarContrasenaRequest
