@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.login
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -20,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import ucne.edu.fintracker.R
 
 @Composable
 fun LoginRegisterScreen(
@@ -29,6 +33,7 @@ fun LoginRegisterScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -37,14 +42,14 @@ fun LoginRegisterScreen(
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(36.dp))
 
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text("Fin", fontWeight = FontWeight.Bold, fontSize = 28.sp, color = Color(0xFF232323))
-            Text("Tracker", fontSize = 28.sp, color = Color(0xFF8A8A8A))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            painter = painterResource(id = R.drawable.logo_fintracker),
+            contentDescription = "Logo FinTracker",
+            modifier = Modifier
+                .height(280.dp)
+                .padding(top = 32.dp)
+        )
 
         TabRow(
             selectedTabIndex = state.tabIndex,
@@ -53,14 +58,27 @@ fun LoginRegisterScreen(
             Tab(
                 selected = state.tabIndex == 0,
                 onClick = { viewModel.changeTab(0) },
-                text = { Text("Login", fontWeight = FontWeight.Bold) }
+                text = {
+                    Text(
+                        "Login",
+                        fontWeight = FontWeight.Bold,
+                        color = if (state.tabIndex == 0) Color(0xFF2F80ED) else Color(0xFF8A8A8A)
+                    )
+                }
             )
             Tab(
                 selected = state.tabIndex == 1,
                 onClick = { viewModel.changeTab(1) },
-                text = { Text("Sign up", color = Color(0xFF8A8A8A)) }
+                text = {
+                    Text(
+                        "Sign up",
+                        fontWeight = FontWeight.Bold,
+                        color = if (state.tabIndex == 1) Color(0xFF2F80ED) else Color(0xFF8A8A8A)
+                    )
+                }
             )
         }
+
 
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -80,7 +98,7 @@ fun LoginRegisterScreen(
                 onEmailChange = viewModel::onLoginEmailChange,
                 onPasswordChange = viewModel::onLoginPasswordChange,
                 onLoginClick = {
-                    viewModel.login()
+                    viewModel.login(context)
                 },
                 onNavigateToRegister = {
                     viewModel.changeTab(1)
@@ -279,6 +297,10 @@ fun RegisterForm(
     var passwordError by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
+    val passwordRegex = Regex("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@\$!%*#?&])[A-Za-z\\d@\$!%*#?&]{8,}$")
+
+
     Column {
         OutlinedTextField(
             value = nombre,
@@ -353,7 +375,7 @@ fun RegisterForm(
             )
         )
         if (emailError) {
-            Text("El email es obligatorio", color = Color.Red, fontSize = 12.sp)
+            Text("Email no válido. Usa un formato como usuario@dominio.com", color = Color.Red, fontSize = 12.sp)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -388,17 +410,21 @@ fun RegisterForm(
             )
         )
         if (passwordError) {
-            Text("La contraseña es obligatoria", color = Color.Red, fontSize = 12.sp)
+            Text(
+                "Contraseña insegura. Debe tener al menos 8 caracteres, incluir letras, números y un símbolo.",
+                color = Color.Red, fontSize = 12.sp
+            )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+
 
         Button(
             onClick = {
                 nombreError = nombre.isBlank()
                 apellidoError = apellido.isBlank()
-                emailError = email.isBlank()
-                passwordError = password.isBlank()
+                emailError = !emailRegex.matches(email)
+                passwordError = !passwordRegex.matches(password)
 
                 if (!nombreError && !apellidoError && !emailError && !passwordError) {
                     onRegisterClick()

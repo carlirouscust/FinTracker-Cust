@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.login
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import ucne.edu.fintracker.data.local.repository.LoginRepository
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import javax.inject.Inject
@@ -25,12 +25,13 @@ class LoginViewModel @Inject constructor(
     private val _usuarioLogueado = MutableStateFlow<UsuarioDto?>(null)
     val usuarioLogueado: StateFlow<UsuarioDto?> = _usuarioLogueado
 
-    fun login() {
+    fun login(context: Context) {
         viewModelScope.launch {
             try {
                 val usuario = loginRepository.login(
                     _uiState.value.loginEmail,
-                    _uiState.value.loginPassword
+                    _uiState.value.loginPassword,
+                    context
                 )
                 if (usuario != null) {
                     Log.d("LoginViewModel", "Usuario logueado: ${usuario.usuarioId}")

@@ -77,6 +77,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.generativeai)
 
+    implementation(libs.androidx.datastore.preferences)
+
+
     implementation("com.google.cloud:google-cloud-aiplatform:3.69.0") {
         exclude(group = "org.threeten", module = "threetenbp")
     }
