@@ -22,7 +22,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.threeten.bp.LocalDate
 import org.threeten.bp.OffsetDateTime
+import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
@@ -35,7 +37,7 @@ fun GastoScreen(
     usuarioId: Int,
     transaccionParaEditar: TransaccionDto? = null,
     tipoInicial: String = "Gasto",
-    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String, UsuarioId: Int) -> Unit,
+    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String, usuarioId: Int) -> Unit,
     onCancel: () -> Unit
 ) {
     var tipo by remember { mutableStateOf(transaccionParaEditar?.tipo ?: tipoInicial) }
@@ -266,20 +268,46 @@ fun GastoScreen(
             Button(
                 onClick = {
                     val montoDouble = monto.text.toDoubleOrNull() ?: 0.0
-                    val cat = categoriaSeleccionada?.nombre ?: ""
+                    val categoriaId = categoriaSeleccionada?.categoriaId ?: 0
 
-                    if (cat.isBlank() || montoDouble <= 0.0) {
+                    if (montoDouble <= 0.0 || categoriaId == 0) {
                         Toast.makeText(context, "Completa los campos correctamente", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
-                    onGuardar(tipo, montoDouble, cat, fechaSeleccionada, notas, usuarioId)
+                    val fecha = when (fechaSeleccionada) {
+                        "Hoy" -> OffsetDateTime.now()
+                        "Ayer" -> OffsetDateTime.now().minusDays(1)
+                        else -> {
+                            try {
+                                val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+                                val localDate = LocalDate.parse(fechaSeleccionada, formatter)
+                                localDate.atStartOfDay().atOffset(ZoneOffset.UTC)
+                            } catch (e: Exception) {
+                                OffsetDateTime.now()
+                            }
+                        }
+                    }
 
-                    monto = TextFieldValue("")
-                    notas = ""
-                    categoriaSeleccionada = null
-                    fechaSeleccionada = "Hoy"
-                    tipo = tipoInicial
+                    val transaccion = TransaccionDto(
+                        transaccionId = transaccionParaEditar?.transaccionId ?: 0,
+                        tipo = tipo,
+                        monto = montoDouble,
+                        categoriaId = categoriaId,
+                        fecha = fecha,
+                        notas = notas,
+                        usuarioId = usuarioId
+                    )
+
+                    onGuardar(
+                        tipo,
+                        montoDouble,
+                        categoriaSeleccionada?.nombre ?: "",
+                        fechaSeleccionada,
+                        notas,
+                        usuarioId
+                    )
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -294,6 +322,7 @@ fun GastoScreen(
                     fontSize = 18.sp
                 )
             }
+
         }
     }
 }
