@@ -55,9 +55,12 @@ import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
+import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 import java.time.OffsetDateTime
 
 
@@ -935,9 +938,11 @@ fun FinTrackerNavHost(
             }
 
 
-            // En tu NavHost, el composable de ajustes ahora es más simple:
+            // En tu NavHost, actualiza el composable de ajustes:
             composable("ajustes/{usuarioId}") { backStackEntry ->
                 val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+                val context = LocalContext.current
+                val scope = rememberCoroutineScope()
 
                 AjustesListScreen(
                     navController = navHostController,
@@ -949,8 +954,12 @@ fun FinTrackerNavHost(
                         navHostController.navigate("cambiar_contrasena/$usuarioId")
                     },
                     onCerrarSesion = {
-                        navHostController.navigate("login") {
-                            popUpTo(0) { inclusive = true }
+                        // Limpiar la sesión antes de navegar
+                        scope.launch {
+                            DataLogin.limpiarSesion(context)
+                            navHostController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
                         }
                     },
                     onNotificaciones = {
@@ -964,6 +973,18 @@ fun FinTrackerNavHost(
                     },
                     onSoporte = {
                         navHostController.navigate("soporte")
+                    }
+                )
+            }
+
+            // Composable actualizado para el NavHost
+            composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
+                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+
+                CambiarContrasenaScreen(
+                    usuarioId = usuarioId,
+                    onBack = {
+                        navHostController.popBackStack()
                     }
                 )
             }
