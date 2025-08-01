@@ -44,7 +44,7 @@ import androidx.compose.material3.TextButton
 fun CategoriaListScreen(
     viewModel: CategoriaViewModel,
     usuarioId: Int,
-    tipoFiltro: String = "", // Por defecto vacío = mostrar todo
+    tipoFiltro: String = "",
     onBackClick: () -> Unit = {},
     onAgregarCategoriaClick: (String) -> Unit = {}
 ) {
@@ -52,7 +52,7 @@ fun CategoriaListScreen(
 
     LaunchedEffect(usuarioId) {
         viewModel.fetchCategorias(usuarioId)
-        // Asegurar que se inicialice sin filtro para mostrar todas las categorías
+
         if (tipoFiltro.isBlank()) {
             viewModel.inicializarSinFiltro()
         }
@@ -64,7 +64,7 @@ fun CategoriaListScreen(
         }
     }
 
-    // Obtener categorías filtradas desde el ViewModel
+
     val categorias = viewModel.getCategoriasFiltradas()
 
     Column(
@@ -91,7 +91,7 @@ fun CategoriaListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botones de filtro
+
         Row(modifier = Modifier.fillMaxWidth()) {
             Button(
                 onClick = {
@@ -122,7 +122,7 @@ fun CategoriaListScreen(
             }
         }
 
-        // Botón para limpiar filtros cuando hay un filtro activo
+
         if (uiState.filtroTipo.isNotBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
             TextButton(
@@ -137,7 +137,7 @@ fun CategoriaListScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Lista de categorías o mensaje vacío
+
         if (categorias.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -170,14 +170,14 @@ fun CategoriaListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón flotante para agregar
+
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.CenterEnd
         ) {
             FloatingActionButton(
                 onClick = {
-                    // Si no hay filtro seleccionado, por defecto crear Gasto
+
                     onAgregarCategoriaClick(if (uiState.filtroTipo.isBlank()) "Gasto" else uiState.filtroTipo)
                 },
                 containerColor = Color(0xFF85D844),
