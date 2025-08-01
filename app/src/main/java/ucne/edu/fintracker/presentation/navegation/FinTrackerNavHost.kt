@@ -54,7 +54,6 @@ import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioScreen
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
-import ucne.edu.fintracker.MainActivity
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import ucne.edu.fintracker.presentation.login.DataLogin
@@ -100,7 +99,11 @@ fun FinTrackerNavHost(
                 val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
                 val categoriaVM = hiltViewModel<CategoriaViewModel>()
                 val loginState = loginViewModel.uiState.collectAsState().value
-                val usuarioId = loginState.usuarioId
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
 
                 LaunchedEffect(usuarioId) {
                     if (usuarioId != 0) {
@@ -125,7 +128,11 @@ fun FinTrackerNavHost(
             composable("categoria_nueva/{tipo}") { backStackEntry ->
                 val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
                 val categoriaVM = hiltViewModel<CategoriaViewModel>()
-                val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 Log.d("CategoriaNueva", "usuarioId: $usuarioId")
 
 
@@ -275,7 +282,11 @@ fun FinTrackerNavHost(
             composable("pagos/{usuarioId}") {
                 val pagoViewModel = hiltViewModel<PagoViewModel>()
                 val categorias by pagoViewModel.categorias.collectAsState()
-                val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 Log.d("Pagos", "usuarioId en pagos: $usuarioId")
 
                 LaunchedEffect(usuarioId) {
@@ -357,7 +368,11 @@ fun FinTrackerNavHost(
                     navArgument("pagoId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
                 Log.d("PagoDetalle", "usuarioId=$usuarioId, pagoId=$pagoId")
 
@@ -408,7 +423,11 @@ fun FinTrackerNavHost(
                     navArgument("pagoId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
                 Log.d("PagoEditar", "usuarioId=$usuarioId, pagoId=$pagoId")
 
@@ -457,7 +476,10 @@ fun FinTrackerNavHost(
             composable("limites/{usuarioId}") {
                 val limiteViewModel = hiltViewModel<LimiteViewModel>()
 
-                val usuarioId = loginViewModel.uiState.collectAsState().value.usuarioId ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
 
                 LaunchedEffect(usuarioId) {
                     if (usuarioId != 0) {
@@ -485,7 +507,11 @@ fun FinTrackerNavHost(
                 "limite_nuevo/{usuarioId}",
                 arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 Log.d("LimiteNuevo", "usuarioId recibido en ruta: $usuarioId")
                 val limiteViewModel = hiltViewModel<LimiteViewModel>()
 
@@ -534,7 +560,11 @@ fun FinTrackerNavHost(
                 )
             ) { backStackEntry ->
 
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
                 Log.d("LimiteDetalle", "usuarioId=$usuarioId, limiteId=$limiteId")
 
@@ -597,7 +627,11 @@ fun FinTrackerNavHost(
                     navArgument("limiteId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
                 Log.d("LimiteEditar", "usuarioId=$usuarioId, limiteId=$limiteId")
 
