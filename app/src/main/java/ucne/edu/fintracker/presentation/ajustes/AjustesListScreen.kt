@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.ajustes
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -40,6 +41,8 @@ fun AjustesListScreen(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+
+    Log.d("ajustesUsuarioId", "request: $usuarioId")
 
     // Estado para controlar el popup de confirmación
     var showLogoutDialog by remember { mutableStateOf(false) }
