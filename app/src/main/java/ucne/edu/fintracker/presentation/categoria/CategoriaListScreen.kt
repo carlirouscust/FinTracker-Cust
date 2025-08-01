@@ -236,12 +236,6 @@ fun CategoriaBody(
             color = Color.Black,
             modifier = Modifier.weight(1f)
         )
-
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
-            contentDescription = "Ver",
-            tint = Color.Gray
-        )
     }
 }
 
