@@ -36,6 +36,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.platform.LocalContext
+import org.threeten.bp.DayOfWeek
 import org.threeten.bp.format.TextStyle
 import java.util.Locale
 
@@ -281,18 +283,33 @@ fun GastoListScreen(
                         }
                     }
 
-                    val mesActual =
-                        OffsetDateTime.now().month.getDisplayName(TextStyle.FULL, Locale("es"))
-                    val anioActual = OffsetDateTime.now().year
+                    val contexto = LocalContext.current
+                    val seleccion = state.filtro
+
+                    val fechaActual = OffsetDateTime.now()
+                    val fechaTexto = when (seleccion) {
+                        "Día" -> "${fechaActual.dayOfMonth} ${fechaActual.month.getDisplayName(TextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
+                        "Semana" -> {
+                            val inicioSemana = fechaActual.with(DayOfWeek.MONDAY)
+                            val finSemana = inicioSemana.plusDays(6)
+                            "${inicioSemana.dayOfMonth} al ${finSemana.dayOfMonth}"
+                        }
+                        "Mes" -> "${fechaActual.month.getDisplayName(TextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
+                        "Año" -> "${fechaActual.year}"
+                        else -> ""
+                    }
 
                     Text(
-                        text = "${mesActual.replaceFirstChar { it.uppercase() }} $anioActual",
-                        modifier = Modifier.fillMaxWidth(),
+                        text = fechaTexto,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                         fontSize = 16.sp,
                         color = Color.Gray,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.Center
                     )
+
 
                     if (transaccionesFiltradas.isEmpty()) {
                         Box(
@@ -322,7 +339,13 @@ fun GastoListScreen(
                                 }
                             }
 
-                            val mensajeNoHay = if (tipo == "Gasto") "No hubo gastos esta semana" else "No hubo ingresos esta semana"
+                            val mensajeNoHay = when (state.filtro) {
+                                "Día" -> if (tipo == "Gasto") "No hubo gastos este día" else "No hubo ingresos este día"
+                                "Semana" -> if (tipo == "Gasto") "No hubo gastos esta semana" else "No hubo ingresos esta semana"
+                                "Mes" -> if (tipo == "Gasto") "No hubo gastos este mes" else "No hubo ingresos este mes"
+                                "Año" -> if (tipo == "Gasto") "No hubo gastos este año" else "No hubo ingresos este año"
+                                else -> "No hay datos"
+                            }
 
                             Text(
                                 text = mensajeNoHay,
