@@ -18,6 +18,8 @@ class MetaViewModel @Inject constructor(
     private val metaRepository: MetaRepository
 ) : ViewModel() {
 
+    private var usuarioId: Int = 0
+
     private val _uiState = MutableStateFlow(
         MetaUiState(
             metas = emptyList(),
@@ -28,18 +30,18 @@ class MetaViewModel @Inject constructor(
     )
     val uiState: StateFlow<MetaUiState> = _uiState
 
-    init {
-        cargarMetas()
-    }
-
-    fun cargarMetas() {
+    fun cargarMetas(idUsuario: Int) {
+        usuarioId = idUsuario
+        Log.d("MetaVM", "usuarioId en ViewModel antes de crear: $usuarioId")
         viewModelScope.launch {
-            metaRepository.getMetas().collect { result ->
+            metaRepository.getMetas(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
+                        Log.d("MetaVM", "Cargando metas... [LOADING]")
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
                     is Resource.Success -> {
+                        Log.d("MetaVM", "Metas cargadas correctamente: ${result.data}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -49,6 +51,7 @@ class MetaViewModel @Inject constructor(
                         }
                     }
                     is Resource.Error -> {
+                        Log.e("MetaVM", "Error al cargar metas: ${result.message}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -61,16 +64,21 @@ class MetaViewModel @Inject constructor(
         }
     }
 
-    fun crearMeta(metaDto: MetaAhorroDto) {
-        Log.d("MetaVM", "Creando meta: $metaDto")
+    fun crearMeta(metaDto: MetaAhorroDto, usuarioId: Int) {
+        Log.d("MetaVM", "Intentando crear meta: $metaDto con usuarioId: $usuarioId")
         viewModelScope.launch {
-            metaRepository.createMeta(metaDto).collect { result ->
+            val metaParaEnviar = metaDto.copy(usuarioId = usuarioId)
+            Log.d("MetaVM", "Meta a enviar al repositorio: $metaParaEnviar")
+
+            metaRepository.createMeta(metaParaEnviar).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
+                        Log.d("MetaVM", "Creando meta... [LOADING]")
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
                     is Resource.Success -> {
                         result.data?.let { nuevaMeta ->
+                            Log.d("MetaVM", "Meta creada exitosamente: $nuevaMeta")
                             _uiState.update { current ->
                                 current.copy(
                                     isLoading = false,
@@ -80,10 +88,12 @@ class MetaViewModel @Inject constructor(
                                 )
                             }
                         } ?: run {
+                            Log.w("MetaVM", "La meta fue creada pero vino nula.")
                             _uiState.update { it.copy(isLoading = false) }
                         }
                     }
                     is Resource.Error -> {
+                        Log.e("MetaVM", "Error al crear meta: ${result.message}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -96,14 +106,18 @@ class MetaViewModel @Inject constructor(
         }
     }
 
+
     fun actualizarMeta(id: Int, metaDto: MetaAhorroDto) {
+        Log.d("MetaVM", "Actualizando meta con ID $id para usuarioId: $usuarioId")
         viewModelScope.launch {
-            metaRepository.updateMeta(id, metaDto).collect { result ->
+            metaRepository.updateMeta(id, metaDto.copy(usuarioId = usuarioId)).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
+                        Log.d("MetaVM", "Actualizando meta... [LOADING]")
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
                     is Resource.Success -> {
+                        Log.d("MetaVM", "Meta actualizada correctamente: ${result.data}")
                         val listaActualizada = _uiState.value.metas.map {
                             if (it.metaAhorroId == id) result.data ?: it else it
                         }
@@ -116,6 +130,7 @@ class MetaViewModel @Inject constructor(
                         }
                     }
                     is Resource.Error -> {
+                        Log.e("MetaVM", "Error al actualizar meta: ${result.message}")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,

@@ -22,12 +22,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.*
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GastoScreen(
     categorias: List<String>,
+    usuarioId: Int,
     tipoInicial: String = "Gasto",
-    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String) -> Unit,
+    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String, UsuarioId: Int) -> Unit,
     onCancel: () -> Unit
 ) {
     var tipo by remember { mutableStateOf(tipoInicial) }
@@ -242,7 +244,7 @@ fun GastoScreen(
                     val montoDouble = monto.text.toDoubleOrNull() ?: 0.0
                     val cat = categoriaSeleccionada ?: ""
 
-                    onGuardar(tipo, montoDouble, cat, fechaSeleccionada, notas)
+                    onGuardar(tipo, montoDouble, cat, fechaSeleccionada, notas, usuarioId)
 
                     // limpiar campos
                     monto = TextFieldValue("")

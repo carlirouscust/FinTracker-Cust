@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 }
 
 android {
@@ -40,6 +41,14 @@ android {
     buildFeatures {
         compose = true
     }
+    packagingOptions {
+        resources {
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/INDEX.LIST"
+            excludes += "org/threeten/bp/format/ChronologyText.properties"
+        }
+    }
 }
 
 dependencies {
@@ -65,9 +74,16 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.threetenabp)
     implementation(libs.androidx.foundation.layout)
-    implementation(libs.threetenabp)
     implementation(libs.coil.compose)
+    implementation(libs.generativeai)
 
+    implementation(libs.androidx.datastore.preferences)
+
+
+    implementation("com.google.cloud:google-cloud-aiplatform:3.69.0") {
+        exclude(group = "org.threeten", module = "threetenbp")
+    }
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
 
 
 

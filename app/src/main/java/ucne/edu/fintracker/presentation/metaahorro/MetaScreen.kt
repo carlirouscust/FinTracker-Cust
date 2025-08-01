@@ -31,11 +31,12 @@ import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NuevaMetaScreen(
+fun MetaScreen(
     metaParaEditar: MetaAhorroDto? = null,
-    onGuardar: (String, Double, OffsetDateTime, Boolean, String?) -> Unit,
+    usuarioId: Int,
+    onGuardar: (String, Double, OffsetDateTime, Boolean, String?, Int) -> Unit,
     onCancel: () -> Unit,
-    onImagenSeleccionada: (String) -> Unit
+    onImagenSeleccionada: (String?) -> Unit
 ) {
     val contexto = LocalContext.current
 
@@ -99,7 +100,8 @@ fun NuevaMetaScreen(
                             montoObjetivo.toDoubleOrNull() ?: 0.0,
                             fechaFinalizacion,
                             contribucionEstablecida,
-                            imagenUri
+                            imagenUri,
+                            usuarioId
                         )
                         if (metaParaEditar == null) {
                             nombreMeta = ""

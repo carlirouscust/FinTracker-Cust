@@ -1,5 +1,8 @@
 package ucne.edu.fintracker.presentation.login
 
+import android.content.Context
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -7,54 +10,52 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.dto.ResetPasswordRequest
+import kotlinx.coroutines.flow.StateFlow
+import ucne.edu.fintracker.data.local.repository.LoginRepository
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val api: FinTrackerApi
+    private val loginRepository: LoginRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
+    private val _usuarioLogueado = MutableStateFlow<UsuarioDto?>(null)
+    val usuarioLogueado: StateFlow<UsuarioDto?> = _usuarioLogueado
 
-    fun login() {
+    fun login(context: Context) {
         viewModelScope.launch {
             try {
-                val usuarios = api.getUsuario()
-                val usuario = usuarios.find {
-                    it.email == _uiState.value.loginEmail &&
-                            it.contraseña == _uiState.value.loginPassword
-                }
-
+                val usuario = loginRepository.login(
+                    _uiState.value.loginEmail,
+                    _uiState.value.loginPassword,
+                    context
+                )
                 if (usuario != null) {
+                    Log.d("LoginViewModel", "Usuario logueado: ${usuario.usuarioId}")
+                    _usuarioLogueado.value = usuario
                     _uiState.update {
-                        it.copy(usuarioId = usuario.usuarioId ?: 0, loginError = false)
+                        it.copy(
+                            usuarioId = usuario.usuarioId ?: 0,
+                            loginError = false
+                        )
                     }
                 } else {
-                    _uiState.update {
-                        it.copy(loginError = true)
-                    }
+                    Log.d("LoginViewModel", "Login fallido")
+                    _usuarioLogueado.value = null
+                    _uiState.update { it.copy(loginError = true) }
                 }
             } catch (e: Exception) {
-                println("Error al intentar login: ${e.message}")
-                _uiState.update {
-                    it.copy(loginError = true)
-                }
+                Log.e("LoginViewModel", "Error login: ${e.message}")
+                _usuarioLogueado.value = null
+                _uiState.update { it.copy(loginError = true) }
             }
         }
     }
 
-
-    fun registerUser(
-        onSuccess: () -> Unit,
-        onError: (Throwable) -> Unit
-    ) {
+    fun registerUser(onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         viewModelScope.launch {
             try {
                 val state = uiState.value
@@ -66,10 +67,25 @@ class LoginViewModel @Inject constructor(
                     contraseña = state.registerPassword,
                     divisa = "DOP"
                 )
-                api.createUsuario(newUser)
+                loginRepository.register(newUser)
                 onSuccess()
             } catch (e: Exception) {
                 onError(e)
+            }
+        }
+    }
+
+    fun resetPassword() {
+        viewModelScope.launch {
+            try {
+                val success = loginRepository.enviarResetPassword(uiState.value.resetEmail)
+                if (success) {
+                    println("Enlace enviado")
+                } else {
+                    println("Error al enviar enlace")
+                }
+            } catch (e: Exception) {
+                println("Excepción: ${e.message}")
             }
         }
     }
@@ -105,21 +121,6 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(resetEmail = value, resetError = null, resetSuccess = null) }
     }
 
-    fun resetPassword() {
-        viewModelScope.launch {
-            try {
-                val email = uiState.value.resetEmail
-                val response = api.enviarLinkResetPassword(ResetPasswordRequest(email))
-                if (response.isSuccessful) {
-                    println("Enlace enviado")
-                } else {
-                    println("Error: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                println("Excepción: ${e.message}")
-            }
-        }
-    }
 
     fun changeTab(index: Int) {
         _uiState.update { it.copy(tabIndex = index) }

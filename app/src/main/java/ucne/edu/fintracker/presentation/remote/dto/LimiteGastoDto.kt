@@ -6,5 +6,6 @@ data class LimiteGastoDto(
 //    val categoria: CategoriaDto,
     val montoLimite: Double,
     val periodo: String, // "Diario", "Mensual", etc.
-    val gastadoActual: Double? = null
+    val gastadoActual: Double? = null,
+    val usuarioId: Int
 )

@@ -106,11 +106,11 @@ fun MenuScreen(
                             scope.launch { drawerState.close() }
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
-                                "Gráficos" -> navController.navigate("graficos")
-                                "Pagos Recurrentes" -> navController.navigate("pagos")
+                                "Gráficos" -> navController.navigate("graficos/{usuarioId}")
+                                "Pagos Recurrentes" -> navController.navigate("pagos/{usuarioId}")
                                 "Categorías" -> navController.navigate("categoria/{tipo}")
-                                "Limite de gastos" -> navController.navigate("limites")
-                                "Ajustes" -> navController.navigate("ajustes")
+                                "Limite de gastos" -> navController.navigate("limites/{usuarioId}")
+                                "Ajustes" -> navController.navigate("ajustes/{usuarioId}")
                             }
                         },
                         modifier = Modifier

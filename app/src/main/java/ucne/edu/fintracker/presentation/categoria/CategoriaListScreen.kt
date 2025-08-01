@@ -43,6 +43,7 @@ import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 @Composable
 fun CategoriaListScreen(
     viewModel: CategoriaViewModel,
+    usuarioId: Int,
     tipoFiltro: String = "Gasto",
     onBackClick: () -> Unit = {},
     onAgregarCategoriaClick: (String) -> Unit = {},
@@ -56,9 +57,10 @@ fun CategoriaListScreen(
         viewModel.onTipoChange(tipoFiltro)
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchCategorias()
+    LaunchedEffect(usuarioId) {
+        viewModel.fetchCategorias(usuarioId)
     }
+
     val categorias = uiState.categorias.filter { it.tipo == tipo }
 
     Column(

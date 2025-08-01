@@ -29,21 +29,22 @@ import java.util.*
 @Composable
 fun PagoScreen(
     viewModel: PagoViewModel,
+    usuarioId: Int,
     pagoParaEditar: PagoRecurrenteDto? = null,
-    onGuardar: (Double, Int, String, OffsetDateTime, OffsetDateTime?) -> Unit,
+    onGuardar: (Double, Int, String, OffsetDateTime, OffsetDateTime?, Int) -> Unit,
     onCancel: () -> Unit
 ) {
     val categorias by viewModel.categorias.collectAsState()
     val context = LocalContext.current
 
-    // Estado de campos
     var monto by remember { mutableStateOf(pagoParaEditar?.monto?.toString() ?: "") }
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
     var frecuencia by remember { mutableStateOf(pagoParaEditar?.frecuencia ?: "") }
     var fechaInicio by remember { mutableStateOf(pagoParaEditar?.fechaInicio?.toString() ?: "") }
     var fechaFin by remember { mutableStateOf(pagoParaEditar?.fechaFin?.toString() ?: "") }
 
-    // Cargar categoría si hay pago para editar
+    val periodos = listOf("Diario", "Semanal", "Quincenal", "Mensual", "Anual")
+
     LaunchedEffect(categorias, pagoParaEditar) {
         if (pagoParaEditar != null && categorias.isNotEmpty()) {
             categoriaSeleccionada = categorias.find { it.categoriaId == pagoParaEditar.categoriaId }
@@ -89,10 +90,9 @@ fun PagoScreen(
                                 cat.categoriaId,
                                 frecuencia,
                                 OffsetDateTime.parse(fechaInicio),
-                                fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) }
+                                fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) },
+                                usuarioId
                             )
-
-                            // Limpia solo si es crear, si estás editando puedes navegar atrás
                             if (pagoParaEditar == null) {
                                 monto = ""
                                 categoriaSeleccionada = null
@@ -130,11 +130,10 @@ fun PagoScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Dropdown Categorías
-            var expanded by remember { mutableStateOf(false) }
+            var expandedCategoria by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+                expanded = expandedCategoria,
+                onExpandedChange = { expandedCategoria = !expandedCategoria }
             ) {
                 OutlinedTextField(
                     value = categoriaSeleccionada?.nombre ?: "",
@@ -142,43 +141,67 @@ fun PagoScreen(
                     readOnly = true,
                     label = { Text("Categoría") },
                     trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoria)
                     },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth()
                 )
                 ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    expanded = expandedCategoria,
+                    onDismissRequest = { expandedCategoria = false }
                 ) {
                     categorias.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
                                 categoriaSeleccionada = cat
-                                expanded = false
+                                expandedCategoria = false
                             }
                         )
                     }
                 }
             }
 
-            OutlinedTextField(
-                value = frecuencia,
-                onValueChange = { frecuencia = it },
-                label = { Text("Frecuencia (Ej: Mensual)") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            var expandedFrecuencia by remember { mutableStateOf(false) }
+            ExposedDropdownMenuBox(
+                expanded = expandedFrecuencia,
+                onExpandedChange = { expandedFrecuencia = !expandedFrecuencia }
+            ) {
+                OutlinedTextField(
+                    value = frecuencia,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Frecuencia") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrecuencia)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedFrecuencia,
+                    onDismissRequest = { expandedFrecuencia = false }
+                ) {
+                    periodos.forEach { p ->
+                        DropdownMenuItem(
+                            text = { Text(p) },
+                            onClick = {
+                                frecuencia = p
+                                expandedFrecuencia = false
+                            }
+                        )
+                    }
+                }
+            }
 
-            // Fecha Inicio
             FechaSelector(
                 label = "Fecha de Inicio",
                 fecha = fechaInicio,
                 onFechaSeleccionada = { fechaInicio = it }
             )
 
-            // Fecha Fin opcional
             FechaSelector(
                 label = "Fecha de Finalización (Opcional)",
                 fecha = fechaFin,
@@ -187,6 +210,7 @@ fun PagoScreen(
         }
     }
 }
+
 
 @Composable
 private fun FechaSelector(label: String, fecha: String, onFechaSeleccionada: (String) -> Unit) {

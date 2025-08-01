@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.limitegasto
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,14 +14,17 @@ import ucne.edu.fintracker.data.local.repository.CategoriaRepository
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import javax.inject.Inject
 
 @HiltViewModel
 class LimiteViewModel @Inject constructor(
     private val limiteRepository: LimiteRepository,
-    private val categoriaRepository: CategoriaRepository
+    private val categoriaRepository: CategoriaRepository,
+
 ) : ViewModel() {
 
+    private var usuarioIdActual: Int? = null
     private val _uiState = MutableStateFlow(
         LimiteUiState(
             limites = emptyList(),
@@ -29,26 +33,32 @@ class LimiteViewModel @Inject constructor(
         )
     )
     val uiState: StateFlow<LimiteUiState> = _uiState
-
-
-
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
-    init {
-        cargarCategorias()
-        cargarLimites()
+
+    fun inicializar(usuarioId: Int) {
+        Log.d("LimiteViewModel", "Inicializando datos para usuario $usuarioId")
+        usuarioIdActual = usuarioId
+        fetchCategorias(usuarioId)
+        cargarLimites(usuarioId)
     }
 
-    fun cargarCategorias() {
+
+    fun fetchCategorias(usuarioId: Int) {
         viewModelScope.launch {
-            categoriaRepository.getCategorias().collect { result ->
+            Log.d("LimiteViewModel", "Cargando categorías para usuario $usuarioId")
+            categoriaRepository.getCategorias(usuarioId).collect { result ->
                 when (result) {
-                    is Resource.Loading -> {  }
+                    is Resource.Loading -> {
+
+                    }
                     is Resource.Success -> {
+                        Log.d("LimiteViewModel", "Categorías cargadas: ${result.data?.size}")
                         _categorias.value = result.data ?: emptyList()
                     }
                     is Resource.Error -> {
+                        Log.e("LimiteViewModel", "Error cargando categorías: ${result.message}")
                         _categorias.value = emptyList()
                     }
                 }
@@ -56,9 +66,10 @@ class LimiteViewModel @Inject constructor(
         }
     }
 
-    fun cargarLimites() {
+
+    fun cargarLimites(usuarioId: Int) {
         viewModelScope.launch {
-            limiteRepository.getLimites().collect { result ->
+            limiteRepository.getLimites(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true, error = null) }
@@ -86,7 +97,6 @@ class LimiteViewModel @Inject constructor(
     }
 
     fun crearLimite(limiteDto: LimiteGastoDto) {
-        Log.d("LimiteVM", "Creando límite: $limiteDto")
         viewModelScope.launch {
             limiteRepository.createLimite(limiteDto).collect { result ->
                 when (result) {
@@ -98,7 +108,6 @@ class LimiteViewModel @Inject constructor(
                             _uiState.update { current ->
                                 current.copy(
                                     isLoading = false,
-                                    limiteCreado = true,
                                     limites = current.limites + nuevoLimite,
                                     error = null
                                 )
@@ -182,5 +191,6 @@ class LimiteViewModel @Inject constructor(
         }
     }
 }
+
 
 
