@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.remote
 
 import retrofit2.Response
+import ucne.edu.fintracker.presentation.remote.dto.CambiarContrasenaRequest
 //import ucne.edu.fintracker.presentation.remote.dto.CambiarPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
@@ -18,6 +19,10 @@ class DataSource @Inject constructor(
     suspend fun createUsuario(usuario: UsuarioDto): UsuarioDto = api.createUsuario(usuario)
     suspend fun getUsuario(id: Int): UsuarioDto = api.getUsuario(id)
     suspend fun updateUsuario(id: Int, usuario: UsuarioDto): UsuarioDto = api.updateUsuario(id, usuario)
+    suspend fun cambiarContrasena(usuarioId: Int, request: CambiarContrasenaRequest): Response<Unit> {
+        return api.cambiarContrasena(usuarioId, request)
+    }
+
     suspend fun deleteUsuario(id: Int) = api.deleteUsuario(id)
 //    suspend fun enviarResetPassword(email: String): Boolean {
 //        val response = api.enviarLinkResetPassword(CambiarPasswordRequest(email))
