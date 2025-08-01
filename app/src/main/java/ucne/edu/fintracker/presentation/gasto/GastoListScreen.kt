@@ -292,7 +292,12 @@ fun GastoListScreen(
                         "Semana" -> {
                             val inicioSemana = fechaActual.with(DayOfWeek.MONDAY)
                             val finSemana = inicioSemana.plusDays(6)
-                            "${inicioSemana.dayOfMonth} al ${finSemana.dayOfMonth}"
+
+                            val formatter = DateTimeFormatter.ofPattern("d 'de' MMM", Locale("es"))
+                            val inicioStr = inicioSemana.format(formatter).lowercase()
+                            val finStr = finSemana.format(formatter).lowercase()
+
+                            "$inicioStr al $finStr"
                         }
                         "Mes" -> "${fechaActual.month.getDisplayName(TextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
                         "Año" -> "${fechaActual.year}"

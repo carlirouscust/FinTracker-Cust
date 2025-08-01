@@ -239,6 +239,13 @@ class GastoViewModel @Inject constructor(
         return _uiState.value.transacciones.find { it.transaccionId == id }
     }
 
+    fun obtenerTotalGastadoPorCategoria(usuarioId: Int, categoriaId: Int): Double {
+        return _uiState.value.transacciones
+            .filter { it.usuarioId == usuarioId && it.categoriaId == categoriaId && it.tipo == "Gasto" }
+            .sumOf { it.monto }
+    }
+
+
     fun actualizarTransaccion(transaccionDto: TransaccionDto) {
         viewModelScope.launch {
             transaccionRepository.updateTransaccion(transaccionDto.transaccionId, transaccionDto)
