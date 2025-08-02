@@ -48,6 +48,7 @@ fun PanelUsuarioScreen(
     MenuScreen(
         drawerState = drawerState,
         navController = navController,
+        usuarioId = usuarioId,
         content = {
             Scaffold(
                 topBar = {
