@@ -39,7 +39,6 @@ fun AjustesListScreen(
     onCentroAyuda: () -> Unit = {},
     onSoporte: () -> Unit = {}
 ) {
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     Log.d("ajustesUsuarioId", "request: $usuarioId")
@@ -47,100 +46,94 @@ fun AjustesListScreen(
     // Estado para controlar el popup de confirmación
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    MenuScreen(
-        drawerState = drawerState,
-        navController = navController,
-        content = {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "Ajustes",
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                color = Color.Black,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Menu")
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Ajustes",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 },
-                bottomBar = {
-                    NavigationBar(containerColor = Color.White) {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val currentRoute = navBackStackEntry?.destination?.route
-
-                        NavigationBarItem(
-                            selected = currentRoute == "gastos",
-                            onClick = { navController.navigate("gastos") },
-                            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                            label = { Text("Home") }
-                        )
-
-                        NavigationBarItem(
-                            selected = currentRoute == "chatIA",
-                            onClick = { navController.navigate("chatIA/$usuarioId") },
-                            icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                            label = { Text("IA Asesor") }
-                        )
-
-                        NavigationBarItem(
-                            selected = currentRoute == "metaahorros/$usuarioId",
-                            onClick = {
-                                navController.navigate("metaahorros/$usuarioId") {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                }
-                            },
-                            icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                            label = { Text("Metas") }
-                        )
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
                     }
-                }
-            ) { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White)
-                        .verticalScroll(rememberScrollState())
-                        .padding(paddingValues)
-                        .padding(16.dp)
-                ) {
-                    AjustesSeccion(titulo = "Cuenta") {
-                        ItemAjuste("Información del perfil", "Editar información personal", Icons.Default.Person, onEditarPerfil)
-                        ItemAjuste("Contraseña", "Cambiar contraseña", Icons.Default.Lock, onCambiarContrasena)
-                        ItemAjuste("Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp,
-                            onClick = { showLogoutDialog = true }, // Mostrar el popup en lugar de cerrar directamente
-                            Color.Red
-                        )
-                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        bottomBar = {
+            NavigationBar(containerColor = Color.White) {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                NavigationBarItem(
+                    selected = currentRoute == "gastos",
+                    onClick = { navController.navigate("gastos") },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    label = { Text("Home") }
+                )
 
-                    AjustesSeccion(titulo = "Preferencias de la aplicación") {
-                        ItemAjuste("Notificaciones", "Gestionar notificaciones", Icons.Default.Notifications, onNotificaciones)
-                        ItemAjuste("Apariencia", "Cambiar apariencia de la aplicación", Icons.Default.Palette, onApariencia)
-                    }
+                NavigationBarItem(
+                    selected = currentRoute == "chatIA",
+                    onClick = { navController.navigate("chatIA/$usuarioId") },
+                    icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
+                    label = { Text("IA Asesor") }
+                )
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    AjustesSeccion(titulo = "Ayuda y soporte") {
-                        ItemAjuste("Centro de ayuda", "Preguntas frecuentes", Icons.Default.Help, onCentroAyuda)
-                        ItemAjuste("Soporte", "Contactar con soporte", Icons.Default.Support, onSoporte)
-                    }
-                }
+                NavigationBarItem(
+                    selected = currentRoute == "metaahorros/$usuarioId",
+                    onClick = {
+                        navController.navigate("metaahorros/$usuarioId") {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
+                    label = { Text("Metas") }
+                )
             }
         }
-    )
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(rememberScrollState())
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            AjustesSeccion(titulo = "Cuenta") {
+                ItemAjuste("Información del perfil", "Editar información personal", Icons.Default.Person, onEditarPerfil)
+                ItemAjuste("Contraseña", "Cambiar contraseña", Icons.Default.Lock, onCambiarContrasena)
+                ItemAjuste("Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp,
+                    onClick = { showLogoutDialog = true },
+                    Color.Red
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            AjustesSeccion(titulo = "Preferencias de la aplicación") {
+                ItemAjuste("Notificaciones", "Gestionar notificaciones", Icons.Default.Notifications, onNotificaciones)
+                ItemAjuste("Apariencia", "Cambiar apariencia de la aplicación", Icons.Default.Palette, onApariencia)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            AjustesSeccion(titulo = "Ayuda y soporte") {
+                ItemAjuste("Centro de ayuda", "Preguntas frecuentes", Icons.Default.Help, onCentroAyuda)
+                ItemAjuste("Soporte", "Contactar con soporte", Icons.Default.Support, onSoporte)
+            }
+        }
+    }
 
     // Popup de confirmación para cerrar sesión
     if (showLogoutDialog) {
@@ -163,7 +156,7 @@ fun AjustesListScreen(
                 Button(
                     onClick = {
                         showLogoutDialog = false
-                        onCerrarSesion() // Ejecutar la acción de cerrar sesión
+                        onCerrarSesion()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
