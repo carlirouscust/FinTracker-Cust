@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChatIaScreen(
     navController: NavHostController,
-    usuarioId: String,
+    usuarioId: Int,
     ChatIAViewModel: ChatIAViewModel = viewModel()
 ) {
     var prompt by remember { mutableStateOf("") }

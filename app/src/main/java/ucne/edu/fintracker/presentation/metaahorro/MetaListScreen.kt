@@ -42,12 +42,12 @@ fun MetaListScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -55,14 +55,14 @@ fun MetaListScreen(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Metas de Ahorro",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
@@ -74,25 +74,31 @@ fun MetaListScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Agregar Meta",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
             bottomBar = {
                 NavigationBar(
-                    containerColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.background,
                 ) {
                     NavigationBarItem(
                         selected = true,
                         onClick = { navController.navigate("gastos") },
-                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home") }
+                        icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = MaterialTheme.colorScheme.onSurface) },
+                        label = { Text("Home", color = MaterialTheme.colorScheme.onSurface) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { navController.navigate("chatIA/$usuarioId") },
-                        icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                        label = { Text("IA Asesor") }
+                        icon = { Icon(
+                            Icons.Default.Assistant,
+                            contentDescription = "IA Asesor",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        ) },
+                        label = { Text("IA Asesor",
+                            color = MaterialTheme.colorScheme.onSurface
+                        ) }
                     )
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = navBackStackEntry?.destination?.route
@@ -108,8 +114,8 @@ fun MetaListScreen(
                                 }
                             }
                         },
-                        icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                        label = { Text("Metas") }
+                        icon = { Icon(Icons.Default.Star, contentDescription = "Metas", tint = MaterialTheme.colorScheme.onSurface) },
+                        label = { Text("Metas", color = MaterialTheme.colorScheme.onSurface) }
                     )
                 }
 
@@ -120,7 +126,7 @@ fun MetaListScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.White)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
@@ -132,13 +138,13 @@ fun MetaListScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.White)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = uiState.error ?: "Error desconocido",
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -148,7 +154,7 @@ fun MetaListScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.White)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(padding)
                     ) {
                         Text(
@@ -174,19 +180,20 @@ fun MetaListScreen(
                                                 text = "Meta",
                                                 fontWeight = FontWeight.SemiBold,
                                                 fontSize = 14.sp,
-                                                color = Color.Gray
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                             Spacer(Modifier.height(4.dp))
                                             Text(
                                                 text = meta.nombreMeta,
                                                 fontWeight = FontWeight.Bold,
-                                                fontSize = 16.sp
+                                                fontSize = 16.sp,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Spacer(Modifier.height(4.dp))
                                             Text(
                                                 text = "RD$ ${meta.montoObjetivo}",
                                                 fontSize = 14.sp,
-                                                color = Color.DarkGray
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
 
                                             Spacer(Modifier.height(8.dp))
@@ -196,22 +203,22 @@ fun MetaListScreen(
                                                 Button(
                                                     onClick = { onMetaClick(meta.metaAhorroId) },
                                                     colors = ButtonDefaults.buttonColors(
-                                                        containerColor = Color.LightGray,
-                                                        contentColor = Color.Black
+                                                        containerColor = Color(0xFF8BC34A),
+                                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                                     ),
                                                     modifier = Modifier.weight(1f)
                                                 ) {
-                                                    Text("Ver")
+                                                    Text("Ver", color = MaterialTheme.colorScheme.onSecondaryContainer)
                                                 }
                                                 Button(
                                                     onClick = { onAgregarMontoClick(meta.metaAhorroId) },
                                                     colors = ButtonDefaults.buttonColors(
-                                                        containerColor = Color.LightGray,
-                                                        contentColor = Color.Black
+                                                        containerColor = Color(0xFF8BC34A),
+                                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                                     ),
                                                     modifier = Modifier.weight(1f)
                                                 ) {
-                                                    Text("Agregar")
+                                                    Text("Agregar", color = MaterialTheme.colorScheme.onSecondaryContainer)
                                                 }
                                             }
                                         }
@@ -232,10 +239,10 @@ fun MetaListScreen(
                                                 modifier = Modifier
                                                     .size(64.dp)
                                                     .clip(RoundedCornerShape(12.dp))
-                                                    .background(Color(0xFFEFEFEF)),
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text("Sin imagen", fontSize = 10.sp, color = Color.Gray)
+                                                Text("Sin imagen", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                             }
                                         }
                                     }

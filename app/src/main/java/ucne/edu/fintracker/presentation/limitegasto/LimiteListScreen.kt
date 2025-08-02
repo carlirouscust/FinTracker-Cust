@@ -32,12 +32,12 @@ fun LimiteListScreen(
 
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -45,14 +45,14 @@ fun LimiteListScreen(
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Límites de Gasto",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
@@ -79,14 +79,14 @@ fun LimiteListScreen(
                 uiState.isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF8BC34A)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
                 uiState.error != null -> {
                     Text(
                         text = uiState.error ?: "Error desconocido",
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -96,7 +96,7 @@ fun LimiteListScreen(
                         Text(
                             text = "No hay límites de gasto.",
                             modifier = Modifier.align(Alignment.Center),
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
                         LazyColumn(
@@ -143,12 +143,12 @@ fun LimiteListScreen(
                                             Text(
                                                 text = nombreCategoria,
                                                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                                color = Color.Black
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Text(
                                                 text = "Límite: RD$${limite.montoLimite}",
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = Color.Gray
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
@@ -162,13 +162,13 @@ fun LimiteListScreen(
                                             modifier = Modifier
                                                 .width(120.dp)
                                                 .height(8.dp),
-                                            color = Color(0xFF8BC34A)
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = "${porcentaje.toInt()}%",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = Color.Black
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
                                 }

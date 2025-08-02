@@ -40,7 +40,7 @@ fun LimiteDetalleScreen(
 
     val porcentaje = ((limite.gastadoActual ?: 0.0) / limite.montoLimite * 100).coerceAtMost(100.0)
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Detalle del Límite") },
@@ -50,9 +50,9 @@ fun LimiteDetalleScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -60,10 +60,10 @@ fun LimiteDetalleScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
 
             Column(
@@ -75,15 +75,15 @@ fun LimiteDetalleScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(20.dp),
-                    color = Color(0xFF8BC34A),
-                    trackColor = Color(0xFFE0E0E0)
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "${porcentaje.toInt()}% consumido",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
@@ -99,19 +99,19 @@ fun LimiteDetalleScreen(
                     text = categoriaNombre,
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
             Divider()
 
-            Text("Período", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-            Text(limite.periodo, fontSize = 16.sp, color = Color.Gray)
+            Text("Período", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(limite.periodo, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Divider()
 
-            Text("Monto Límite", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-            Text("RD$ ${limite.montoLimite}", fontSize = 16.sp, color = Color.Gray)
+            Text("Monto Límite", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text("RD$ ${limite.montoLimite}", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Divider()
 
@@ -123,22 +123,22 @@ fun LimiteDetalleScreen(
             ) {
                 Button(
                     onClick = onEditarClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.White)
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Editar", color = Color.White)
+                    Text("Editar", color = MaterialTheme.colorScheme.onPrimary)
                 }
 
                 Button(
                     onClick = { mostrarDialogoEliminar = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.White)
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onError)
                     Spacer(Modifier.width(8.dp))
-                    Text("Eliminar", color = Color.White)
+                    Text("Eliminar", color = MaterialTheme.colorScheme.onError)
                 }
             }
         }
@@ -156,14 +156,14 @@ fun LimiteDetalleScreen(
                         onEliminarConfirmado()
                     }
                 ) {
-                    Text("Eliminar", color = Color.Black)
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { mostrarDialogoEliminar = false }
                 ) {
-                    Text("Cancelar", color = Color.Black)
+                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         )
