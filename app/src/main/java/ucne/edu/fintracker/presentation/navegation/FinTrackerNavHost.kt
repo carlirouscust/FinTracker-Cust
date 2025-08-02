@@ -954,8 +954,10 @@ fun FinTrackerNavHost(
 
             // En tu NavHost, actualiza el composable de ajustes:
             composable("ajustes/{usuarioId}") { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
                 val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
                 val scope = rememberCoroutineScope()
 
                 AjustesListScreen(

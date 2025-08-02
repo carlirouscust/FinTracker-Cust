@@ -1,16 +1,16 @@
 package ucne.edu.fintracker.presentation.panelUsuario
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -18,12 +18,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun CambiarContrasenaScreen(
     usuarioId: Int,
-    onBack: () -> Unit) {
+    onBack: () -> Unit,
+    viewModel: CambiarContrasenaViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    Log.d("UsuarioId", "request: $usuarioId")
+
+
     var contrasenaActual by remember { mutableStateOf("") }
     var nuevaContrasena by remember { mutableStateOf("") }
     var confirmarContrasena by remember { mutableStateOf("") }
@@ -31,6 +38,19 @@ fun CambiarContrasenaScreen(
     var showPasswordActual by remember { mutableStateOf(false) }
     var showNuevaPassword by remember { mutableStateOf(false) }
     var showConfirmarPassword by remember { mutableStateOf(false) }
+
+    // Validación simple para activar botón
+    val isFormValid = nuevaContrasena.length >= 8 &&
+            nuevaContrasena == confirmarContrasena &&
+            contrasenaActual.isNotBlank()
+
+    // Si cambio fue exitoso, regresa atrás automáticamente
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            onBack()
+            viewModel.limpiarMensajes()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -154,22 +174,33 @@ fun CambiarContrasenaScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Mostrar mensajes de error o éxito
+        if (uiState.isError) {
+            Text(
+                text = uiState.errorMessage,
+                color = Color.Red,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        if (uiState.isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+
         Button(
             onClick = {
-                // Navegar a la pantalla de cambiar contraseña con el usuarioId
-                onBack()
-              },
+                viewModel.cambiarContrasena(usuarioId, contrasenaActual, nuevaContrasena)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
             shape = RoundedCornerShape(25.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF85D844),
+                containerColor = if (isFormValid) Color(0xFF85D844) else Color.Gray,
                 contentColor = Color.White
-            )
+            ),
+            enabled = isFormValid && !uiState.isLoading
         ) {
             Text("Guardar cambios", fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
-
     }
 }
