@@ -160,7 +160,9 @@ fun GastoListScreen(
                                 )
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     )
                 },
                 floatingActionButton = {
@@ -181,7 +183,7 @@ fun GastoListScreen(
                 },
                 bottomBar = {
                         NavigationBar(
-                            containerColor = Color.White,
+                            containerColor = MaterialTheme.colorScheme.surface,
                         ) {
                             NavigationBarItem(
                                 selected = true,
@@ -219,7 +221,7 @@ fun GastoListScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp)

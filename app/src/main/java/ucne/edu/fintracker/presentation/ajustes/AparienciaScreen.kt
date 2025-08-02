@@ -19,15 +19,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import ucne.edu.fintracker.presentation.theme.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AparienciaScreen(
     navController: NavController,
-    usuarioId: Int
+    usuarioId: Int,
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
+    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -35,21 +40,27 @@ fun AparienciaScreen(
                     Text(
                         text = "Apariencia",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Atrás",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -87,23 +98,21 @@ fun AparienciaScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
             AparienciaSeccion(titulo = "Tema") {
-                var temaSeleccionado by remember { mutableStateOf("Claro") }
-
                 OpcionTema(
                     titulo = "Claro",
-                    isSelected = temaSeleccionado == "Claro",
-                    onSelected = { temaSeleccionado = "Claro" }
+                    isSelected = !isDarkTheme,
+                    onSelected = { themeViewModel.toggleTheme(false) }
                 )
                 OpcionTema(
                     titulo = "Oscuro",
-                    isSelected = temaSeleccionado == "Oscuro",
-                    onSelected = { temaSeleccionado = "Oscuro" }
+                    isSelected = isDarkTheme,
+                    onSelected = { themeViewModel.toggleTheme(true) }
                 )
             }
 
@@ -123,7 +132,7 @@ fun AparienciaSeccion(titulo: String, contenido: @Composable ColumnScope.() -> U
             text = titulo,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         contenido()
@@ -145,7 +154,7 @@ fun OpcionTema(
     ) {
         Text(
             text = titulo,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp
         )
@@ -153,8 +162,8 @@ fun OpcionTema(
             selected = isSelected,
             onClick = onSelected,
             colors = RadioButtonDefaults.colors(
-                selectedColor = Color(0xFF85D844),
-                unselectedColor = Color.Gray
+                selectedColor = Color(0xFF8BC34A),
+                unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         )
     }
@@ -179,27 +188,33 @@ fun SelectorIdioma() {
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Dropdown",
-                    tint = Color.Gray
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Gray,
-                unfocusedBorderColor = Color.Gray,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             idiomas.forEach { idioma ->
                 DropdownMenuItem(
-                    text = { Text(idioma) },
+                    text = {
+                        Text(
+                            idioma,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
                     onClick = {
                         selectedIdioma = idioma
                         expanded = false

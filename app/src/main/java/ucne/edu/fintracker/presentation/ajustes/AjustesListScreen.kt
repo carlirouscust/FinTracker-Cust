@@ -40,10 +40,6 @@ fun AjustesListScreen(
     onSoporte: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
-
-    Log.d("ajustesUsuarioId", "request: $usuarioId")
-
-    // Estado para controlar el popup de confirmación
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -53,21 +49,23 @@ fun AjustesListScreen(
                     Text(
                         text = "Ajustes",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -105,7 +103,7 @@ fun AjustesListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
                 .padding(16.dp)
@@ -113,9 +111,10 @@ fun AjustesListScreen(
             AjustesSeccion(titulo = "Cuenta") {
                 ItemAjuste("Información del perfil", "Editar información personal", Icons.Default.Person, onEditarPerfil)
                 ItemAjuste("Contraseña", "Cambiar contraseña", Icons.Default.Lock, onCambiarContrasena)
-                ItemAjuste("Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp,
+                ItemAjuste(
+                    "Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp,
                     onClick = { showLogoutDialog = true },
-                    Color.Red
+                    colorIcono = Color.Red
                 )
             }
 
@@ -135,7 +134,6 @@ fun AjustesListScreen(
         }
     }
 
-    // Popup de confirmación para cerrar sesión
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -143,13 +141,13 @@ fun AjustesListScreen(
                 Text(
                     text = "Cerrar sesión",
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             text = {
                 Text(
                     text = "¿Está seguro que quiere cerrar la sesión?",
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             confirmButton = {
@@ -158,19 +156,17 @@ fun AjustesListScreen(
                         showLogoutDialog = false
                         onCerrarSesion()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Sí, cerrar sesión", color = Color.White)
+                    Text("Sí, cerrar sesión", color = MaterialTheme.colorScheme.onError)
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false }
-                ) {
-                    Text("Cancelar", color = Color(0xFF85D844))
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancelar", color = MaterialTheme.colorScheme.primary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
@@ -183,7 +179,7 @@ fun AjustesSeccion(titulo: String, contenido: @Composable ColumnScope.() -> Unit
             text = titulo,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         contenido()
@@ -196,7 +192,7 @@ fun ItemAjuste(
     subtitulo: String,
     icono: ImageVector,
     onClick: () -> Unit,
-    colorIcono: Color = Color(0xFF2F2F2F)
+    colorIcono: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = Modifier
@@ -208,7 +204,7 @@ fun ItemAjuste(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(Color(0xFFF1F1F1), shape = CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -220,7 +216,7 @@ fun ItemAjuste(
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = titulo, color = colorIcono, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitulo, color = Color.Gray, fontSize = 13.sp)
+            Text(text = subtitulo, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
     }
 }

@@ -80,7 +80,7 @@ fun GastoScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -88,14 +88,14 @@ fun GastoScreen(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cerrar",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -104,7 +104,7 @@ fun GastoScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
@@ -117,22 +117,22 @@ fun GastoScreen(
                     colors = if (tipo == "Gasto")
                         ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                     else
-                        ButtonDefaults.buttonColors(containerColor = Color(0xFFD3D3D3)),
+                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Gasto", color = if (tipo == "Gasto") Color.White else Color.Black)
+                    Text("Gasto", color = if (tipo == "Gasto") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Button(
                     onClick = { tipo = "Ingreso" },
                     colors = if (tipo == "Ingreso")
                         ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
                     else
-                        ButtonDefaults.buttonColors(containerColor = Color(0xFFD3D3D3)),
+                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 8.dp)
                 ) {
-                    Text("Ingreso", color = if (tipo == "Ingreso") Color.White else Color.Black)
+                    Text("Ingreso", color = if (tipo == "Ingreso") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -159,11 +159,11 @@ fun GastoScreen(
                     },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    cursorColor = Color.Black
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -184,11 +184,11 @@ fun GastoScreen(
                         .fillMaxWidth()
                         .menuAnchor(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        focusedLabelColor = Color.Black,
-                        unfocusedLabelColor = Color.Black,
-                        cursorColor = Color.Black
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 ExposedDropdownMenu(
@@ -217,12 +217,12 @@ fun GastoScreen(
                     Button(
                         onClick = { fechaSeleccionada = dia },
                         colors = if (selected)
-                            ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
+                            ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         else
-                            ButtonDefaults.buttonColors(containerColor = Color(0xFFD3D3D3)),
+                            ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(dia, color = if (selected) Color.White else Color.Black)
+                        Text(dia, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -242,7 +242,8 @@ fun GastoScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
-                        contentDescription = "Seleccionar fecha"
+                        contentDescription = "Seleccionar fecha",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -258,11 +259,11 @@ fun GastoScreen(
                 maxLines = 5,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    focusedLabelColor = Color.Black,
-                    unfocusedLabelColor = Color.Black,
-                    cursorColor = Color.Black
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -318,7 +319,7 @@ fun GastoScreen(
             ) {
                 Text(
                     if (transaccionParaEditar == null) "Guardar" else "Guardar Cambios",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     fontSize = 18.sp
                 )
             }

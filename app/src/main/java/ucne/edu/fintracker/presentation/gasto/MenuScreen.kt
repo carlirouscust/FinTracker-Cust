@@ -33,6 +33,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 
@@ -47,14 +49,14 @@ val drawerItems = listOf(
     DrawerItem("Limite de gastos", Icons.Default.Warning),
     DrawerItem("Ajustes", Icons.Default.Settings)
 )
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuScreen(
     drawerState: DrawerState,
     navController: NavController,
     content: @Composable () -> Unit,
     userName: String = "Sofía Rodriguez",
-    usuarioId: Int // Agregar este parámetro
+    usuarioId: Int
 ) {
     val scope = rememberCoroutineScope()
 
@@ -63,7 +65,7 @@ fun MenuScreen(
         drawerContent = {
             ModalDrawerSheet(
                 modifier = Modifier
-                    .background(color = Color(0xFFE0E0E0))
+                    .background(color = MaterialTheme.colorScheme.surface)
                     .widthIn(max = 280.dp)
             ) {
                 Box(
@@ -73,11 +75,11 @@ fun MenuScreen(
                 ) {
                     Text(
                         text = userName,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFF85D844),
+                                Color(0xFF8BC34A),
                                 shape = RoundedCornerShape(24.dp)
                             )
                             .padding(horizontal = 24.dp, vertical = 8.dp)
@@ -85,7 +87,11 @@ fun MenuScreen(
                         fontSize = 18.sp
                     )
                 }
-                Divider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+                Divider(
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
 
                 drawerItems.forEach { item ->
                     NavigationDrawerItem(
@@ -93,24 +99,24 @@ fun MenuScreen(
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = item.label,
-                                tint = Color.Black
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         label = {
                             Text(
                                 text = item.label,
-                                color = Color.Black,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 16.sp
                             )
                         },
-                        selected = false,
+                        selected = false, // Puedes ajustar esto según el estado actual
                         onClick = {
                             scope.launch { drawerState.close() }
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
-                                "Gráficos" -> navController.navigate("grafico/$usuarioId") // Usar el valor real
+                                "Gráficos" -> navController.navigate("grafico/$usuarioId")
                                 "Pagos Recurrentes" -> navController.navigate("pagos/$usuarioId")
-                                "Categorías" -> navController.navigate("categoria/{tipo}") // Este también necesita un valor real
+                                "Categorías" -> navController.navigate("categoria/{tipo}") // Asegúrate de usar un valor real
                                 "Limite de gastos" -> navController.navigate("limites/$usuarioId")
                                 "Ajustes" -> navController.navigate("ajustes/$usuarioId")
                             }
@@ -124,3 +130,4 @@ fun MenuScreen(
         content = content
     )
 }
+
