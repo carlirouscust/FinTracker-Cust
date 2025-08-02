@@ -48,7 +48,7 @@ fun GastoDetalleScreen(
     }
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = { Text("Detalle del Gasto") },
@@ -58,9 +58,9 @@ fun GastoDetalleScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -68,7 +68,7 @@ fun GastoDetalleScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -84,24 +84,24 @@ fun GastoDetalleScreen(
                     text = categoriaNombre,
                     fontWeight = FontWeight.Bold,
                     fontSize = 26.sp,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
 
             Divider()
 
-            Text("Fecha", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-            Text(transaccion.fecha.format(formatter), fontSize = 16.sp, color = Color.Gray)
+            Text("Fecha", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(transaccion.fecha.format(formatter), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Divider()
 
-            Text("Monto", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-            Text("RD$ ${transaccion.monto}", fontSize = 16.sp, color = Color.Gray)
+            Text("Monto", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text("RD$ ${transaccion.monto}", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Divider()
 
-            Text("Descripción", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-            Text(transaccion.notas ?: "Sin nota", fontSize = 16.sp, color = Color.Gray)
+            Text("Descripción", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(transaccion.notas ?: "Sin nota", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -111,22 +111,22 @@ fun GastoDetalleScreen(
             ) {
                 Button(
                     onClick = onEditarClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.White)
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.onPrimaryContainer)
                     Spacer(Modifier.width(8.dp))
-                    Text("Editar", color = Color.White)
+                    Text("Editar", color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
 
                 Button(
                     onClick = { mostrarDialogoEliminar = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+                    colors = ButtonDefaults.buttonColors(containerColor  = Color.Red),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.White)
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onErrorContainer)
                     Spacer(Modifier.width(8.dp))
-                    Text("Eliminar", color = Color.White)
+                    Text("Eliminar", color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
         }
@@ -144,14 +144,13 @@ fun GastoDetalleScreen(
                         onEliminarConfirmado()
                     }
                 ) {
-                    Text("Eliminar", color = Color.Black)
-                }
+                    Text("Eliminar", color = Color.Red)                }
             },
             dismissButton = {
                 TextButton(
                     onClick = { mostrarDialogoEliminar = false }
                 ) {
-                    Text("Cancelar", color = Color.Black)
+                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         )
