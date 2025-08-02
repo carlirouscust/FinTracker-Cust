@@ -53,7 +53,8 @@ fun MenuScreen(
     drawerState: DrawerState,
     navController: NavController,
     content: @Composable () -> Unit,
-    userName: String = "Sofía Rodriguez"
+    userName: String = "Sofía Rodriguez",
+    usuarioId: Int // Agregar este parámetro
 ) {
     val scope = rememberCoroutineScope()
 
@@ -107,11 +108,11 @@ fun MenuScreen(
                             scope.launch { drawerState.close() }
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
-                                "Gráficos" -> navController.navigate("grafico/{usuarioId}")
-                                "Pagos Recurrentes" -> navController.navigate("pagos/{usuarioId}")
-                                "Categorías" -> navController.navigate("categoria/{tipo}")
-                                "Limite de gastos" -> navController.navigate("limites/{usuarioId}")
-                                "Ajustes" -> navController.navigate("ajustes/{usuarioId}")
+                                "Gráficos" -> navController.navigate("grafico/$usuarioId") // Usar el valor real
+                                "Pagos Recurrentes" -> navController.navigate("pagos/$usuarioId")
+                                "Categorías" -> navController.navigate("categoria/{tipo}") // Este también necesita un valor real
+                                "Limite de gastos" -> navController.navigate("limites/$usuarioId")
+                                "Ajustes" -> navController.navigate("ajustes/$usuarioId")
                             }
                         },
                         modifier = Modifier
