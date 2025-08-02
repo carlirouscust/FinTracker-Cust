@@ -70,7 +70,7 @@ fun CategoriaListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -78,14 +78,14 @@ fun CategoriaListScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Volver",
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Categorías",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
         }
 
@@ -98,12 +98,12 @@ fun CategoriaListScreen(
                     viewModel.onFiltroTipoChange("Gasto")
                 },
                 colors = if (uiState.filtroTipo == "Gasto")
-                    ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
+                    ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
                 else
-                    ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Gastos", color = if (uiState.filtroTipo == "Gasto") Color.White else Color.Black)
+                Text("Gastos", color = if (uiState.filtroTipo == "Gasto") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -113,12 +113,12 @@ fun CategoriaListScreen(
                     viewModel.onFiltroTipoChange("Ingreso")
                 },
                 colors = if (uiState.filtroTipo == "Ingreso")
-                    ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
+                    ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
                 else
-                    ButtonDefaults.buttonColors(containerColor = Color.LightGray),
+                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Ingresos", color = if (uiState.filtroTipo == "Ingreso") Color.White else Color.Black)
+                Text("Ingresos", color = if (uiState.filtroTipo == "Ingreso") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -131,7 +131,7 @@ fun CategoriaListScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Ver todas las categorías", color = Color(0xFF85D844))
+                Text("Ver todas las categorías", color = Color(0xFF8BC34A))
             }
         }
 
@@ -152,7 +152,7 @@ fun CategoriaListScreen(
                         uiState.filtroTipo == "Ingreso" -> "Sin categorías de ingresos"
                         else -> "Sin categorías aún"
                     },
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -180,16 +180,16 @@ fun CategoriaListScreen(
 
                     onAgregarCategoriaClick(if (uiState.filtroTipo.isBlank()) "Gasto" else uiState.filtroTipo)
                 },
-                containerColor = Color(0xFF85D844),
+                containerColor = Color(0xFF8BC34A),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Agregar", tint = Color.White)
+                    Icon(Icons.Default.Add, contentDescription = "Agregar", tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Agregar Categoría", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text("Agregar Categoría", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -204,7 +204,7 @@ fun CategoriaBody(
     val backgroundColor = try {
         Color(android.graphics.Color.parseColor("#${categoria.colorFondo}"))
     } catch (e: Exception) {
-        Color.LightGray
+        MaterialTheme.colorScheme.surfaceVariant
     }
 
     Row(
@@ -222,7 +222,7 @@ fun CategoriaBody(
             Text(
                 text = categoria.icono,
                 fontSize = 24.sp,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimaryContainer, // Ajusta según el color de fondo
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -233,7 +233,7 @@ fun CategoriaBody(
         Text(
             text = categoria.nombre,
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
     }
