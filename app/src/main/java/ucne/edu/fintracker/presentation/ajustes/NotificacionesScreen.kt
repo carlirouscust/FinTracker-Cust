@@ -34,7 +34,7 @@ fun NotificacionesScreen(
                     Text(
                         text = "Notificaciones",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -44,11 +44,11 @@ fun NotificacionesScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
-            NavigationBar(containerColor = Color.White) {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
@@ -86,7 +86,7 @@ fun NotificacionesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
                 .padding(16.dp)
@@ -129,7 +129,7 @@ fun NotificacionesSeccion(titulo: String, contenido: @Composable ColumnScope.() 
             text = titulo,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
         contenido()
@@ -155,7 +155,7 @@ fun ItemNotificacion(
         ) {
             Text(
                 text = titulo,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 modifier = Modifier.weight(1f)
@@ -164,17 +164,17 @@ fun ItemNotificacion(
                 checked = isEnabled,
                 onCheckedChange = { isEnabled = it },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = Color(0xFF85D844),
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = Color.Gray
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedTrackColor = Color(0xFF8BC34A),
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = descripcion,
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
             lineHeight = 16.sp
         )
