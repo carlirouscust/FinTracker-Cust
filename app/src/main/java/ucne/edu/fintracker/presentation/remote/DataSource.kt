@@ -7,6 +7,8 @@ import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
+import ucne.edu.fintracker.presentation.remote.dto.TotalMes
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import javax.inject.Inject
 
@@ -44,7 +46,13 @@ class DataSource @Inject constructor(
     suspend fun updateTransaccion(id: Int, transaccionDto: TransaccionDto): TransaccionDto =
         api.updateTransaccion(id, transaccionDto)
     suspend fun deleteTransaccion(id: Int) = api.deleteTransaccion(id)
+    suspend fun obtenerTotalesPorMes(usuarioId: Int): List<TotalMes> {
+        return api.obtenerTotalesPorMes(usuarioId)
+    }
 
+    suspend fun obtenerTotalesPorAno(usuarioId: Int): List<TotalAnual> {
+        return api.obtenerTotalesPorAno(usuarioId)
+    }
     // ------------------- PAGO RECURRENTE -------------------
     suspend fun getPagoRecurrentes(): List<PagoRecurrenteDto> = api.getPagoRecurrentes()
     suspend fun getPagoRecurrentesPorUsuario(usuarioId: Int): List<PagoRecurrenteDto> =

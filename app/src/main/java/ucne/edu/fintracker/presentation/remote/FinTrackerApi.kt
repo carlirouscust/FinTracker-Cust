@@ -47,6 +47,16 @@ interface FinTrackerApi {
         @DELETE("api/Transacciones/{id}")
         suspend fun deleteTransaccion(@Path("id") id: Int)
 
+        @GET("transacciones/totales-mensuales/{usuarioId}")
+        suspend fun obtenerTotalesPorMes(
+                @Path("usuarioId") usuarioId: Int
+        ): List<TotalMes>
+
+        @GET("transacciones/totales-anuales/{usuarioId}")
+        suspend fun obtenerTotalesPorAno(
+                @Path("usuarioId") usuarioId: Int
+        ): List<TotalAnual>
+
         // -------- Pago recurrente --------
         @GET("api/PagoRecurrentes")
         suspend fun getPagoRecurrentes(): List<PagoRecurrenteDto>
