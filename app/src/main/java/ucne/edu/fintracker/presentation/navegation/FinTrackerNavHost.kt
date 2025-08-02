@@ -58,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import ucne.edu.fintracker.presentation.ajustes.AparienciaScreen
 import ucne.edu.fintracker.presentation.ajustes.NotificacionesScreen
 import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.gasto.GraficoScreen
@@ -953,7 +954,6 @@ fun FinTrackerNavHost(
             }
 
 
-            // En tu NavHost, actualiza el composable de ajustes:
             composable("ajustes/{usuarioId}") { backStackEntry ->
                 val context = LocalContext.current
                 val usuarioId by produceState(initialValue = 0) {
@@ -994,7 +994,6 @@ fun FinTrackerNavHost(
                 )
             }
 
-            // En tu NavHost, agrega este composable:
             composable(
                 route = "notificaciones/{usuarioId}",
                 arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
@@ -1010,7 +1009,21 @@ fun FinTrackerNavHost(
                 )
             }
 
-            // Composable actualizado para el NavHost
+            composable(
+                route = "apariencia/{usuarioId}",
+                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
+                AparienciaScreen(
+                    navController = navHostController,
+                    usuarioId = usuarioId
+                )
+            }
+
             composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
                 val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
 
