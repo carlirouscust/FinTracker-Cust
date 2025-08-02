@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -106,7 +107,7 @@ fun MenuScreen(
                             scope.launch { drawerState.close() }
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
-                                "Gráficos" -> navController.navigate("graficos/{usuarioId}")
+                                "Gráficos" -> navController.navigate("grafico/{usuarioId}")
                                 "Pagos Recurrentes" -> navController.navigate("pagos/{usuarioId}")
                                 "Categorías" -> navController.navigate("categoria/{tipo}")
                                 "Limite de gastos" -> navController.navigate("limites/{usuarioId}")
