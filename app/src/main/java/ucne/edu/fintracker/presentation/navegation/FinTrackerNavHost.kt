@@ -945,8 +945,11 @@ fun FinTrackerNavHost(
                 }
             }
 
-            composable("chatIA/{usuarioId}") { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getString("usuarioId") ?: ""
+            composable(
+                route = "chatIA/{usuarioId}",
+                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
                 ChatIaScreen(
                     navController = navHostController,
                     usuarioId = usuarioId
