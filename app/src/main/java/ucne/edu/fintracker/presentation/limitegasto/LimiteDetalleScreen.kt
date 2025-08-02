@@ -29,7 +29,6 @@ fun LimiteDetalleScreen(
     limite: LimiteGastoDto,
     categoriaIcono: String,
     categoriaNombre: String,
-    limiteViewModel: LimiteViewModel,
     onBackClick: () -> Unit,
     onEditarClick: () -> Unit,
     onEliminarClick: () -> Unit,
@@ -37,15 +36,9 @@ fun LimiteDetalleScreen(
 ) {
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
 
-    val transacciones by limiteViewModel.transacciones.collectAsState()
 
-    val gastadoActual = remember(transacciones) {
-        transacciones
-            .filter { it.categoriaId == limite.categoriaId && it.tipo == "Gasto" }
-            .sumOf { it.monto }
-    }
 
-    val porcentaje = ((gastadoActual / limite.montoLimite) * 100).coerceAtMost(100.0)
+    val porcentaje = ((limite.gastadoActual ?: 0.0) / limite.montoLimite * 100).coerceAtMost(100.0)
     Scaffold(
         containerColor = Color.White,
         topBar = {

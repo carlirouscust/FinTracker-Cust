@@ -1,25 +1,18 @@
 package ucne.edu.fintracker.presentation.limitegasto
 
 import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.data.local.repository.LimiteRepository
 import ucne.edu.fintracker.data.local.repository.CategoriaRepository
-import ucne.edu.fintracker.data.local.repository.TransaccionRepository
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.stateIn
 
 import javax.inject.Inject
 
@@ -27,8 +20,8 @@ import javax.inject.Inject
 class LimiteViewModel @Inject constructor(
     private val limiteRepository: LimiteRepository,
     private val categoriaRepository: CategoriaRepository,
-    private val transaccionRepository: TransaccionRepository
-) : ViewModel() {
+
+    ) : ViewModel() {
 
     private var usuarioIdActual: Int? = null
     private val _uiState = MutableStateFlow(
@@ -42,38 +35,14 @@ class LimiteViewModel @Inject constructor(
     private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
-    private val _usuarioId = MutableStateFlow<Int?>(null)
-    val transacciones = _usuarioId
-        .filterNotNull()
-        .flatMapLatest { id ->
-            transaccionRepository.getTransacciones(id).map { resource ->
-                when (resource) {
-                    is Resource.Success -> resource.data ?: emptyList()
-                    is Resource.Loading -> emptyList()
-                    is Resource.Error -> emptyList()
-                }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-
-    fun calcularGastadoPorCategoria(categoriaId: Int): Double {
-        return transacciones.value
-            .filter { it.categoriaId == categoriaId && it.tipo == "Gasto" }
-            .sumOf { it.monto }
-    }
 
     fun inicializar(usuarioId: Int) {
         Log.d("LimiteViewModel", "Inicializando datos para usuario $usuarioId")
         usuarioIdActual = usuarioId
-        _usuarioId.value = usuarioId
         fetchCategorias(usuarioId)
         cargarLimites(usuarioId)
     }
+
 
     fun fetchCategorias(usuarioId: Int) {
         viewModelScope.launch {
