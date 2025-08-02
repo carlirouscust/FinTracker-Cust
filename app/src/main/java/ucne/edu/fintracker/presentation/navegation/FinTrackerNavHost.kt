@@ -58,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import ucne.edu.fintracker.presentation.ajustes.NotificacionesScreen
 import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.gasto.GraficoScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
@@ -990,6 +991,22 @@ fun FinTrackerNavHost(
                     onSoporte = {
                         navHostController.navigate("soporte")
                     }
+                )
+            }
+
+            // En tu NavHost, agrega este composable:
+            composable(
+                route = "notificaciones/{usuarioId}",
+                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
+                NotificacionesScreen(
+                    navController = navHostController,
+                    usuarioId = usuarioId
                 )
             }
 
