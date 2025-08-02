@@ -59,6 +59,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
+import ucne.edu.fintracker.presentation.gasto.GraficoScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 //import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
@@ -714,7 +715,7 @@ fun FinTrackerNavHost(
                             limite = limite,
                             categoriaIcono = categoriaIcono,
                             categoriaNombre = categoriaNombre,
-                            limiteViewModel = limiteViewModel,
+//                            limiteViewModel = limiteViewModel,
                             onBackClick = { navHostController.popBackStack() },
                             onEditarClick = { navHostController.navigate("limite_editar/$usuarioId/$limiteId") },
                             onEliminarClick = { /* diálogo */ },
@@ -830,7 +831,11 @@ fun FinTrackerNavHost(
                 route = "meta_nueva/{usuarioId}",
                 arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val metaViewModel = hiltViewModel<MetaViewModel>()
 
                 MetaScreen(
@@ -868,7 +873,11 @@ fun FinTrackerNavHost(
                     navArgument("metaId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
                 val metaViewModel = hiltViewModel<MetaViewModel>()
                 val uiState by metaViewModel.uiState.collectAsState()
@@ -900,7 +909,11 @@ fun FinTrackerNavHost(
                     navArgument("metaId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+
                 val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
                 val metaViewModel = hiltViewModel<MetaViewModel>()
                 val uiState by metaViewModel.uiState.collectAsState()
@@ -1001,7 +1014,37 @@ fun FinTrackerNavHost(
                 )
             }
 
+            composable(
+                route = "grafico/{usuarioId}",
+                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+                Log.d("GraficoComposable", "usuarioId recibido: $usuarioId")
+
+                val gastoViewModel = hiltViewModel<GastoViewModel>()
+
+                LaunchedEffect(usuarioId) {
+                    if (usuarioId != 0) {
+                        gastoViewModel.inicializar(usuarioId)
+                    }
+                }
+
+                if (usuarioId != 0) {
+                    GraficoScreen(usuarioId, gastoViewModel)
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Cargando usuario...")
+                    }
+                }
+            }
+
+
+
         }
+
     }
 
 }
