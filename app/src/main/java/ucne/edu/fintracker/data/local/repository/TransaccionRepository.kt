@@ -5,6 +5,8 @@ import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import kotlinx.coroutines.flow.flow
+import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
+import ucne.edu.fintracker.presentation.remote.dto.TotalMes
 import javax.inject.Inject
 
 
@@ -56,4 +58,15 @@ class TransaccionRepository @Inject constructor(
             emit(Resource.Error("Error al eliminar transacción: ${e.message ?: "Error desconocido"}"))
         }
     }
+
+    // Obtener totales por mes
+    suspend fun obtenerTotalesPorMes(usuarioId: Int): List<TotalMes> {
+        return dataSource.obtenerTotalesPorMes(usuarioId)
+    }
+
+    // Obtener totales por año
+    suspend fun obtenerTotalesPorAno(usuarioId: Int): List<TotalAnual> {
+        return dataSource.obtenerTotalesPorAno(usuarioId)
+    }
+
 }

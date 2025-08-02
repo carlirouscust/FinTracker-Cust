@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.gasto
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,12 +15,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.threeten.bp.DayOfWeek
+import org.threeten.bp.Month
 import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.data.local.repository.CategoriaRepository
 import ucne.edu.fintracker.data.local.repository.TransaccionRepository
-import ucne.edu.fintracker.presentation.login.LoginViewModel
+import org.threeten.bp.format.TextStyle
+import java.util.Locale
+import androidx.compose.runtime.State
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
+import ucne.edu.fintracker.presentation.remote.dto.TotalMes
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import javax.inject.Inject
 
@@ -28,6 +34,32 @@ class GastoViewModel @Inject constructor(
     private val transaccionRepository: TransaccionRepository,
     private val categoriaRepository: CategoriaRepository,
 ) : ViewModel() {
+
+    private val _totalesMensuales = mutableStateOf<List<TotalMes>>(emptyList())
+    val totalesMensuales: State<List<TotalMes>> = _totalesMensuales
+
+    private val _totalesAnuales = mutableStateOf<List<TotalAnual>>(emptyList())
+    val totalesAnuales: State<List<TotalAnual>> = _totalesAnuales
+
+    fun cargarDatos(usuarioId: Int) {
+        Log.d("GastoViewModel", "Llamando cargarDatos con usuarioId = $usuarioId")
+
+        viewModelScope.launch {
+            try {
+                val totalesMes = transaccionRepository.obtenerTotalesPorMes(usuarioId)
+                val totalesAno = transaccionRepository.obtenerTotalesPorAno(usuarioId)
+
+                Log.d("GastoViewModel", "Totales por mes: ${totalesMes.joinToString()}")
+                Log.d("GastoViewModel", "Totales por año: ${totalesAno.joinToString()}")
+
+                _totalesMensuales.value = totalesMes
+                _totalesAnuales.value = totalesAno
+            } catch (e: Exception) {
+                Log.e("GastoViewModel", "Error al cargar datos: ${e.message}", e)
+            }
+        }
+    }
+
 
     private val _uiState = MutableStateFlow(
         GastoUiState(
@@ -239,12 +271,6 @@ class GastoViewModel @Inject constructor(
         return _uiState.value.transacciones.find { it.transaccionId == id }
     }
 
-    fun obtenerTotalGastadoPorCategoria(usuarioId: Int, categoriaId: Int): Double {
-        return _uiState.value.transacciones
-            .filter { it.usuarioId == usuarioId && it.categoriaId == categoriaId && it.tipo == "Gasto" }
-            .sumOf { it.monto }
-    }
-
 
     fun actualizarTransaccion(transaccionDto: TransaccionDto) {
         viewModelScope.launch {
@@ -317,4 +343,7 @@ class GastoViewModel @Inject constructor(
             }
         }
     }
+
+
+
 }
