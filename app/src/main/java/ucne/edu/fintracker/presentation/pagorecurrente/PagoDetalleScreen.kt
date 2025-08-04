@@ -52,7 +52,7 @@ fun PagoDetalleScreen(
 
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Detalle del Pago") },
@@ -62,9 +62,9 @@ fun PagoDetalleScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -72,7 +72,7 @@ fun PagoDetalleScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -89,12 +89,12 @@ fun PagoDetalleScreen(
                         text = categoriaNombre,
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = "RD$ ${pago.monto}",
                         fontSize = 20.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -102,26 +102,26 @@ fun PagoDetalleScreen(
             Divider()
 
             // Categoría
-            Text("Categoría", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
-            Text(categoriaNombre, color = Color.Black)
+            Text("Categoría", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(categoriaNombre, color = MaterialTheme.colorScheme.onBackground)
 
             Divider()
 
             // Frecuencia
-            Text("Frecuencia", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
-            Text(pago.frecuencia, color = Color.Black)
+            Text("Frecuencia", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(pago.frecuencia, color = MaterialTheme.colorScheme.onBackground)
 
             Divider()
 
             // Fecha Inicio
-            Text("Fecha de Inicio", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
-            Text(pago.fechaInicio.format(formatter), color = Color.Black)
+            Text("Fecha de Inicio", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(pago.fechaInicio.format(formatter), color = MaterialTheme.colorScheme.onBackground)
 
             Divider()
 
             // Fecha Fin (opcional)
-            Text("Fecha de Finalización", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
-            Text(pago.fechaFin?.format(formatter) ?: "-", color = Color.Black)
+            Text("Fecha de Finalización", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(pago.fechaFin?.format(formatter) ?: "-", color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -133,23 +133,23 @@ fun PagoDetalleScreen(
 
                 Button(
                     onClick = onEditarClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.White)
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Editar", color = Color.White)
+                    Text("Editar", color = MaterialTheme.colorScheme.onPrimary)
                 }
 
 
                 Button(
                     onClick = { mostrarDialogoEliminar = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.White)
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onError)
                     Spacer(Modifier.width(8.dp))
-                    Text("Eliminar", color = Color.White)
+                    Text("Eliminar", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -167,14 +167,14 @@ fun PagoDetalleScreen(
                         onEliminarConfirmado()
                     }
                 ) {
-                    Text("Eliminar", color = Color.Black)
+                    Text("Eliminar", color = Color.Red)
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { mostrarDialogoEliminar = false }
                 ) {
-                    Text("Cancelar", color = Color.Black)
+                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurface)
                 }
             }
         )
