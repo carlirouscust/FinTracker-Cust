@@ -18,19 +18,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import ucne.edu.fintracker.presentation.gasto.GastoViewModel
+import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import org.threeten.bp.OffsetDateTime
+import org.threeten.bp.DayOfWeek
 
 @Composable
 fun LimiteListScreen(
     viewModel: LimiteViewModel,
+    gastoViewModel: GastoViewModel,
     onBackClick: () -> Unit,
     onAgregarLimiteClick: () -> Unit,
     onLimiteClick: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val categorias by viewModel.categorias.collectAsState()
-
-
+    val gastoUiState by gastoViewModel.uiState.collectAsState()
+    val transacciones = gastoUiState.transacciones
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -111,10 +115,14 @@ fun LimiteListScreen(
                                 } catch (e: Exception) {
                                     Color(0xFF8BC34A)
                                 }
+                                val totalGastado = remember(transacciones, limite.categoriaId, limite.periodo) {
+                                    calcularTotalGastadoPorPeriodo(transacciones, limite.categoriaId, limite.periodo)
+                                }
+                                val porcentaje = if (limite.montoLimite > 0) {
+                                    ((totalGastado / limite.montoLimite) * 100).coerceAtMost(100.0)
+                                } else 0.0
 
-                                val gastado = limite.gastadoActual ?: 0.0
-                                val porcentaje = ((gastado / limite.montoLimite) * 100)
-                                    .coerceAtMost(100.0)
+                                val excedePresupuesto = totalGastado > limite.montoLimite
 
                                 Row(
                                     modifier = Modifier
@@ -146,9 +154,14 @@ fun LimiteListScreen(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Text(
-                                                text = "Límite: RD$${limite.montoLimite}",
+                                                text = "Límite: RD$ ${String.format("%.2f", limite.montoLimite)}",
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = "Gastado: RD$ ${String.format("%.2f", totalGastado)}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = if (excedePresupuesto) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
@@ -157,19 +170,48 @@ fun LimiteListScreen(
                                         horizontalAlignment = Alignment.End,
                                         verticalArrangement = Arrangement.Center
                                     ) {
-                                        LinearProgressIndicator(
-                                            progress = (porcentaje / 100f).toFloat(),
+                                        Box(
                                             modifier = Modifier
                                                 .width(120.dp)
-                                                .height(8.dp),
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
+                                                .height(12.dp)
+                                                .background(
+                                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
+                                                )
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .fillMaxWidth((porcentaje / 100f).toFloat().coerceAtMost(1f))
+                                                    .background(
+                                                        color = when {
+                                                            excedePresupuesto -> Color.Red
+                                                            porcentaje >= 80 -> Color(0xFFFF9800)
+                                                            porcentaje >= 60 -> Color(0xFFFFC107)
+                                                            else -> Color(0xFF4CAF50)
+                                                        },
+                                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
+                                                    )
+                                            )
+                                        }
+
                                         Spacer(modifier = Modifier.height(4.dp))
+
                                         Text(
                                             text = "${porcentaje.toInt()}%",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            color = if (excedePresupuesto) Color.Red else MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = if (excedePresupuesto) FontWeight.Bold else FontWeight.Normal
                                         )
+
+                                        if (excedePresupuesto) {
+                                            Text(
+                                                text = "Excedido",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = Color.Red,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -178,5 +220,49 @@ fun LimiteListScreen(
                 }
             }
         }
+    }
+}
+
+private fun calcularTotalGastadoPorPeriodo(
+    transacciones: List<TransaccionDto>,
+    categoriaId: Int,
+    periodo: String
+): Double {
+    val ahora = OffsetDateTime.now()
+
+    return transacciones
+        .filter { transaccion ->
+            transaccion.tipo.trim().equals("Gasto", ignoreCase = true) &&
+                    transaccion.categoriaId == categoriaId &&
+                    estaEnPeriodo(transaccion.fecha, periodo, ahora)
+        }
+        .sumOf { it.monto }
+}
+
+private fun estaEnPeriodo(
+    fechaTransaccion: OffsetDateTime,
+    periodo: String,
+    fechaReferencia: OffsetDateTime
+): Boolean {
+    return when (periodo.lowercase()) {
+        "diario" -> {
+            val hoy = fechaReferencia.toLocalDate()
+            fechaTransaccion.toLocalDate().isEqual(hoy)
+        }
+        "semanal" -> {
+            val lunes = fechaReferencia.toLocalDate().with(DayOfWeek.MONDAY)
+            val domingo = fechaReferencia.toLocalDate().with(DayOfWeek.SUNDAY)
+            val fecha = fechaTransaccion.toLocalDate()
+            !fecha.isBefore(lunes) && !fecha.isAfter(domingo)
+        }
+        "mensual" -> {
+            val fecha = fechaTransaccion.toLocalDate()
+            val referencia = fechaReferencia.toLocalDate()
+            fecha.month == referencia.month && fecha.year == referencia.year
+        }
+        "anual" -> {
+            fechaTransaccion.toLocalDate().year == fechaReferencia.toLocalDate().year
+        }
+        else -> false
     }
 }
