@@ -64,7 +64,6 @@ import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.gasto.GraficoScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
-//import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 import java.time.OffsetDateTime
 
 
@@ -597,6 +596,7 @@ fun FinTrackerNavHost(
 
             composable("limites/{usuarioId}") {
                 val limiteViewModel = hiltViewModel<LimiteViewModel>()
+                val gastoViewModel = hiltViewModel<GastoViewModel>() // Agregar esta línea
 
                 val context = LocalContext.current
                 val usuarioId by produceState(initialValue = 0) {
@@ -607,11 +607,13 @@ fun FinTrackerNavHost(
                     if (usuarioId != 0) {
                         limiteViewModel.cargarLimites(usuarioId)
                         limiteViewModel.fetchCategorias(usuarioId)
+                        gastoViewModel.inicializar(usuarioId) // Inicializar GastoViewModel también
                     }
                 }
 
                 LimiteListScreen(
                     viewModel = limiteViewModel,
+                    gastoViewModel = gastoViewModel, // Ahora está definido
                     onAgregarLimiteClick = {
                         navHostController.navigate("limite_nuevo/$usuarioId")
                     },
@@ -690,11 +692,9 @@ fun FinTrackerNavHost(
                 val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
                 Log.d("LimiteDetalle", "usuarioId=$usuarioId, limiteId=$limiteId")
 
-                // ViewModels
                 val limiteViewModel = hiltViewModel<LimiteViewModel>()
-                val gastoViewModel = hiltViewModel<GastoViewModel>() // Agregar GastoViewModel
+                val gastoViewModel = hiltViewModel<GastoViewModel>()
 
-                // Inicializar ambos ViewModels
                 LaunchedEffect(usuarioId) {
                     if (usuarioId != 0) {
                         limiteViewModel.cargarLimites(usuarioId)
@@ -721,10 +721,10 @@ fun FinTrackerNavHost(
                             limite = limite,
                             categoriaIcono = categoriaIcono,
                             categoriaNombre = categoriaNombre,
-                            gastoViewModel = gastoViewModel, // Pasar GastoViewModel
+                            gastoViewModel = gastoViewModel,
                             onBackClick = { navHostController.popBackStack() },
                             onEditarClick = { navHostController.navigate("limite_editar/$usuarioId/$limiteId") },
-                            onEliminarClick = { /* diálogo */ },
+                            onEliminarClick = {  },
                             onEliminarConfirmado = {
                                 limiteViewModel.eliminarLimite(limiteId)
                                 navHostController.navigate("limites/$usuarioId") {
@@ -802,7 +802,6 @@ fun FinTrackerNavHost(
             }
 
 
-            //  LISTA DE METAS
             composable(
                 route = "metaahorros/{usuarioId}",
                 arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
@@ -866,12 +865,11 @@ fun FinTrackerNavHost(
                         }
                     },
                     onCancel = { navHostController.popBackStack() },
-                    onImagenSeleccionada = { /* manejar imagen si deseas */ },
+                    onImagenSeleccionada = {  },
                 )
             }
 
 
-// DETALLE META
             composable(
                 route = "meta_detalle/{usuarioId}/{metaId}",
                 arguments = listOf(
@@ -896,7 +894,7 @@ fun FinTrackerNavHost(
                         onEditarClick = {
                             navHostController.navigate("meta_editar/$usuarioId/$metaId")
                         },
-                        onEliminarClick = { /* Mostrar confirmación */ },
+                        onEliminarClick = {  },
                         onEliminarConfirmado = {
                             metaViewModel.eliminarMeta(metaId)
                             navHostController.navigate("metaahorros/$usuarioId") {
@@ -907,7 +905,6 @@ fun FinTrackerNavHost(
                 }
             }
 
-// EDITAR META
             composable(
                 route = "meta_editar/{usuarioId}/{metaId}",
                 arguments = listOf(
@@ -944,7 +941,7 @@ fun FinTrackerNavHost(
                             }
                         },
                         onCancel = { navHostController.popBackStack() },
-                        onImagenSeleccionada = { /* imagen */ }
+                        onImagenSeleccionada = {  }
                     )
                 }
             }
@@ -978,7 +975,6 @@ fun FinTrackerNavHost(
                         navHostController.navigate("cambiar_contrasena/$usuarioId")
                     },
                     onCerrarSesion = {
-                        // Limpiar la sesión antes de navegar
                         scope.launch {
                             DataLogin.limpiarSesion(context)
                             navHostController.navigate("login") {
