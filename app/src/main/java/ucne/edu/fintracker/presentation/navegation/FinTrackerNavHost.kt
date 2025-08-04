@@ -690,12 +690,16 @@ fun FinTrackerNavHost(
                 val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
                 Log.d("LimiteDetalle", "usuarioId=$usuarioId, limiteId=$limiteId")
 
+                // ViewModels
                 val limiteViewModel = hiltViewModel<LimiteViewModel>()
+                val gastoViewModel = hiltViewModel<GastoViewModel>() // Agregar GastoViewModel
 
+                // Inicializar ambos ViewModels
                 LaunchedEffect(usuarioId) {
                     if (usuarioId != 0) {
                         limiteViewModel.cargarLimites(usuarioId)
                         limiteViewModel.fetchCategorias(usuarioId)
+                        gastoViewModel.inicializar(usuarioId) // Inicializar GastoViewModel
                     }
                 }
 
@@ -717,7 +721,7 @@ fun FinTrackerNavHost(
                             limite = limite,
                             categoriaIcono = categoriaIcono,
                             categoriaNombre = categoriaNombre,
-//                            limiteViewModel = limiteViewModel,
+                            gastoViewModel = gastoViewModel, // Pasar GastoViewModel
                             onBackClick = { navHostController.popBackStack() },
                             onEditarClick = { navHostController.navigate("limite_editar/$usuarioId/$limiteId") },
                             onEliminarClick = { /* diálogo */ },
