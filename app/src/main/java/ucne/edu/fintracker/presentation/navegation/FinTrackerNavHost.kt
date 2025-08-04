@@ -1044,8 +1044,23 @@ fun FinTrackerNavHost(
                 PanelUsuarioScreen(
                     navController = navHostController,
                     usuarioId = usuarioId,
-                    onAjustes = { navHostController.navigate("ajustes/$usuarioId") },
-                    onTransacciones = { navHostController.navigate("gastos") },
+                    onCambiarContrasenaClick = {
+                        navHostController.navigate("cambiarContrasena/$usuarioId") {
+                            launchSingleTop = true
+                        }
+                    },
+                    onCambiarFoto = {
+                        // Implementar lógica para cambiar foto
+                    },
+                    onDivisa = {
+                        // Implementar lógica para cambiar divisa
+                    },
+                    onAjustes = {
+                        navHostController.navigate("ajustes/$usuarioId")
+                    },
+                    onTransacciones = {
+                        navHostController.navigate("gastos")
+                    }
                 )
             }
 
