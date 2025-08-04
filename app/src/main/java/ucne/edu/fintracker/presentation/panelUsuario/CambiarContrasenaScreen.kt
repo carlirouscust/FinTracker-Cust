@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -62,7 +61,7 @@ fun CambiarContrasenaScreen(
                         text = "Cambiar contraseña",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -70,18 +69,18 @@ fun CambiarContrasenaScreen(
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp, vertical = 32.dp),
@@ -89,7 +88,7 @@ fun CambiarContrasenaScreen(
         ) {
             Text(
                 text = "La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula y un número.",
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 lineHeight = 16.sp
             )
@@ -98,32 +97,32 @@ fun CambiarContrasenaScreen(
             TextField(
                 value = contrasenaActual,
                 onValueChange = { contrasenaActual = it },
-                placeholder = { Text("Introduce tu contraseña actual", color = Color(0xFFBFC4C1)) },
+                placeholder = { Text("Introduce tu contraseña actual", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 visualTransformation = if (showPasswordActual) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showPasswordActual = !showPasswordActual }) {
                         Icon(
                             imageVector = if (showPasswordActual) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(30.dp),
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF4F8F4),
-                    focusedContainerColor = Color(0xFFF4F8F4),
-                    disabledContainerColor = Color(0xFFF4F8F4),
-                    cursorColor = Color.Black,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.Black
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface
                 )
             )
 
@@ -131,32 +130,32 @@ fun CambiarContrasenaScreen(
             TextField(
                 value = nuevaContrasena,
                 onValueChange = { nuevaContrasena = it },
-                placeholder = { Text("Introduce tu nueva contraseña", color = Color(0xFFBFC4C1)) },
+                placeholder = { Text("Introduce tu nueva contraseña", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 visualTransformation = if (showNuevaPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showNuevaPassword = !showNuevaPassword }) {
                         Icon(
                             imageVector = if (showNuevaPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(30.dp),
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF4F8F4),
-                    focusedContainerColor = Color(0xFFF4F8F4),
-                    disabledContainerColor = Color(0xFFF4F8F4),
-                    cursorColor = Color.Black,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.Black
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface
                 )
             )
 
@@ -164,32 +163,32 @@ fun CambiarContrasenaScreen(
             TextField(
                 value = confirmarContrasena,
                 onValueChange = { confirmarContrasena = it },
-                placeholder = { Text("Confirma tu nueva contraseña", color = Color(0xFFBFC4C1)) },
+                placeholder = { Text("Confirma tu nueva contraseña", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 visualTransformation = if (showConfirmarPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showConfirmarPassword = !showConfirmarPassword }) {
                         Icon(
                             imageVector = if (showConfirmarPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(30.dp),
                 colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF4F8F4),
-                    focusedContainerColor = Color(0xFFF4F8F4),
-                    disabledContainerColor = Color(0xFFF4F8F4),
-                    cursorColor = Color.Black,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    disabledContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    disabledTextColor = Color.Black
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface
                 )
             )
 
@@ -199,7 +198,7 @@ fun CambiarContrasenaScreen(
             if (uiState.isError) {
                 Text(
                     text = uiState.errorMessage,
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -216,8 +215,8 @@ fun CambiarContrasenaScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(25.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid) Color(0xFF85D844) else Color.Gray,
-                    contentColor = Color.White
+                    containerColor = Color(0xFF8BC34A),
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 enabled = isFormValid && !uiState.isLoading
             ) {
