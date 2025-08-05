@@ -64,6 +64,7 @@ import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.gasto.GraficoScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
+import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
 import java.time.OffsetDateTime
 
 
@@ -957,6 +958,14 @@ fun FinTrackerNavHost(
                 )
             }
 
+            composable("cambiarFoto/{usuarioId}") { backStackEntry ->
+                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toInt() ?: 0
+                CambiarFotoScreen(
+                    usuarioId = usuarioId,
+                    onNavigateBack = { navHostController.popBackStack() }
+                )
+            }
+
 
             composable("ajustes/{usuarioId}") { backStackEntry ->
                 val context = LocalContext.current
@@ -1050,8 +1059,7 @@ fun FinTrackerNavHost(
                         }
                     },
                     onCambiarFoto = {
-                        // Implementar lógica para cambiar foto
-                    },
+                        navHostController.navigate("cambiarFoto/$usuarioId")                    },
                     onDivisa = {
                         // Implementar lógica para cambiar divisa
                     },
