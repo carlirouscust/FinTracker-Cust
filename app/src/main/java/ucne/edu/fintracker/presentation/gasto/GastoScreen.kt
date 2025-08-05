@@ -167,6 +167,8 @@ fun GastoScreen(
                 )
             )
 
+            val categoriasFiltradas = categorias.filter { it.tipo.equals(tipo, ignoreCase = true) }
+
             ExposedDropdownMenuBox(
                 expanded = expandedCategoria,
                 onExpandedChange = { expandedCategoria = !expandedCategoria }
@@ -195,7 +197,7 @@ fun GastoScreen(
                     expanded = expandedCategoria,
                     onDismissRequest = { expandedCategoria = false }
                 ) {
-                    categorias.forEach { cat ->
+                    categoriasFiltradas.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
