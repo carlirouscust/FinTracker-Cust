@@ -15,12 +15,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.threeten.bp.DayOfWeek
-import org.threeten.bp.Month
 import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.data.local.repository.CategoriaRepository
 import ucne.edu.fintracker.data.local.repository.TransaccionRepository
-import org.threeten.bp.format.TextStyle
-import java.util.Locale
 import androidx.compose.runtime.State
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
@@ -41,36 +38,13 @@ class GastoViewModel @Inject constructor(
     private val _totalesAnuales = mutableStateOf<List<TotalAnual>>(emptyList())
     val totalesAnuales: State<List<TotalAnual>> = _totalesAnuales
 
-    fun cargarDatos(usuarioId: Int) {
-        Log.d("GastoViewModel", "Llamando cargarDatos con usuarioId = $usuarioId")
-
-        viewModelScope.launch {
-            try {
-                val totalesMes = transaccionRepository.obtenerTotalesPorMes(usuarioId)
-                val totalesAno = transaccionRepository.obtenerTotalesPorAno(usuarioId)
-
-                Log.d("GastoViewModel", "Totales por mes: ${totalesMes.joinToString()}")
-                Log.d("GastoViewModel", "Totales por año: ${totalesAno.joinToString()}")
-
-                _totalesMensuales.value = totalesMes
-                _totalesAnuales.value = totalesAno
-            } catch (e: Exception) {
-                Log.e("GastoViewModel", "Error al cargar datos: ${e.message}", e)
-            }
-        }
-    }
-
+    private var usuarioIdActual: Int? = null
 
     private val _uiState = MutableStateFlow(
-        GastoUiState(
-            transacciones = emptyList(),
-            filtro = "Dia",
-            tipoSeleccionado = "Gasto",
-            isLoading = false,
-            error = null
-        )
+        GastoUiState()
     )
     val uiState: StateFlow<GastoUiState> = _uiState
+
     private val _eventoEliminacion = MutableSharedFlow<Unit>()
     val eventoEliminacion = _eventoEliminacion.asSharedFlow()
 
@@ -80,45 +54,104 @@ class GastoViewModel @Inject constructor(
     val transaccionesFiltradas: StateFlow<List<TransaccionDto>> =
         uiState.map { state ->
             val filtradasPorFecha = filtrarTransaccionesPorFecha(state.transacciones, state.filtro)
-
-            val resultado = filtradasPorFecha.filter {
-                val coincide =
-                    it.tipo.trim().equals(state.tipoSeleccionado.trim(), ignoreCase = true)
-                Log.d(
-                    "FiltroTipo",
-                    "Transacción tipo=${it.tipo}, tipoSeleccionado=${state.tipoSeleccionado}, coincide=$coincide"
-                )
-                coincide
+            filtradasPorFecha.filter {
+                it.tipo.trim().equals(state.tipoSeleccionado.trim(), ignoreCase = true)
             }
-
-            Log.d(
-                "TransaccionesFiltradas",
-                "Filtradas (${state.filtro} / ${state.tipoSeleccionado}): ${resultado.size}"
-            )
-            resultado
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
             initialValue = emptyList()
         )
 
-
-    private var usuarioIdActual: Int? = null
     fun inicializar(usuarioId: Int) {
-        if (usuarioId <= 0) {
-            Log.e("GastoViewModel", "UsuarioId inválido en inicializar: $usuarioId")
-            return
-        }
+        Log.d("GastoViewModel", "Inicializando con usuarioId: $usuarioId")
+        if (usuarioId <= 0) { Log.e("GastoViewModel", "usuarioId inválido")
+        return}
 
         if (usuarioIdActual != usuarioId) {
             usuarioIdActual = usuarioId
-            Log.d("GastoViewModel", "Inicializando para usuarioId: $usuarioId")
+            Log.d("GastoViewModel", "Cargando datos del usuario...")
             fetchCategorias(usuarioId)
             cargarTransacciones(usuarioId)
-        } else {
-            Log.d("GastoViewModel", "Ya inicializado para usuarioId: $usuarioIdActual")
+            cargarDatos(usuarioId)
+
+            cargarDatos(usuarioId)
         }
     }
+
+    fun cargarDatos(usuarioId: Int) {
+            viewModelScope.launch {
+                try {
+                    val totalesMes = transaccionRepository.obtenerTotalesPorMes(usuarioId)
+                    val totalesAno = transaccionRepository.obtenerTotalesPorAno(usuarioId)
+
+                    _totalesMensuales.value = totalesMes
+                    _totalesAnuales.value = totalesAno
+                } catch (e: Exception) {
+                    Log.e("GastoViewModel", "Error al cargar datos: ${e.message}", e)
+                }
+            }
+    }
+
+
+//    private val _uiState = MutableStateFlow(
+//        GastoUiState(
+//            transacciones = emptyList(),
+//            filtro = "Dia",
+//            tipoSeleccionado = "Gasto",
+//            isLoading = false,
+//            error = null
+//        )
+//    )
+//    val uiState: StateFlow<GastoUiState> = _uiState
+//    private val _eventoEliminacion = MutableSharedFlow<Unit>()
+//    val eventoEliminacion = _eventoEliminacion.asSharedFlow()
+//
+//    private val _categorias = MutableStateFlow<List<CategoriaDto>>(emptyList())
+//    val categorias: StateFlow<List<CategoriaDto>> = _categorias
+//
+//    val transaccionesFiltradas: StateFlow<List<TransaccionDto>> =
+//        uiState.map { state ->
+//            val filtradasPorFecha = filtrarTransaccionesPorFecha(state.transacciones, state.filtro)
+//
+//            val resultado = filtradasPorFecha.filter {
+//                val coincide =
+//                    it.tipo.trim().equals(state.tipoSeleccionado.trim(), ignoreCase = true)
+//                Log.d(
+//                    "FiltroTipo",
+//                    "Transacción tipo=${it.tipo}, tipoSeleccionado=${state.tipoSeleccionado}, coincide=$coincide"
+//                )
+//                coincide
+//            }
+//
+//            Log.d(
+//                "TransaccionesFiltradas",
+//                "Filtradas (${state.filtro} / ${state.tipoSeleccionado}): ${resultado.size}"
+//            )
+//            resultado
+//        }.stateIn(
+//            scope = viewModelScope,
+//            started = SharingStarted.Lazily,
+//            initialValue = emptyList()
+//        )
+//
+
+//    private var usuarioIdActual: Int? = null
+//    fun inicializar(usuarioId: Int) {
+//        if (usuarioId <= 0) {
+//            Log.e("GastoViewModel", "UsuarioId inválido en inicializar: $usuarioId")
+//            return
+//        }
+//
+//        if (usuarioIdActual != usuarioId) {
+//            usuarioIdActual = usuarioId
+//            Log.d("GastoViewModel", "Inicializando para usuarioId: $usuarioId")
+//            fetchCategorias(usuarioId)
+//            cargarTransacciones(usuarioId)
+//        } else {
+//            Log.d("GastoViewModel", "Ya inicializado para usuarioId: $usuarioIdActual")
+//        }
+//    }
 
 
     fun fetchCategorias(usuarioId: Int? = usuarioIdActual) {
@@ -192,6 +225,7 @@ class GastoViewModel @Inject constructor(
     fun cambiarTipo(tipo: String) {
         Log.d("GastoViewModel", "Tipo seleccionado cambiado a: $tipo")
         _uiState.update { it.copy(tipoSeleccionado = tipo) }
+        usuarioIdActual?.let { cargarDatos(it) }
     }
 
 

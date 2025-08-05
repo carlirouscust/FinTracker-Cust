@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.data.local.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
@@ -12,7 +13,7 @@ import javax.inject.Inject
 
 
 class TransaccionRepository @Inject constructor(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) {
 
     // Obtener transacciones filtradas por usuarioId
@@ -59,14 +60,24 @@ class TransaccionRepository @Inject constructor(
         }
     }
 
-    // Obtener totales por mes
     suspend fun obtenerTotalesPorMes(usuarioId: Int): List<TotalMes> {
-        return dataSource.obtenerTotalesPorMes(usuarioId)
+        Log.d("TransaccionRepository", "Obteniendo totales por mes para usuarioId=$usuarioId")
+        return try {
+            dataSource.obtenerTotalesPorMes(usuarioId)
+        } catch (e: Exception) {
+            Log.e("TransaccionRepository", "Error al obtener totales por mes", e)
+            emptyList()
+        }
     }
 
-    // Obtener totales por año
     suspend fun obtenerTotalesPorAno(usuarioId: Int): List<TotalAnual> {
-        return dataSource.obtenerTotalesPorAno(usuarioId)
+        Log.d("TransaccionRepository", "Obteniendo totales por año para usuarioId=$usuarioId")
+        return try {
+            dataSource.obtenerTotalesPorAno(usuarioId)
+        } catch (e: Exception) {
+            Log.e("TransaccionRepository", "Error al obtener totales por año", e)
+            emptyList()
+        }
     }
 
 }

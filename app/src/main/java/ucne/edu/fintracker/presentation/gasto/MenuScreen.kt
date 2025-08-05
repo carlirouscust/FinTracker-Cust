@@ -109,14 +109,14 @@ fun MenuScreen(
                                 fontSize = 16.sp
                             )
                         },
-                        selected = false, // Puedes ajustar esto según el estado actual
+                        selected = false,
                         onClick = {
                             scope.launch { drawerState.close() }
                             when (item.label) {
                                 "Inicio" -> navController.navigate("gastos")
                                 "Gráficos" -> navController.navigate("grafico/$usuarioId")
                                 "Pagos Recurrentes" -> navController.navigate("pagos/$usuarioId")
-                                "Categorías" -> navController.navigate("categoria/{tipo}") // Asegúrate de usar un valor real
+                                "Categorías" -> navController.navigate("categoria/{tipo}")
                                 "Limite de gastos" -> navController.navigate("limites/$usuarioId")
                                 "Ajustes" -> navController.navigate("ajustes/$usuarioId")
                             }
