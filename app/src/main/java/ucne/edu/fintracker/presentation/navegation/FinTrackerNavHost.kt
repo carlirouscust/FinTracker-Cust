@@ -1080,7 +1080,13 @@ fun FinTrackerNavHost(
                 }
 
                 if (usuarioId != 0) {
-                    GraficoScreen(usuarioId, gastoViewModel)
+                    GraficoScreen(
+                        usuarioId = usuarioId,
+                        gastoviewModel = hiltViewModel(),
+                        onBackClick = {
+                            navHostController.popBackStack()
+                        }
+                    )
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize(),
