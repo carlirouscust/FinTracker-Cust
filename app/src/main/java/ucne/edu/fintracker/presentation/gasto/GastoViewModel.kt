@@ -24,12 +24,14 @@ import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
 import ucne.edu.fintracker.presentation.remote.dto.TotalMes
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.presentation.utils.SaldoCalculatorUtil
 import javax.inject.Inject
 
 @HiltViewModel
 class GastoViewModel @Inject constructor(
     private val transaccionRepository: TransaccionRepository,
     private val categoriaRepository: CategoriaRepository,
+    private val saldoCalculator: SaldoCalculatorUtil
 ) : ViewModel() {
 
     private val _totalesMensuales = mutableStateOf<List<TotalMes>>(emptyList())

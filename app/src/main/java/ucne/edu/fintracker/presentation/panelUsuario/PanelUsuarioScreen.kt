@@ -266,24 +266,53 @@ fun PanelUsuarioScreen(
                                     Column(
                                         modifier = Modifier.weight(1f)
                                     ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Saldo Total",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp,
+                                                color = MaterialTheme.colorScheme.onBackground
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            IconButton(
+                                                onClick = { viewModel.actualizarSaldoUsuario(usuarioId) },
+                                                modifier = Modifier.size(24.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Refresh,
+                                                    contentDescription = "Actualizar saldo",
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
                                         Text(
-                                            text = "Saldo Total",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp,
-                                            color = MaterialTheme.colorScheme.onBackground
-                                        )
-                                        Text(
-                                            text = "Saldo total en todas las cuentas",
+                                            text = "Saldo calculado en tiempo real",
                                             fontSize = 12.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
-                                    Text(
-                                        text = "${String.format("%,.0f", usuario.saldoTotal)} ${usuario.divisa.ifEmpty { "RD$" }}",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp,
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    )
+                                    Column(
+                                        horizontalAlignment = Alignment.End
+                                    ) {
+                                        Text(
+                                            text = "${String.format("%,.2f", usuario.saldoTotal)} ${usuario.divisa.ifEmpty { "RD$" }}",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
+                                            color = if (usuario.saldoTotal >= 0) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.error
+                                            }
+                                        )
+                                        Text(
+                                            text = if (usuario.saldoTotal >= 0) "Saldo positivo" else "Saldo negativo",
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.height(16.dp))
