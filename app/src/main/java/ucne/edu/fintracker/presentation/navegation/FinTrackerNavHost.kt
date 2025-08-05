@@ -1054,7 +1054,7 @@ fun FinTrackerNavHost(
                     navController = navHostController,
                     usuarioId = usuarioId,
                     onCambiarContrasenaClick = {
-                        navHostController.navigate("cambiarContrasena/$usuarioId") {
+                        navHostController.navigate("cambiar_contrasena/$usuarioId") {
                             launchSingleTop = true
                         }
                     },
