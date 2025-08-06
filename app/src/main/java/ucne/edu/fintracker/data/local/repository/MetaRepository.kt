@@ -12,16 +12,17 @@ class MetaRepository @Inject constructor(
     private val dataSource: DataSource
 ) {
 
-    //  Obtener todas las metas filtradas por usuarioId
-    fun getMetas(usuarioId: Int): Flow<Resource<List<MetaAhorroDto>>> = flow {
+    fun getMetas(usuarioId: Int, metaId: Int): Flow<Resource<MetaAhorroDto?>> = flow {
         emit(Resource.Loading())
         try {
             val metas = dataSource.getMetaAhorrosPorUsuario(usuarioId)
-            emit(Resource.Success(metas))
+            val meta = metas.find { it.metaAhorroId == metaId }
+            emit(Resource.Success(meta))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al obtener metas: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al obtener la meta: ${e.message ?: "Error desconocido"}"))
         }
     }
+
 
     // Crear una nueva meta
     fun createMeta(metaDto: MetaAhorroDto): Flow<Resource<MetaAhorroDto>> = flow {

@@ -2,7 +2,6 @@ package ucne.edu.fintracker.presentation.metaahorro
 
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -248,7 +247,7 @@ fun MetaListScreen(
                                     }
                                     Divider(modifier = Modifier.padding(top = 8.dp))
                                 }
-                             }
+                            }
                         }
                     }
                 }

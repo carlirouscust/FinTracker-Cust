@@ -9,13 +9,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.data.local.repository.MetaRepository
+import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import javax.inject.Inject
 
 @HiltViewModel
 class MetaViewModel @Inject constructor(
-    private val metaRepository: MetaRepository
+    private val metaRepository: MetaRepository,
+    private val dataSource: DataSource
 ) : ViewModel() {
 
     private var usuarioId: Int = 0
@@ -30,39 +32,44 @@ class MetaViewModel @Inject constructor(
     )
     val uiState: StateFlow<MetaUiState> = _uiState
 
-    fun cargarMetas(idUsuario: Int) {
-        usuarioId = idUsuario
-        Log.d("MetaVM", "usuarioId en ViewModel antes de crear: $usuarioId")
+    fun cargarMetas(usuarioId: Int, metaId: Int? = null) {
         viewModelScope.launch {
-            metaRepository.getMetas(usuarioId).collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        Log.d("MetaVM", "Cargando metas... [LOADING]")
-                        _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            try {
+                val metas = dataSource.getMetaAhorrosPorUsuario(usuarioId)
+
+                if (metaId != null) {
+                    val meta = metas.find { it.metaAhorroId == metaId }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            metaSeleccionada = meta
+                        )
                     }
-                    is Resource.Success -> {
-                        Log.d("MetaVM", "Metas cargadas correctamente: ${result.data}")
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                metas = result.data ?: emptyList(),
-                                error = null
-                            )
-                        }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            metas = metas
+                        )
                     }
-                    is Resource.Error -> {
-                        Log.e("MetaVM", "Error al cargar metas: ${result.message}")
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                error = result.message ?: "Error desconocido"
-                            )
-                        }
-                    }
+                }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error: ${e.message}"
+                    )
                 }
             }
         }
     }
+
+
+
+
 
     fun crearMeta(metaDto: MetaAhorroDto, usuarioId: Int) {
         Log.d("MetaVM", "Intentando crear meta: $metaDto con usuarioId: $usuarioId")

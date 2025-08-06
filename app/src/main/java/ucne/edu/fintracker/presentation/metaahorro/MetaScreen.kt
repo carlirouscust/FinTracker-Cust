@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -15,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -22,11 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
+import ucne.edu.fintracker.presentation.remote.ImagenAdapter
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
+import java.io.File
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,12 +59,16 @@ fun MetaScreen(
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { selectedUri ->
-            imagenUri = selectedUri.toString()
-            onImagenSeleccionada(selectedUri.toString())
+    ) { uri ->
+        uri?.let {
+            val path = ImagenAdapter(contexto, it)
+            if (path != null) {
+                imagenUri = path
+                onImagenSeleccionada(path)
+            }
         }
     }
+
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -158,24 +166,26 @@ fun MetaScreen(
                 onClick = { launcher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8BC34A) // Color del botón
+                    containerColor = Color(0xFF8BC34A)
                 )
             ) {
                 Text("Cargar Imagen")
             }
 
-            imagenUri?.let { uriStr ->
-                val painter = rememberAsyncImagePainter(uriStr)
-                Image(
-                    painter = painter,
+            imagenUri?.let { path ->
+                AsyncImage(
+                    model = File(path),
                     contentDescription = "Imagen seleccionada",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
-                        .padding(top = 8.dp),
+                        .padding(top = 8.dp)
+                        .clip(RoundedCornerShape(12.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
+
+
         }
     }
 }
