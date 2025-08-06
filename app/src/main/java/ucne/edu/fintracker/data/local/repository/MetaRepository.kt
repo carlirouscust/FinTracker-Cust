@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.data.local.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.presentation.remote.DataSource
@@ -35,16 +36,19 @@ class MetaRepository @Inject constructor(
         }
     }
 
-    // Actualizar una meta existente
-    fun updateMeta(id: Int, metaDto: MetaAhorroDto): Flow<Resource<MetaAhorroDto>> = flow {
+    fun updateMeta(id: Int, metaDto: MetaAhorroDto): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {
+            Log.d("RepoMeta", "Intentando actualizar meta ID=$id con datos: $metaDto")
             val result = dataSource.updateMetaAhorro(id, metaDto)
-            emit(Resource.Success(result))
+            Log.d("RepoMeta", "Respuesta de updateMetaAhorro: $result")
+            emit(Resource.Success(Unit))
         } catch (e: Exception) {
+            Log.e("RepoMeta", "Error en updateMeta: ${e.message}", e)
             emit(Resource.Error("Error al actualizar meta: ${e.message ?: "Error desconocido"}"))
         }
     }
+
 
     // Eliminar una meta
     fun deleteMeta(id: Int): Flow<Resource<Unit>> = flow {
