@@ -80,6 +80,7 @@ fun GraficoScreen(
     val datosAnuales = gastoviewModel.totalesAnuales.value
 
     LaunchedEffect(usuarioId) {
+        gastoviewModel.cambiarTipo("Gasto")
         gastoviewModel.cargarDatos(usuarioId)
     }
 
@@ -108,7 +109,7 @@ fun GraficoScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Gráfico de ${tipoActual.tipoSeleccionado}",
+                        text = "Gráfico de Gasto",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp
@@ -126,40 +127,6 @@ fun GraficoScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Button(
-                    onClick = { gastoviewModel.cambiarTipo("Gasto") },
-                    colors = if (tipoActual.tipoSeleccionado == "Gasto")
-                        ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
-                    else
-                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        "Gasto",
-                        color = if (tipoActual.tipoSeleccionado == "Gasto") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Button(
-                    onClick = { gastoviewModel.cambiarTipo("Ingreso") },
-                    colors = if (tipoActual.tipoSeleccionado == "Ingreso")
-                        ButtonDefaults.buttonColors(containerColor = Color(0xFF85D844))
-                    else
-                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                ) {
-                    Text(
-                        "Ingreso",
-                        color = if (tipoActual.tipoSeleccionado == "Ingreso") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
