@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.data.local.repository.MetaRepository
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
@@ -22,12 +23,18 @@ class MetaViewModel @Inject constructor(
 
     private var usuarioId: Int = 0
 
+    fun setUsuarioId(id: Int) {
+        Log.d("MetaVM", "UsuarioId seteado a $id")
+        usuarioId = id
+    }
+
     private val _uiState = MutableStateFlow(
         MetaUiState(
             metas = emptyList(),
             isLoading = false,
             error = null,
-            metaCreada = false
+            metaCreada = false,
+            metaSeleccionada = null
         )
     )
     val uiState: StateFlow<MetaUiState> = _uiState
@@ -38,22 +45,14 @@ class MetaViewModel @Inject constructor(
 
             try {
                 val metas = dataSource.getMetaAhorrosPorUsuario(usuarioId)
+                val metaSeleccionada = metaId?.let { id -> metas.find { it.metaAhorroId == id } }
 
-                if (metaId != null) {
-                    val meta = metas.find { it.metaAhorroId == metaId }
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            metaSeleccionada = meta
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            metas = metas
-                        )
-                    }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        metas = metas,
+                        metaSeleccionada = metaSeleccionada
+                    )
                 }
 
             } catch (e: Exception) {
@@ -67,9 +66,9 @@ class MetaViewModel @Inject constructor(
         }
     }
 
-
-
-
+    fun obtenerMetas(metaId: Int): MetaAhorroDto? {
+        return _uiState.value.metas.find { it.metaAhorroId == metaId }
+    }
 
     fun crearMeta(metaDto: MetaAhorroDto, usuarioId: Int) {
         Log.d("MetaVM", "Intentando crear meta: $metaDto con usuarioId: $usuarioId")
@@ -115,7 +114,7 @@ class MetaViewModel @Inject constructor(
 
 
     fun actualizarMeta(id: Int, metaDto: MetaAhorroDto) {
-        Log.d("MetaVM", "Actualizando meta con ID $id para usuarioId: $usuarioId")
+        Log.d("MetaVM", "Iniciando actualización meta ID=$id con datos: $metaDto")
         viewModelScope.launch {
             metaRepository.updateMeta(id, metaDto.copy(usuarioId = usuarioId)).collect { result ->
                 when (result) {
@@ -124,14 +123,11 @@ class MetaViewModel @Inject constructor(
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
                     is Resource.Success -> {
-                        Log.d("MetaVM", "Meta actualizada correctamente: ${result.data}")
-                        val listaActualizada = _uiState.value.metas.map {
-                            if (it.metaAhorroId == id) result.data ?: it else it
-                        }
+                        cargarMetas(usuarioId)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                metas = listaActualizada,
+                                metaSeleccionada = null,
                                 error = null
                             )
                         }
@@ -148,6 +144,15 @@ class MetaViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun actualizarMontoAhorrado(metaId: Int, montoAhorrado: Double, fechaMonto: OffsetDateTime) {
+        val metaActual = obtenerMetas(metaId) ?: return
+        val metaActualizada = metaActual.copy(
+            montoAhorrado = montoAhorrado,
+            fechaMontoAhorrado = fechaMonto
+        )
+        actualizarMeta(metaId, metaActualizada)
     }
 
     fun eliminarMeta(id: Int) {
