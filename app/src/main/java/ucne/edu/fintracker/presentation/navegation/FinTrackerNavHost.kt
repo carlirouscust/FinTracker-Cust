@@ -63,9 +63,10 @@ import ucne.edu.fintracker.presentation.ajustes.NotificacionesScreen
 import ucne.edu.fintracker.presentation.gasto.GastoDetalleScreen
 import ucne.edu.fintracker.presentation.gasto.GraficoScreen
 import ucne.edu.fintracker.presentation.login.DataLogin
+import ucne.edu.fintracker.presentation.metaahorro.MetaMAhorroScreen
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
-import java.time.OffsetDateTime
+import org.threeten.bp.OffsetDateTime
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -827,7 +828,7 @@ fun FinTrackerNavHost(
                         navHostController.navigate("meta_detalle/$usuarioId/$metaId")
                     },
                     onAgregarMontoClick = { metaId ->
-                        navHostController.navigate("meta_montoahorro/$usuarioId/$metaId")
+                        navHostController.navigate("meta_monto_ahorro/$usuarioId/$metaId")
                     }
                 )
             }
@@ -923,7 +924,11 @@ fun FinTrackerNavHost(
                 val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
                 val metaViewModel = hiltViewModel<MetaViewModel>()
                 val uiState by metaViewModel.uiState.collectAsState()
-                val meta = uiState.metas.find { it.metaAhorroId == metaId }
+                val meta = uiState.metaSeleccionada
+                LaunchedEffect(usuarioId, metaId) {
+                    metaViewModel.setUsuarioId(usuarioId)
+                    metaViewModel.cargarMetas(usuarioId, metaId)
+                }
 
                 meta?.let {
                     MetaScreen(
@@ -948,6 +953,49 @@ fun FinTrackerNavHost(
                     )
                 }
             }
+
+            composable(
+                route = "meta_monto_ahorro/{usuarioId}/{metaId}",
+                arguments = listOf(
+                    navArgument("usuarioId") { type = NavType.IntType },
+                    navArgument("metaId") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val context = LocalContext.current
+                val usuarioId by produceState(initialValue = 0) {
+                    value = DataLogin.obtenerUsuarioId(context) ?: 0
+                }
+                val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
+
+                val metaViewModel = hiltViewModel<MetaViewModel>()
+
+                val uiState by metaViewModel.uiState.collectAsState()
+                LaunchedEffect(usuarioId, metaId) {
+                    metaViewModel.setUsuarioId(usuarioId)
+                    metaViewModel.cargarMetas(usuarioId, metaId)
+                }
+
+
+                val meta = metaViewModel.obtenerMetas(metaId) ?: MetaAhorroDto(
+                    metaAhorroId = 0,
+                    nombreMeta = "",
+                    montoObjetivo = 0.0,
+                    fechaFinalizacion = OffsetDateTime.now(),
+                    usuarioId = usuarioId
+                )
+
+                MetaMAhorroScreen(
+                    meta = meta,
+                    onGuardarMonto = { montoAhorrado, fechaMonto ->
+                        metaViewModel.actualizarMontoAhorrado(meta.metaAhorroId, montoAhorrado, fechaMonto)
+                        navHostController.popBackStack()
+                    },
+                    onCancel = {
+                        navHostController.popBackStack()
+                    }
+                )
+            }
+
 
             composable(
                 route = "chatIA/{usuarioId}",
