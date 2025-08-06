@@ -597,7 +597,7 @@ fun FinTrackerNavHost(
 
             composable("limites/{usuarioId}") {
                 val limiteViewModel = hiltViewModel<LimiteViewModel>()
-                val gastoViewModel = hiltViewModel<GastoViewModel>() // Agregar esta línea
+                val gastoViewModel = hiltViewModel<GastoViewModel>()
 
                 val context = LocalContext.current
                 val usuarioId by produceState(initialValue = 0) {
@@ -608,13 +608,13 @@ fun FinTrackerNavHost(
                     if (usuarioId != 0) {
                         limiteViewModel.cargarLimites(usuarioId)
                         limiteViewModel.fetchCategorias(usuarioId)
-                        gastoViewModel.inicializar(usuarioId) // Inicializar GastoViewModel también
+                        gastoViewModel.inicializar(usuarioId)
                     }
                 }
 
                 LimiteListScreen(
                     viewModel = limiteViewModel,
-                    gastoViewModel = gastoViewModel, // Ahora está definido
+                    gastoViewModel = gastoViewModel,
                     onAgregarLimiteClick = {
                         navHostController.navigate("limite_nuevo/$usuarioId")
                     },
@@ -700,7 +700,7 @@ fun FinTrackerNavHost(
                     if (usuarioId != 0) {
                         limiteViewModel.cargarLimites(usuarioId)
                         limiteViewModel.fetchCategorias(usuarioId)
-                        gastoViewModel.inicializar(usuarioId) // Inicializar GastoViewModel
+                        gastoViewModel.inicializar(usuarioId)
                     }
                 }
 
@@ -811,10 +811,9 @@ fun FinTrackerNavHost(
                 val metaViewModel = hiltViewModel<MetaViewModel>()
 
                 LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        metaViewModel.cargarMetas(usuarioId)
-                    }
+                    metaViewModel.cargarMetas(usuarioId)
                 }
+
 
                 MetaListScreen(
                     viewModel = metaViewModel,
@@ -882,11 +881,14 @@ fun FinTrackerNavHost(
                 val usuarioId by produceState(initialValue = 0) {
                     value = DataLogin.obtenerUsuarioId(context) ?: 0
                 }
-
                 val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
                 val metaViewModel = hiltViewModel<MetaViewModel>()
                 val uiState by metaViewModel.uiState.collectAsState()
-                val meta = uiState.metas.find { it.metaAhorroId == metaId }
+                val meta = uiState.metaSeleccionada
+
+                LaunchedEffect(usuarioId, metaId) {
+                    metaViewModel.cargarMetas(usuarioId, metaId)
+                }
 
                 meta?.let {
                     MetaDetalleScreen(
