@@ -88,7 +88,7 @@ class DataSource @Inject constructor(
 
     suspend fun createMetaAhorro(metaAhorroDto: MetaAhorroDto): MetaAhorroDto = api.createMetaAhorro(metaAhorroDto)
     suspend fun getMetaAhorro(id: Int): MetaAhorroDto = api.getMetaAhorro(id)
-    suspend fun updateMetaAhorro(id: Int, metaAhorroDto: MetaAhorroDto): MetaAhorroDto =
+    suspend fun updateMetaAhorro(id: Int, metaAhorroDto: MetaAhorroDto): Response<Unit> =
         api.updateMetaAhorro(id, metaAhorroDto)
     suspend fun deleteMetaAhorro(id: Int) = api.deleteMetaAhorro(id)
 }

@@ -93,7 +93,7 @@ interface FinTrackerApi {
         suspend fun getMetaAhorro(@Path("id") id: Int): MetaAhorroDto
 
         @PUT("api/MetaAhorros/{id}")
-        suspend fun updateMetaAhorro(@Path("id") id: Int, @Body metaAhorroDto: MetaAhorroDto): MetaAhorroDto
+        suspend fun updateMetaAhorro(@Path("id") id: Int, @Body metaAhorroDto: MetaAhorroDto): Response<Unit>
 
         @DELETE("api/MetaAhorros/{id}")
         suspend fun deleteMetaAhorro(@Path("id") id: Int)
