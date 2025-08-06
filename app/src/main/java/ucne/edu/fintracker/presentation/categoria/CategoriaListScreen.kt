@@ -211,10 +211,10 @@ fun CategoriaListScreen(
 fun CategoriaBody(
     categoria: CategoriaDto
 ) {
-    val backgroundColor = try {
-        Color(android.graphics.Color.parseColor("#${categoria.colorFondo}"))
+    val colorFondo = try {
+        Color(android.graphics.Color.parseColor("#${categoria?.colorFondo?.removePrefix("#") ?: "CCCCCC"}"))
     } catch (e: Exception) {
-        MaterialTheme.colorScheme.surfaceVariant
+        Color.Gray
     }
 
     Row(
@@ -226,13 +226,13 @@ fun CategoriaBody(
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(backgroundColor, CircleShape),
+                .background(colorFondo, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = categoria.icono,
                 fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer, // Ajusta según el color de fondo
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
