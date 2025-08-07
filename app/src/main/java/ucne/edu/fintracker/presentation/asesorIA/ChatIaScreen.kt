@@ -184,7 +184,7 @@ fun ChatIaScreen(
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
-    val bubbleColor = if (message.isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val bubbleColor = if (message.isUser) Color(0xFF8BC34A) else MaterialTheme.colorScheme.surfaceVariant
     val textColor = if (message.isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
