@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.gasto
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -199,9 +200,9 @@ fun GastoListScreen(
                             )
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
                             val currentRoute = navBackStackEntry?.destination?.route
-
+                            Log.d("gastoListScreen", "usuarioId recibido: $usuarioId")
                             NavigationBarItem(
-                                selected = currentRoute == "metaahorros/$usuarioId",
+                                selected = false,
                                 onClick = {
                                     navController.navigate("metaahorros/$usuarioId") {
                                         launchSingleTop = true

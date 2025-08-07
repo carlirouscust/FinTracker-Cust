@@ -72,13 +72,13 @@ fun ChatIaScreen(
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 NavigationBarItem(
-                    selected = true,
+                    selected = false,
                     onClick = { navController.navigate("gastos") },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") }
                 )
                 NavigationBarItem(
-                    selected = false,
+                    selected = true,
                     onClick = { navController.navigate("chatIA/$usuarioId") },
                     icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                     label = { Text("IA Asesor") }
@@ -87,7 +87,7 @@ fun ChatIaScreen(
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 NavigationBarItem(
-                    selected = currentRoute == "metaahorros/$usuarioId",
+                    selected = false,
                     onClick = {
                         navController.navigate("metaahorros/$usuarioId") {
                             launchSingleTop = true
