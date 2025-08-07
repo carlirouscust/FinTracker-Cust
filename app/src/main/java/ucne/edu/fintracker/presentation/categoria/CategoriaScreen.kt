@@ -4,9 +4,12 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -33,6 +36,9 @@ fun CategoriaScreen(
 )
  {
     val state by viewModel.uiState.collectAsState()
+     val scrollState = rememberScrollState()
+     var mostrarMasIconos by remember { mutableStateOf(false) }
+     var mostrarMasColores by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -72,7 +78,8 @@ fun CategoriaScreen(
                 .padding(16.dp)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize()
+                .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
@@ -90,7 +97,17 @@ fun CategoriaScreen(
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
 
-                    val iconos = listOf("🍴","🚗","📞","💳","❤️","🏠","📧","✈️","⛽","🎓","🎁","👥","📅","📱")
+                    val iconosBase = listOf(
+                        "🏠","🚗","🍽️","📱","💡","🛍️","💳","🛒",
+                        "❤️","🎓","🎮","🎬","🎉","💼"
+                    )
+                    val iconosExtra = listOf(
+                        "📺","🎵","🎧","📷","🧾","🚌","✈️","🛏️",
+                        "👕","🐶","🏥","🧼","📚","💻","🍻","🎁",
+                        "🏦","📦","🔧","🪙","📍","🧃","🪑","📡","🕹️","🧳"
+                    )
+                    val iconos = if (mostrarMasIconos) iconosBase + iconosExtra else iconosBase
+
                     val iconosPorFila = 4
 
                     Column(
@@ -132,15 +149,26 @@ fun CategoriaScreen(
                                 }
                             }
                         }
+                        TextButton(
+                            onClick = { mostrarMasIconos = !mostrarMasIconos },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(if (mostrarMasIconos) "Mostrar menos iconos" else "➕ Más iconos")
+                        }
                     }
 
                     Spacer(Modifier.height(16.dp))
                     Text("Cambiar color de fondo", color = MaterialTheme.colorScheme.onBackground)
 
 
-                    val colores = listOf("#FF3B30","#007AFF","#34C759","#FFCC00","#AF52DE","#5AC8FA")
+                    val coloresBase = listOf("#FF3B30","#007AFF","#34C759","#FFCC00","#AF52DE","#5AC8FA")
+                    val coloresExtra = listOf("#FF9500","#FF2D55","#8E8E93","#D1D1D6","#FFD60A","#1C1C1E","#00C49A","#A52A2A","#00BFFF","#8B008B","#FFC0CB", "#FF1493")
+                    val colores = if (mostrarMasColores) coloresBase + coloresExtra else coloresBase
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row( modifier = Modifier
+                        .padding(top = 8.dp)
+                        .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         colores.forEach { hex ->
                             val color = Color(android.graphics.Color.parseColor(hex))
                             Box(
@@ -156,6 +184,9 @@ fun CategoriaScreen(
                                     .clickable { viewModel.onColorChange(hex) }
                             )
                         }
+                    }
+                    TextButton(onClick = { mostrarMasColores = !mostrarMasColores }) {
+                        Text(if (mostrarMasColores) "−" else "➕")
                     }
                 }
 
