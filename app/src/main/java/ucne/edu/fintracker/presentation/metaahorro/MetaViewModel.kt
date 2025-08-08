@@ -27,6 +27,10 @@ class MetaViewModel @Inject constructor(
         Log.d("MetaVM", "UsuarioId seteado a $id")
         usuarioId = id
     }
+    fun inicializar(usuarioId: Int) {
+        setUsuarioId(usuarioId)
+        cargarMetas(usuarioId)
+    }
 
     private val _uiState = MutableStateFlow(
         MetaUiState(
