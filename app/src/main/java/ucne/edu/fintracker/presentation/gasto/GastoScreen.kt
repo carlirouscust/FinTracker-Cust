@@ -26,7 +26,6 @@ import org.threeten.bp.LocalDate
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
-import ucne.edu.fintracker.presentation.limitegasto.LimiteViewModel
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import java.util.*

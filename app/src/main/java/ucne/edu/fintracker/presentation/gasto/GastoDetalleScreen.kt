@@ -17,11 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import org.threeten.bp.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)

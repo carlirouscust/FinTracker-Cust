@@ -1,6 +1,6 @@
 package ucne.edu.fintracker.presentation.login
 
-import android.widget.Toast
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-// import ucne.edu.fintracker.presentation.remote.dto.CambiarPasswordRequest
+
 
 
 @Composable
