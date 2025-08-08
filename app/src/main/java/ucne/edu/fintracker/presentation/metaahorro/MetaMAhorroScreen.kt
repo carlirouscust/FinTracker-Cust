@@ -23,7 +23,6 @@ import coil.compose.rememberAsyncImagePainter
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
-
 import java.util.Calendar
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 

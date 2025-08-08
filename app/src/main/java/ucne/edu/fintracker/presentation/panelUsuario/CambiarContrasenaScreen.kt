@@ -1,6 +1,5 @@
 package ucne.edu.fintracker.presentation.panelUsuario
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -30,22 +29,14 @@ fun CambiarContrasenaScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Log.d("UsuarioId", "request: $usuarioId")
-
     var contrasenaActual by remember { mutableStateOf("") }
     var nuevaContrasena by remember { mutableStateOf("") }
     var confirmarContrasena by remember { mutableStateOf("") }
 
-    var showPasswordActual by remember { mutableStateOf(false) }
-    var showNuevaPassword by remember { mutableStateOf(false) }
-    var showConfirmarPassword by remember { mutableStateOf(false) }
-
-    // Validación simple para activar botón
     val isFormValid = nuevaContrasena.length >= 8 &&
             nuevaContrasena == confirmarContrasena &&
             contrasenaActual.isNotBlank()
 
-    // Si cambio fue exitoso, regresa atrás automáticamente
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             onBack()
@@ -93,108 +84,22 @@ fun CambiarContrasenaScreen(
                 lineHeight = 16.sp
             )
 
-            // Contraseña actual
-            TextField(
-                value = contrasenaActual,
-                onValueChange = { contrasenaActual = it },
-                placeholder = { Text("Introduce tu contraseña actual", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                visualTransformation = if (showPasswordActual) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { showPasswordActual = !showPasswordActual }) {
-                        Icon(
-                            imageVector = if (showPasswordActual) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface
-                )
+            PasswordTextField(
+                label = "Contraseña actual",
+                password = contrasenaActual,
+                onPasswordChange = { contrasenaActual = it }
+            )
+            PasswordTextField(
+                label = "Nueva contraseña",
+                password = nuevaContrasena,
+                onPasswordChange = { nuevaContrasena = it }
+            )
+            PasswordTextField(
+                label = "Confirmar contraseña",
+                password = confirmarContrasena,
+                onPasswordChange = { confirmarContrasena = it }
             )
 
-            // Nueva contraseña
-            TextField(
-                value = nuevaContrasena,
-                onValueChange = { nuevaContrasena = it },
-                placeholder = { Text("Introduce tu nueva contraseña", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                visualTransformation = if (showNuevaPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { showNuevaPassword = !showNuevaPassword }) {
-                        Icon(
-                            imageVector = if (showNuevaPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-
-            // Confirmar contraseña
-            TextField(
-                value = confirmarContrasena,
-                onValueChange = { confirmarContrasena = it },
-                placeholder = { Text("Confirma tu nueva contraseña", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                visualTransformation = if (showConfirmarPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { showConfirmarPassword = !showConfirmarPassword }) {
-                        Icon(
-                            imageVector = if (showConfirmarPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = TextFieldDefaults.colors(
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    disabledContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Mostrar mensajes de error o éxito
             if (uiState.isError) {
                 Text(
                     text = uiState.errorMessage,
@@ -207,9 +112,7 @@ fun CambiarContrasenaScreen(
             }
 
             Button(
-                onClick = {
-                    viewModel.cambiarContrasena(usuarioId, contrasenaActual, nuevaContrasena)
-                },
+                onClick = { viewModel.cambiarContrasena(usuarioId, contrasenaActual, nuevaContrasena) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -224,4 +127,45 @@ fun CambiarContrasenaScreen(
             }
         }
     }
+}
+
+@Composable
+private fun PasswordTextField(
+    label: String,
+    password: String,
+    onPasswordChange: (String) -> Unit
+) {
+    var showPassword by remember { mutableStateOf(false) }
+
+    TextField(
+        value = password,
+        onValueChange = onPasswordChange,
+        placeholder = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { showPassword = !showPassword }) {
+                Icon(
+                    imageVector = if (showPassword) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(30.dp),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
+            cursorColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            disabledIndicatorColor = Color.Transparent,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledTextColor = MaterialTheme.colorScheme.onSurface
+        )
+    )
 }

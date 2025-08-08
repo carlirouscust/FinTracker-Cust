@@ -2,7 +2,6 @@ package ucne.edu.fintracker.presentation.remote
 
 import retrofit2.Response
 import ucne.edu.fintracker.presentation.remote.dto.CambiarContrasenaRequest
-//import ucne.edu.fintracker.presentation.remote.dto.CambiarPasswordRequest
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto

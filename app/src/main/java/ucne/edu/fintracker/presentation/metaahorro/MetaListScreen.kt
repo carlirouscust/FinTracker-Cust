@@ -92,7 +92,7 @@ fun MetaListScreen(
                     containerColor = MaterialTheme.colorScheme.background,
                 ) {
                     NavigationBarItem(
-                        selected = true,
+                        selected = false,
                         onClick = { navController.navigate("gastos") },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = MaterialTheme.colorScheme.onSurface) },
                         label = { Text("Home", color = MaterialTheme.colorScheme.onSurface) }
@@ -113,7 +113,7 @@ fun MetaListScreen(
                     val currentRoute = navBackStackEntry?.destination?.route
 
                     NavigationBarItem(
-                        selected = currentRoute == "metaahorros/$usuarioId",
+                        selected = true,
                         onClick = {
                             navController.navigate("metaahorros/$usuarioId") {
                                 launchSingleTop = true

@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -72,13 +71,13 @@ fun ChatIaScreen(
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 NavigationBarItem(
-                    selected = true,
+                    selected = false,
                     onClick = { navController.navigate("gastos") },
                     icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") }
                 )
                 NavigationBarItem(
-                    selected = false,
+                    selected = true,
                     onClick = { navController.navigate("chatIA/$usuarioId") },
                     icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
                     label = { Text("IA Asesor") }
@@ -87,7 +86,7 @@ fun ChatIaScreen(
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 NavigationBarItem(
-                    selected = currentRoute == "metaahorros/$usuarioId",
+                    selected = false,
                     onClick = {
                         navController.navigate("metaahorros/$usuarioId") {
                             launchSingleTop = true
@@ -184,7 +183,7 @@ fun ChatIaScreen(
 
 @Composable
 fun ChatBubble(message: ChatMessage) {
-    val bubbleColor = if (message.isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val bubbleColor = if (message.isUser) Color(0xFF8BC34A) else MaterialTheme.colorScheme.surfaceVariant
     val textColor = if (message.isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(

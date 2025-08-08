@@ -69,7 +69,6 @@ import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
 import org.threeten.bp.OffsetDateTime
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinTrackerNavHost(
     navHostController: NavHostController,
