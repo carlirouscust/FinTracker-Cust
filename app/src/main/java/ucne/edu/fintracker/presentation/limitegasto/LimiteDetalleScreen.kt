@@ -37,7 +37,6 @@ fun LimiteDetalleScreen(
     gastoViewModel: GastoViewModel,
     onBackClick: () -> Unit,
     onEditarClick: () -> Unit,
-    onEliminarClick: () -> Unit,
     onEliminarConfirmado: () -> Unit
 ) {
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
