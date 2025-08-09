@@ -1,12 +1,10 @@
 package ucne.edu.fintracker.presentation.navegation
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +55,8 @@ import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.ajustes.AparienciaScreen
 import ucne.edu.fintracker.presentation.ajustes.NotificacionesScreen
@@ -68,6 +68,11 @@ import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
 import org.threeten.bp.OffsetDateTime
 
+private object NavConstants {
+    const val CARGANDO_USUARIO = "Cargando usuario..."
+    const val PAGOS_ROUTE = "pagos/{usuarioId}"
+    const val SIN_CATEGORIA = "Sin categoría"
+}
 
 @Composable
 fun FinTrackerNavHost(
@@ -83,1083 +88,1221 @@ fun FinTrackerNavHost(
         val logueado = verificarSesion(context)
         pantallaInicial = if (logueado) "gastos" else "login"
     }
+
     pantallaInicial?.let { destino ->
         NavHost(
             navController = navHostController,
             startDestination = destino,
             modifier = modifier
         ) {
-            composable("login") {
-                LoginRegisterScreen(
-                    navController = navHostController,
-                    viewModel = loginViewModel
-                )
-            }
-            composable("register") {
-                LoginRegisterScreen(
-                    navController = navHostController,
-                    viewModel = loginViewModel
-                )
-            }
-
-
-
-            composable("categoria/{tipo}") { backStackEntry ->
-                val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
-                val categoriaVM = hiltViewModel<CategoriaViewModel>()
-                val loginState = loginViewModel.uiState.collectAsState().value
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        categoriaVM.setUsuarioId(usuarioId)
-                    }
-                }
-
-                CategoriaListScreen(
-                    viewModel = categoriaVM,
-                    tipoFiltro = tipo,
-                    usuarioId = usuarioId,
-                    onBackClick = { navHostController.popBackStack() },
-                    onAgregarCategoriaClick = { tipoActual ->
-                        navHostController.navigate("categoria_nueva/$tipoActual")
-                    },
-                )
-            }
-
-            composable("categoria_nueva/{tipo}") { backStackEntry ->
-                val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
-                val categoriaVM = hiltViewModel<CategoriaViewModel>()
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                Log.d("CategoriaNueva", "usuarioId: $usuarioId")
-
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        categoriaVM.setUsuarioId(usuarioId)
-                        categoriaVM.onTipoChange(tipo)
-                    }
-                }
-
-                if (usuarioId == 0) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    CategoriaScreen(
-                        navController = navHostController,
-                        viewModel = categoriaVM,
-                        usuarioId = usuarioId,
-                        tipo = tipo,
-                        onGuardar = { _, _, _, _ ->
-                            categoriaVM.saveCategoria(usuarioId) {
-                                navHostController.popBackStack()
-                            }
-                        },
-                        onCancel = { navHostController.popBackStack() }
-                    )
-                }
-            }
-
-
-            composable("gastos") { backStackEntry ->
-                val loginViewModel = hiltViewModel<LoginViewModel>()
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                Log.d("NavHost", "usuarioId en gastos: $usuarioId")
-
-                val gastoViewModel = hiltViewModel<GastoViewModel>()
-                val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        gastoViewModel.inicializar(usuarioId)
-                        categoriaViewModel.fetchCategorias(usuarioId)
-                    } else {
-                        Log.e("NavHost", "usuarioId inválido o no disponible en gastos")
-                    }
-                }
-
-                if (usuarioId != 0) {
-                    GastoListScreen(
-                        viewModel = gastoViewModel,
-                        usuarioId = usuarioId,
-                        categoriaViewModel = categoriaViewModel,
-                        onNuevoClick = {
-                            val tipo = "Gasto"
-                            navHostController.navigate("gasto_nuevo/$tipo/$usuarioId")
-                        },
-                        navController = navHostController
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Cargando usuario...", modifier = Modifier.padding(16.dp))
-                    }
-                }
-            }
-
-
-            composable(
-                "gasto_nuevo/{tipo}/{usuarioId}",
-                arguments = listOf(
-                    navArgument("tipo") { type = NavType.StringType },
-                    navArgument("usuarioId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val tipoInicial = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
-
-                val gastoViewModel: GastoViewModel = hiltViewModel()
-                val categoriaViewModel: CategoriaViewModel = hiltViewModel()
-                val loginViewModel: LoginViewModel = hiltViewModel()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        Log.d("NavHost", "Usuario logueado con ID: $usuarioId")
-                        categoriaViewModel.fetchCategorias(usuarioId)
-                        gastoViewModel.inicializar(usuarioId)
-                    } else {
-                        Log.e("NavHost", "usuarioId inválido o no disponible")
-                    }
-                }
-
-
-                val categoriaUiState by categoriaViewModel.uiState.collectAsState()
-                val categoriasFiltradas = categoriaUiState.categorias
-
-                if (usuarioId != 0) {
-                    GastoScreen(
-                        categorias = categoriasFiltradas,
-                        tipoInicial = tipoInicial,
-                        usuarioId = usuarioId,
-                        onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
-                            val categoriaId =
-                                categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId
-                                    ?: 0
-                            val fechaOffsetDateTime =
-                                DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
-                            Log.d(
-                                "PagoScreen",
-                                "Guardando pago con monto=$monto, categoriaId=$categoriaId, usuarioId=$usuarioIdGuardado"
-                            )
-                            gastoViewModel.crearTransaccion(
-                                TransaccionDto(
-                                    transaccionId = 0,
-                                    monto = monto,
-                                    categoriaId = categoriaId,
-                                    fecha = fechaOffsetDateTime,
-                                    notas = notas,
-                                    tipo = tipoSeleccionado,
-                                    usuarioId = usuarioIdGuardado
-                                )
-                            )
-                            navHostController.navigate("gastos") {
-                                popUpTo("gastos") { inclusive = true }
-                            }
-                        },
-                        onCancel = {
-                            navHostController.popBackStack()
-                        }
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Cargando usuario...", modifier = Modifier.padding(16.dp))
-                    }
-                }
-            }
-
-            composable(
-                route = "gasto_detalle/{usuarioId}/{trasaccionId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("trasaccionId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val trasaccionId = backStackEntry.arguments?.getInt("trasaccionId") ?: 0
-                val gastoViewModel = hiltViewModel<GastoViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        gastoViewModel.cargarTransacciones(usuarioId)
-                        gastoViewModel.fetchCategorias(usuarioId)
-                    }
-                }
-
-                val uiState by gastoViewModel.uiState.collectAsState()
-                val categorias by gastoViewModel.categorias.collectAsState()
-
-                val gasto = uiState.transacciones.find { it.transaccionId == trasaccionId }
-
-                if (gasto != null) {
-                    val categoria = categorias.find { it.categoriaId == gasto.categoriaId }
-                    val categoriaIcono = categoria?.icono ?: "💸"
-                    val categoriaNombre = categoria?.nombre ?: "Sin categoría"
-
-                    GastoDetalleScreen(
-                        transaccionId = trasaccionId,
-                        categoriaIcono = categoriaIcono,
-                        categoriaNombre = categoriaNombre,
-                        onBackClick = { navHostController.popBackStack() },
-                        onEditarClick = {
-                            navHostController.navigate("gasto_editar/$usuarioId/$trasaccionId")
-                        },
-                        onEliminarClick = { /* Mostrar diálogo */ },
-                        onEliminarConfirmado = {
-                            gastoViewModel.eliminarTransaccion(trasaccionId)
-                            navHostController.popBackStack()
-                        }
-                    )
-                }
-            }
-
-            composable(
-                route = "gasto_editar/{usuarioId}/{gastoId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("gastoId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val gastoId = backStackEntry.arguments?.getInt("gastoId") ?: 0
-                val gastoViewModel = hiltViewModel<GastoViewModel>()
-                val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
-                val uiState by gastoViewModel.uiState.collectAsState()
-                val categoriaUiState by categoriaViewModel.uiState.collectAsState()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        gastoViewModel.inicializar(usuarioId)
-                        categoriaViewModel.fetchCategorias(usuarioId)
-                    }
-                }
-
-                val transaccion = uiState.transacciones.find { it.transaccionId == gastoId }
-                val categoriasFiltradas = categoriaUiState.categorias
-
-                if (transaccion != null) {
-                    GastoScreen(
-                        categorias = categoriasFiltradas,
-                        tipoInicial = transaccion.tipo,
-                        transaccionParaEditar = transaccion,
-                        usuarioId = usuarioId,
-                        onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
-                            val categoriaId = categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0
-                            val fechaOffsetDateTime = DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
-
-                            gastoViewModel.actualizarTransaccion(
-                                TransaccionDto(
-                                    transaccionId = transaccion.transaccionId,
-                                    monto = monto,
-                                    categoriaId = categoriaId,
-                                    fecha = fechaOffsetDateTime,
-                                    notas = notas,
-                                    tipo = tipoSeleccionado,
-                                    usuarioId = usuarioIdGuardado
-                                )
-                            )
-
-                            navHostController.navigate("gastos") {
-                                popUpTo("gastos") { inclusive = true }
-                            }
-                        },
-                        onCancel = {
-                            navHostController.popBackStack()
-                        }
-                    )
-                }
-            }
-
-
-
-            composable("pagos/{usuarioId}") {
-                val pagoViewModel = hiltViewModel<PagoViewModel>()
-                val categorias by pagoViewModel.categorias.collectAsState()
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                Log.d("Pagos", "usuarioId en pagos: $usuarioId")
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        pagoViewModel.cargarPagosRecurrentes(usuarioId)
-                        pagoViewModel.fetchCategorias(usuarioId)
-                    }
-                }
-
-                PagoListScreen(
-                    viewModel = pagoViewModel,
-                    categorias = categorias,
-                    onAgregarPagoClick = {
-                        Log.d("Pagos", "Navegando a pago_nuevo con usuarioId: $usuarioId")
-                        navHostController.navigate("pago_nuevo/$usuarioId")
-                    },
-                    onBackClick = {
-                        navHostController.popBackStack()
-                    },
-                    onPagoClick = { pagoId ->
-                        navHostController.navigate("pago_detalle/$usuarioId/$pagoId")
-                    }
-                )
-            }
-
-            composable(
-                "pago_nuevo/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                Log.d("PagoNuevo", "usuarioId recibido en ruta: $usuarioId")
-
-                val pagoViewModel = hiltViewModel<PagoViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        Log.d("PagoNuevo", "Inicializando PagoViewModel con usuarioId: $usuarioId")
-                        pagoViewModel.inicializar(usuarioId)
-                    }
-                }
-
-                if (usuarioId == 0) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Usuario no autenticado")
-                    }
-                } else {
-                    PagoScreen(
-                        viewModel = pagoViewModel,
-                        pagoParaEditar = null,
-                        usuarioId = usuarioId,
-                        onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioIdGuardado ->
-                            pagoViewModel.crearPagoRecurrente(
-                                PagoRecurrenteDto(
-                                    monto = monto,
-                                    categoriaId = categoriaId,
-                                    frecuencia = frecuencia,
-                                    fechaInicio = fechaInicio,
-                                    fechaFin = fechaFin,
-                                    usuarioId = usuarioIdGuardado
-                                )
-                            )
-                            navHostController.navigate("pagos/{usuarioId}") {
-                                popUpTo("pagos/{usuarioId}") { inclusive = true }
-                            }
-                        },
-                        onCancel = {
-                            navHostController.popBackStack()
-                        }
-                    )
-                }
-            }
-
-
-            composable(
-                route = "pago_detalle/{usuarioId}/{pagoId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("pagoId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
-                Log.d("PagoDetalle", "usuarioId=$usuarioId, pagoId=$pagoId")
-
-                val pagoViewModel = hiltViewModel<PagoViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        pagoViewModel.cargarPagosRecurrentes(usuarioId)
-                        pagoViewModel.fetchCategorias(usuarioId)
-                    }
-                }
-
-                val uiState by pagoViewModel.uiState.collectAsState()
-                val categorias by pagoViewModel.categorias.collectAsState()
-
-                val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
-                if (pago != null) {
-                    val categoria = categorias.find { it.categoriaId == pago.categoriaId }
-                    val categoriaIcono = categoria?.icono ?: "💵"
-                    val categoriaNombre = categoria?.nombre ?: "Sin categoría"
-
-                    PagoDetalleScreen(
-                        pagoId = pagoId,
-                        pago = pago,
-                        categoriaIcono = categoriaIcono,
-                        categoriaNombre = categoriaNombre,
-                        onBackClick = { navHostController.popBackStack() },
-                        onEditarClick = {
-                            navHostController.navigate("pago_editar/$usuarioId/$pagoId")
-                        },
-                        onEliminarClick = {
-                            // si tienes algo para eliminar aquí
-                        },
-                        onEliminarConfirmado = {
-                            pagoViewModel.eliminarPagoRecurrente(pagoId)
-                        },
-                        navHostController = navHostController,
-                        pagoViewModel = pagoViewModel
-                    )
-                }
-            }
-
-
-            composable(
-                route = "pago_editar/{usuarioId}/{pagoId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("pagoId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
-                Log.d("PagoEditar", "usuarioId=$usuarioId, pagoId=$pagoId")
-
-                val pagoViewModel = hiltViewModel<PagoViewModel>()
-                val uiState by pagoViewModel.uiState.collectAsState()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        pagoViewModel.cargarPagosRecurrentes(usuarioId)
-                        pagoViewModel.fetchCategorias(usuarioId)
-                        Log.d(
-                            "LimiteEditar",
-                            "Cargando límites y categorías para usuario $usuarioId"
-                        )
-                    }
-                }
-
-                val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
-
-                if (pago != null) {
-                    PagoScreen(
-                        viewModel = pagoViewModel,
-                        pagoParaEditar = pago,
-                        usuarioId = usuarioId,
-                        onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioIdGuardado ->
-                            val pagoActualizado = PagoRecurrenteDto(
-                                pagoRecurrenteId = pagoId,
-                                monto = monto,
-                                categoriaId = categoriaId,
-                                frecuencia = frecuencia,
-                                fechaInicio = fechaInicio,
-                                fechaFin = fechaFin,
-                                usuarioId = usuarioIdGuardado
-                            )
-                            pagoViewModel.actualizarPagoRecurrente(pagoId, pagoActualizado)
-                            navHostController.navigate("pagos/{usuarioId}") {
-                                popUpTo("pagos/{usuarioId}") { inclusive = true }
-                            }
-                        },
-                        onCancel = { navHostController.popBackStack() }
-                    )
-                }
-            }
-
-
-            composable("limites/{usuarioId}") {
-                val limiteViewModel = hiltViewModel<LimiteViewModel>()
-                val gastoViewModel = hiltViewModel<GastoViewModel>()
-
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        limiteViewModel.cargarLimites(usuarioId)
-                        limiteViewModel.fetchCategorias(usuarioId)
-                        gastoViewModel.inicializar(usuarioId)
-                    }
-                }
-
-                LimiteListScreen(
-                    viewModel = limiteViewModel,
-                    gastoViewModel = gastoViewModel,
-                    onAgregarLimiteClick = {
-                        navHostController.navigate("limite_nuevo/$usuarioId")
-                    },
-                    onBackClick = {
-                        navHostController.popBackStack()
-                    },
-                    onLimiteClick = { limiteId ->
-                        navHostController.navigate("limite_detalle/$usuarioId/$limiteId")
-                    }
-                )
-            }
-
-
-            composable(
-                "limite_nuevo/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                Log.d("LimiteNuevo", "usuarioId recibido en ruta: $usuarioId")
-                val limiteViewModel = hiltViewModel<LimiteViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        Log.d(
-                            "LimiteNuevo",
-                            "Inicializando LimiteViewModel con usuarioId: $usuarioId"
-                        )
-                        limiteViewModel.inicializar(usuarioId)
-                    }
-                }
-
-                if (usuarioId == 0) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Usuario no autenticado")
-                    }
-                } else {
-                    LimiteScreen(
-                        viewModel = limiteViewModel,
-                        limiteParaEditar = null,
-                        onGuardar = { montoLimite, categoriaId, periodo, usuarioIdGuardado ->
-                            limiteViewModel.crearLimite(
-                                LimiteGastoDto(
-                                    montoLimite = montoLimite,
-                                    categoriaId = categoriaId,
-                                    periodo = periodo,
-                                    usuarioId = usuarioIdGuardado
-                                )
-                            )
-                            navHostController.navigate("limites/$usuarioId") {
-                                popUpTo("limites/$usuarioId") { inclusive = true }
-                            }
-                        },
-                        onCancel = { navHostController.popBackStack() },
-                        usuarioId = usuarioId
-                    )
-                }
-            }
-
-            composable(
-                route = "limite_detalle/{usuarioId}/{limiteId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("limiteId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
-                Log.d("LimiteDetalle", "usuarioId=$usuarioId, limiteId=$limiteId")
-
-                val limiteViewModel = hiltViewModel<LimiteViewModel>()
-                val gastoViewModel = hiltViewModel<GastoViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        limiteViewModel.cargarLimites(usuarioId)
-                        limiteViewModel.fetchCategorias(usuarioId)
-                        gastoViewModel.inicializar(usuarioId)
-                    }
-                }
-
-                val uiState by limiteViewModel.uiState.collectAsState()
-                val categorias by limiteViewModel.categorias.collectAsState()
-
-                if (uiState.isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    val limite = uiState.limites.find { it.limiteGastoId == limiteId }
-                    if (limite != null) {
-                        val categoria = categorias.find { it.categoriaId == limite.categoriaId }
-                        val categoriaIcono = categoria?.icono ?: "💵"
-                        val categoriaNombre = categoria?.nombre ?: "Sin categoría"
-
-                        LimiteDetalleScreen(
-                            limite = limite,
-                            categoriaIcono = categoriaIcono,
-                            categoriaNombre = categoriaNombre,
-                            gastoViewModel = gastoViewModel,
-                            onBackClick = { navHostController.popBackStack() },
-                            onEditarClick = { navHostController.navigate("limite_editar/$usuarioId/$limiteId") },
-                            onEliminarClick = {  },
-                            onEliminarConfirmado = {
-                                limiteViewModel.eliminarLimite(limiteId)
-                                navHostController.navigate("limites/$usuarioId") {
-                                    popUpTo("limites/$usuarioId") { inclusive = true }
-                                }
-                            }
-                        )
-                    } else {
-                        Log.e(
-                            "LimiteDetalle",
-                            "No se encontró límite con id=$limiteId para usuario=$usuarioId"
-                        )
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Límite no encontrado")
-                        }
-                    }
-                }
-            }
-
-            composable(
-                route = "limite_editar/{usuarioId}/{limiteId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("limiteId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
-                Log.d("LimiteEditar", "usuarioId=$usuarioId, limiteId=$limiteId")
-
-                val limiteViewModel = hiltViewModel<LimiteViewModel>()
-                val uiState by limiteViewModel.uiState.collectAsState()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        limiteViewModel.cargarLimites(usuarioId)
-                        limiteViewModel.fetchCategorias(usuarioId)
-                        Log.d(
-                            "LimiteEditar",
-                            "Cargando límites y categorías para usuario $usuarioId"
-                        )
-                    }
-                }
-
-                val limite = uiState.limites.find { it.limiteGastoId == limiteId }
-
-                if (limite != null) {
-                    LimiteScreen(
-                        viewModel = limiteViewModel,
-                        limiteParaEditar = limite,
-                        onGuardar = { montoLimite, categoriaId, periodo, usuarioIdGuardado ->
-                            val limiteActualizado = LimiteGastoDto(
-                                limiteGastoId = limiteId,
-                                montoLimite = montoLimite,
-                                categoriaId = categoriaId,
-                                periodo = periodo,
-                                usuarioId = usuarioIdGuardado
-                            )
-                            limiteViewModel.actualizarLimite(limiteId, limiteActualizado)
-                            navHostController.navigate("limites/$usuarioId") {
-                                popUpTo("limites/$usuarioId") { inclusive = true }
-                            }
-                        },
-                        onCancel = { navHostController.popBackStack() },
-                        usuarioId = usuarioId
-                    )
-                }
-            }
-
-
-            composable(
-                route = "metaahorros/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
-                val metaViewModel = hiltViewModel<MetaViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    metaViewModel.cargarMetas(usuarioId)
-                }
-
-
-                MetaListScreen(
-                    viewModel = metaViewModel,
-                    usuarioId = usuarioId,
-                    navController = navHostController,
-                    onBackClick = { navHostController.popBackStack() },
-                    onAgregarMetaClick = {
-                        navHostController.navigate("meta_nueva/$usuarioId")
-                    },
-                    onMetaClick = { metaId ->
-                        navHostController.navigate("meta_detalle/$usuarioId/$metaId")
-                    },
-                    onAgregarMontoClick = { metaId ->
-                        navHostController.navigate("meta_monto_ahorro/$usuarioId/$metaId")
-                    }
-                )
-            }
-
-            composable(
-                route = "meta_nueva/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val metaViewModel = hiltViewModel<MetaViewModel>()
-
-                MetaScreen(
-                    metaParaEditar = null,
-                    usuarioId = usuarioId,
-                    onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen, usuarioId ->
-                        metaViewModel.crearMeta(
-                            MetaAhorroDto(
-                                nombreMeta = nombre,
-                                montoObjetivo = montoObjetivo,
-                                fechaFinalizacion = fechaFinal,
-                                contribucionRecurrente = if (contribucion) 0.0 else null,
-                                imagen = imagen,
-                                montoAhorrado = 0.0,
-                                fechaMontoAhorrado = fechaFinal,
-                                usuarioId = usuarioId
-                            ),
-                            usuarioId = usuarioId
-                        )
-                        navHostController.navigate("metaahorros/$usuarioId") {
-                            popUpTo("metaahorros/$usuarioId") { inclusive = true }
-                        }
-                    },
-                    onCancel = { navHostController.popBackStack() },
-                    onImagenSeleccionada = {  },
-                )
-            }
-
-
-            composable(
-                route = "meta_detalle/{usuarioId}/{metaId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("metaId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-                val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
-                val metaViewModel = hiltViewModel<MetaViewModel>()
-                val uiState by metaViewModel.uiState.collectAsState()
-                val meta = uiState.metaSeleccionada
-
-                LaunchedEffect(usuarioId, metaId) {
-                    metaViewModel.cargarMetas(usuarioId, metaId)
-                }
-
-                meta?.let {
-                    MetaDetalleScreen(
-                        meta = it,
-                        onBackClick = { navHostController.popBackStack() },
-                        onEditarClick = {
-                            navHostController.navigate("meta_editar/$usuarioId/$metaId")
-                        },
-                        onEliminarClick = {  },
-                        onEliminarConfirmado = {
-                            metaViewModel.eliminarMeta(metaId)
-                            navHostController.navigate("metaahorros/$usuarioId") {
-                                popUpTo("metaahorros/$usuarioId") { inclusive = true }
-                            }
-                        }
-                    )
-                }
-            }
-
-            composable(
-                route = "meta_editar/{usuarioId}/{metaId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("metaId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
-                val metaViewModel = hiltViewModel<MetaViewModel>()
-                val uiState by metaViewModel.uiState.collectAsState()
-                val meta = uiState.metaSeleccionada
-                LaunchedEffect(usuarioId, metaId) {
-                    metaViewModel.setUsuarioId(usuarioId)
-                    metaViewModel.cargarMetas(usuarioId, metaId)
-                }
-
-                meta?.let {
-                    MetaScreen(
-                        metaParaEditar = it,
-                        usuarioId = usuarioId,
-                        onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen, _ ->
-                            val metaActualizada = it.copy(
-                                nombreMeta = nombre,
-                                montoObjetivo = montoObjetivo,
-                                fechaFinalizacion = fechaFinal,
-                                contribucionRecurrente = if (contribucion) 0.0 else null,
-                                imagen = imagen,
-                                usuarioId = usuarioId
-                            )
-                            metaViewModel.actualizarMeta(metaId, metaActualizada)
-                            navHostController.navigate("metaahorros/$usuarioId") {
-                                popUpTo("metaahorros/$usuarioId") { inclusive = true }
-                            }
-                        },
-                        onCancel = { navHostController.popBackStack() },
-                        onImagenSeleccionada = {  }
-                    )
-                }
-            }
-
-            composable(
-                route = "meta_monto_ahorro/{usuarioId}/{metaId}",
-                arguments = listOf(
-                    navArgument("usuarioId") { type = NavType.IntType },
-                    navArgument("metaId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-                val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
-
-                val metaViewModel = hiltViewModel<MetaViewModel>()
-
-                val uiState by metaViewModel.uiState.collectAsState()
-                LaunchedEffect(usuarioId, metaId) {
-                    metaViewModel.setUsuarioId(usuarioId)
-                    metaViewModel.cargarMetas(usuarioId, metaId)
-                }
-
-
-                val meta = metaViewModel.obtenerMetas(metaId) ?: MetaAhorroDto(
-                    metaAhorroId = 0,
-                    nombreMeta = "",
-                    montoObjetivo = 0.0,
-                    fechaFinalizacion = OffsetDateTime.now(),
-                    usuarioId = usuarioId
-                )
-
-                MetaMAhorroScreen(
-                    meta = meta,
-                    onGuardarMonto = { montoAhorrado, fechaMonto ->
-                        metaViewModel.actualizarMontoAhorrado(meta.metaAhorroId, montoAhorrado, fechaMonto)
-                        navHostController.popBackStack()
-                    },
-                    onCancel = {
-                        navHostController.popBackStack()
-                    }
-                )
-            }
-
-
-            composable(
-                route = "chatIA/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
-                ChatIaScreen(
-                    navController = navHostController,
-                    usuarioId = usuarioId
-                )
-            }
-
-            composable("cambiarFoto/{usuarioId}") { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toInt() ?: 0
-                CambiarFotoScreen(
-                    usuarioId = usuarioId,
-                    onNavigateBack = { navHostController.popBackStack() }
-                )
-            }
-
-
-            composable("ajustes/{usuarioId}") { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-                val scope = rememberCoroutineScope()
-
-                AjustesListScreen(
-                    navController = navHostController,
-                    usuarioId = usuarioId,
-                    onEditarPerfil = {
-                        navHostController.navigate("panel_usuario/$usuarioId")
-                    },
-                    onCambiarContrasena = {
-                        navHostController.navigate("cambiar_contrasena/$usuarioId")
-                    },
-                    onCerrarSesion = {
-                        scope.launch {
-                            DataLogin.limpiarSesion(context)
-                            navHostController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
-                            }
-                        }
-                    },
-                    onNotificaciones = {
-                        navHostController.navigate("notificaciones/$usuarioId")
-                    },
-                    onApariencia = {
-                        navHostController.navigate("apariencia/$usuarioId")
-                    },
-                    onCentroAyuda = {
-                        navHostController.navigate("centro_ayuda")
-                    },
-                    onSoporte = {
-                        navHostController.navigate("soporte")
-                    }
-                )
-            }
-
-            composable(
-                route = "notificaciones/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                NotificacionesScreen(
-                    navController = navHostController,
-                    usuarioId = usuarioId
-                )
-            }
-
-            composable(
-                route = "apariencia/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val context = LocalContext.current
-                val usuarioId by produceState(initialValue = 0) {
-                    value = DataLogin.obtenerUsuarioId(context) ?: 0
-                }
-
-                AparienciaScreen(
-                    navController = navHostController,
-                    usuarioId = usuarioId
-                )
-            }
-
-            composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
-
-                CambiarContrasenaScreen(
-                    usuarioId = usuarioId,
-                    onBack = {
-                        navHostController.popBackStack()
-                    }
-                )
-            }
-
-            composable("panel_usuario/{usuarioId}") { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
-
-                PanelUsuarioScreen(
-                    navController = navHostController,
-                    usuarioId = usuarioId,
-                    onCambiarContrasenaClick = {
-                        navHostController.navigate("cambiar_contrasena/$usuarioId") {
-                            launchSingleTop = true
-                        }
-                    },
-                    onCambiarFoto = {
-                        navHostController.navigate("cambiarFoto/$usuarioId")                    },
-                    onDivisa = {
-                        // Implementar lógica para cambiar divisa
-                    },
-                    onAjustes = {
-                        navHostController.navigate("ajustes/$usuarioId")
-                    },
-                    onTransacciones = {
-                        navHostController.navigate("gastos")
-                    }
-                )
-            }
-
-            composable(
-                route = "grafico/{usuarioId}",
-                arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
-                Log.d("GraficoComposable", "usuarioId recibido: $usuarioId")
-
-                val gastoViewModel = hiltViewModel<GastoViewModel>()
-
-                LaunchedEffect(usuarioId) {
-                    if (usuarioId != 0) {
-                        gastoViewModel.inicializar(usuarioId)
-                    }
-                }
-
-                if (usuarioId != 0) {
-                    GraficoScreen(
-                        usuarioId = usuarioId,
-                        gastoviewModel = hiltViewModel(),
-                        onBackClick = {
-                            navHostController.popBackStack()
-                        }
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Cargando usuario...")
-                    }
-                }
-            }
-
-
-
+            setupAuthRoutes(navHostController, loginViewModel)
+            setupCategoriaRoutes(navHostController)
+            setupGastoRoutes(navHostController)
+            setupPagoRoutes(navHostController)
+            setupLimiteRoutes(navHostController)
+            setupMetaRoutes(navHostController)
+            setupSettingsRoutes(navHostController)
+            setupMiscRoutes(navHostController)
         }
+    }
+}
 
+private fun NavGraphBuilder.setupAuthRoutes(
+    navHostController: NavHostController,
+    loginViewModel: LoginViewModel
+) {
+    composable("login") {
+        LoginRegisterScreen(
+            navController = navHostController,
+            viewModel = loginViewModel
+        )
+    }
+    composable("register") {
+        LoginRegisterScreen(
+            navController = navHostController,
+            viewModel = loginViewModel
+        )
+    }
+}
+
+private fun NavGraphBuilder.setupCategoriaRoutes(navHostController: NavHostController) {
+    composable("categoria/{tipo}") { backStackEntry ->
+        CategoriaListRoute(navHostController, backStackEntry)
     }
 
+    composable("categoria_nueva/{tipo}") { backStackEntry ->
+        CategoriaNuevaRoute(navHostController, backStackEntry)
+    }
+}
+
+private fun NavGraphBuilder.setupGastoRoutes(navHostController: NavHostController) {
+    composable("gastos") { backStackEntry ->
+        GastoListRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        "gasto_nuevo/{tipo}/{usuarioId}",
+        arguments = listOf(
+            navArgument("tipo") { type = NavType.StringType },
+            navArgument("usuarioId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        GastoNuevoRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "gasto_detalle/{usuarioId}/{trasaccionId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("trasaccionId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        GastoDetalleRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "gasto_editar/{usuarioId}/{gastoId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("gastoId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        GastoEditarRoute(navHostController, backStackEntry)
+    }
+}
+
+private fun NavGraphBuilder.setupPagoRoutes(navHostController: NavHostController) {
+    composable("pagos/{usuarioId}") {
+        PagoListRoute(navHostController)
+    }
+
+    composable(
+        "pago_nuevo/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        PagoNuevoRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "pago_detalle/{usuarioId}/{pagoId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("pagoId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        PagoDetalleRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "pago_editar/{usuarioId}/{pagoId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("pagoId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        PagoEditarRoute(navHostController, backStackEntry)
+    }
+}
+
+private fun NavGraphBuilder.setupLimiteRoutes(navHostController: NavHostController) {
+    composable("limites/{usuarioId}") {
+        LimiteListRoute(navHostController)
+    }
+
+    composable(
+        "limite_nuevo/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        LimiteNuevoRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "limite_detalle/{usuarioId}/{limiteId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("limiteId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        LimiteDetalleRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "limite_editar/{usuarioId}/{limiteId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("limiteId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        LimiteEditarRoute(navHostController, backStackEntry)
+    }
+}
+
+private fun NavGraphBuilder.setupMetaRoutes(navHostController: NavHostController) {
+    composable(
+        route = "metaahorros/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        MetaListRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "meta_nueva/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        MetaNuevaRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "meta_detalle/{usuarioId}/{metaId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("metaId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        MetaDetalleRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "meta_editar/{usuarioId}/{metaId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("metaId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        MetaEditarRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "meta_monto_ahorro/{usuarioId}/{metaId}",
+        arguments = listOf(
+            navArgument("usuarioId") { type = NavType.IntType },
+            navArgument("metaId") { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        MetaMontoRoute(navHostController, backStackEntry)
+    }
+}
+
+private fun NavGraphBuilder.setupSettingsRoutes(navHostController: NavHostController) {
+    composable("cambiarFoto/{usuarioId}") { backStackEntry ->
+        CambiarFotoRoute(navHostController, backStackEntry)
+    }
+
+    composable("ajustes/{usuarioId}") { backStackEntry ->
+        AjustesRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "notificaciones/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        NotificacionesRoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "apariencia/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        AparienciaRoute(navHostController, backStackEntry)
+    }
+
+    composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
+        CambiarContrasenaRoute(navHostController, backStackEntry)
+    }
+
+    composable("panel_usuario/{usuarioId}") { backStackEntry ->
+        PanelUsuarioRoute(navHostController, backStackEntry)
+    }
+}
+
+private fun NavGraphBuilder.setupMiscRoutes(navHostController: NavHostController) {
+    composable(
+        route = "chatIA/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        ChatIARoute(navHostController, backStackEntry)
+    }
+
+    composable(
+        route = "grafico/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        GraficoRoute(navHostController, backStackEntry)
+    }
+}
+
+@Composable
+private fun CategoriaListRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+    val categoriaVM = hiltViewModel<CategoriaViewModel>()
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            categoriaVM.setUsuarioId(usuarioId)
+        }
+    }
+
+    CategoriaListScreen(
+        viewModel = categoriaVM,
+        tipoFiltro = tipo,
+        usuarioId = usuarioId,
+        onBackClick = { navHostController.popBackStack() },
+        onAgregarCategoriaClick = { tipoActual ->
+            navHostController.navigate("categoria_nueva/$tipoActual")
+        },
+    )
+}
+
+@Composable
+private fun CategoriaNuevaRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val tipo = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+    val categoriaVM = hiltViewModel<CategoriaViewModel>()
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            categoriaVM.setUsuarioId(usuarioId)
+            categoriaVM.onTipoChange(tipo)
+        }
+    }
+
+    if (usuarioId == 0) {
+        LoadingBox()
+    } else {
+        CategoriaScreen(
+            navController = navHostController,
+            viewModel = categoriaVM,
+            usuarioId = usuarioId,
+            tipo = tipo,
+            onGuardar = { _, _, _, _ ->
+                categoriaVM.saveCategoria(usuarioId) {
+                    navHostController.popBackStack()
+                }
+            },
+            onCancel = { navHostController.popBackStack() }
+        )
+    }
+}
+
+@Composable
+private fun GastoListRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val gastoViewModel = hiltViewModel<GastoViewModel>()
+    val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            gastoViewModel.inicializar(usuarioId)
+            categoriaViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    if (usuarioId != 0) {
+        GastoListScreen(
+            viewModel = gastoViewModel,
+            usuarioId = usuarioId,
+            categoriaViewModel = categoriaViewModel,
+            onNuevoClick = {
+                val tipo = "Gasto"
+                navHostController.navigate("gasto_nuevo/$tipo/$usuarioId")
+            },
+            navController = navHostController
+        )
+    } else {
+        LoadingTextBox(NavConstants.CARGANDO_USUARIO)
+    }
+}
+
+@Composable
+private fun GastoNuevoRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val tipoInicial = backStackEntry.arguments?.getString("tipo") ?: "Gasto"
+    val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+
+    val gastoViewModel: GastoViewModel = hiltViewModel()
+    val categoriaViewModel: CategoriaViewModel = hiltViewModel()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            categoriaViewModel.fetchCategorias(usuarioId)
+            gastoViewModel.inicializar(usuarioId)
+        }
+    }
+
+    val categoriaUiState by categoriaViewModel.uiState.collectAsState()
+    val categoriasFiltradas = categoriaUiState.categorias
+
+    if (usuarioId != 0) {
+        GastoScreen(
+            categorias = categoriasFiltradas,
+            tipoInicial = tipoInicial,
+            usuarioId = usuarioId,
+            onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
+                val categoriaId = categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0
+                val fechaOffsetDateTime = DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
+
+                gastoViewModel.crearTransaccion(
+                    TransaccionDto(
+                        transaccionId = 0,
+                        monto = monto,
+                        categoriaId = categoriaId,
+                        fecha = fechaOffsetDateTime,
+                        notas = notas,
+                        tipo = tipoSeleccionado,
+                        usuarioId = usuarioIdGuardado
+                    )
+                )
+                navHostController.navigate("gastos") {
+                    popUpTo("gastos") { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() }
+        )
+    } else {
+        LoadingTextBox(NavConstants.CARGANDO_USUARIO)
+    }
+}
+
+@Composable
+private fun GastoDetalleRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val trasaccionId = backStackEntry.arguments?.getInt("trasaccionId") ?: 0
+    val gastoViewModel = hiltViewModel<GastoViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            gastoViewModel.cargarTransacciones(usuarioId)
+            gastoViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    val uiState by gastoViewModel.uiState.collectAsState()
+    val categorias by gastoViewModel.categorias.collectAsState()
+
+    val gasto = uiState.transacciones.find { it.transaccionId == trasaccionId }
+
+    gasto?.let { transaccion ->
+        val categoria = categorias.find { it.categoriaId == transaccion.categoriaId }
+        val categoriaIcono = categoria?.icono ?: "💸"
+        val categoriaNombre = categoria?.nombre ?: NavConstants.SIN_CATEGORIA
+
+        GastoDetalleScreen(
+            transaccionId = trasaccionId,
+            categoriaIcono = categoriaIcono,
+            categoriaNombre = categoriaNombre,
+            onBackClick = { navHostController.popBackStack() },
+            onEditarClick = {
+                navHostController.navigate("gasto_editar/$usuarioId/$trasaccionId")
+            },
+            onEliminarClick = { },
+            onEliminarConfirmado = {
+                gastoViewModel.eliminarTransaccion(trasaccionId)
+                navHostController.popBackStack()
+            }
+        )
+    }
+}
+
+@Composable
+private fun GastoEditarRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val gastoId = backStackEntry.arguments?.getInt("gastoId") ?: 0
+    val gastoViewModel = hiltViewModel<GastoViewModel>()
+    val categoriaViewModel = hiltViewModel<CategoriaViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            gastoViewModel.inicializar(usuarioId)
+            categoriaViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    val uiState by gastoViewModel.uiState.collectAsState()
+    val categoriaUiState by categoriaViewModel.uiState.collectAsState()
+    val transaccion = uiState.transacciones.find { it.transaccionId == gastoId }
+    val categoriasFiltradas = categoriaUiState.categorias
+
+    transaccion?.let { txn ->
+        GastoScreen(
+            categorias = categoriasFiltradas,
+            tipoInicial = txn.tipo,
+            transaccionParaEditar = txn,
+            usuarioId = usuarioId,
+            onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
+                val categoriaId = categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0
+                val fechaOffsetDateTime = DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
+
+                gastoViewModel.actualizarTransaccion(
+                    TransaccionDto(
+                        transaccionId = txn.transaccionId,
+                        monto = monto,
+                        categoriaId = categoriaId,
+                        fecha = fechaOffsetDateTime,
+                        notas = notas,
+                        tipo = tipoSeleccionado,
+                        usuarioId = usuarioIdGuardado
+                    )
+                )
+
+                navHostController.navigate("gastos") {
+                    popUpTo("gastos") { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() }
+        )
+    }
+}
+
+@Composable
+private fun PagoListRoute(navHostController: NavHostController) {
+    val pagoViewModel = hiltViewModel<PagoViewModel>()
+    val categorias by pagoViewModel.categorias.collectAsState()
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            pagoViewModel.cargarPagosRecurrentes(usuarioId)
+            pagoViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    PagoListScreen(
+        viewModel = pagoViewModel,
+        categorias = categorias,
+        onAgregarPagoClick = {
+            navHostController.navigate("pago_nuevo/$usuarioId")
+        },
+        onBackClick = { navHostController.popBackStack() },
+        onPagoClick = { pagoId ->
+            navHostController.navigate("pago_detalle/$usuarioId/$pagoId")
+        }
+    )
+}
+
+@Composable
+private fun PagoNuevoRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val pagoViewModel = hiltViewModel<PagoViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            pagoViewModel.inicializar(usuarioId)
+        }
+    }
+
+    if (usuarioId == 0) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Usuario no autenticado")
+        }
+    } else {
+        PagoScreen(
+            viewModel = pagoViewModel,
+            pagoParaEditar = null,
+            usuarioId = usuarioId,
+            onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioIdGuardado ->
+                pagoViewModel.crearPagoRecurrente(
+                    PagoRecurrenteDto(
+                        monto = monto,
+                        categoriaId = categoriaId,
+                        frecuencia = frecuencia,
+                        fechaInicio = fechaInicio,
+                        fechaFin = fechaFin,
+                        usuarioId = usuarioIdGuardado
+                    )
+                )
+                navHostController.navigate(NavConstants.PAGOS_ROUTE) {
+                    popUpTo(NavConstants.PAGOS_ROUTE) { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() }
+        )
+    }
+}
+
+@Composable
+private fun PagoDetalleRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
+    val pagoViewModel = hiltViewModel<PagoViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            pagoViewModel.cargarPagosRecurrentes(usuarioId)
+            pagoViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    val uiState by pagoViewModel.uiState.collectAsState()
+    val categorias by pagoViewModel.categorias.collectAsState()
+
+    val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
+    pago?.let { pagoItem ->
+        val categoria = categorias.find { it.categoriaId == pagoItem.categoriaId }
+        val categoriaIcono = categoria?.icono ?: "💵"
+        val categoriaNombre = categoria?.nombre ?: NavConstants.SIN_CATEGORIA
+
+        PagoDetalleScreen(
+            pagoId = pagoId,
+            pago = pagoItem,
+            categoriaIcono = categoriaIcono,
+            categoriaNombre = categoriaNombre,
+            onBackClick = { navHostController.popBackStack() },
+            onEditarClick = {
+                navHostController.navigate("pago_editar/$usuarioId/$pagoId")
+            },
+            onEliminarClick = { },
+            onEliminarConfirmado = {
+                pagoViewModel.eliminarPagoRecurrente(pagoId)
+            },
+            navHostController = navHostController,
+            pagoViewModel = pagoViewModel
+        )
+    }
+}
+
+@Composable
+private fun PagoEditarRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val pagoId = backStackEntry.arguments?.getInt("pagoId") ?: 0
+    val pagoViewModel = hiltViewModel<PagoViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            pagoViewModel.cargarPagosRecurrentes(usuarioId)
+            pagoViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    val uiState by pagoViewModel.uiState.collectAsState()
+    val pago = uiState.pagos.find { it.pagoRecurrenteId == pagoId }
+
+    pago?.let { pagoItem ->
+        PagoScreen(
+            viewModel = pagoViewModel,
+            pagoParaEditar = pagoItem,
+            usuarioId = usuarioId,
+            onGuardar = { monto, categoriaId, frecuencia, fechaInicio, fechaFin, usuarioIdGuardado ->
+                val pagoActualizado = PagoRecurrenteDto(
+                    pagoRecurrenteId = pagoId,
+                    monto = monto,
+                    categoriaId = categoriaId,
+                    frecuencia = frecuencia,
+                    fechaInicio = fechaInicio,
+                    fechaFin = fechaFin,
+                    usuarioId = usuarioIdGuardado
+                )
+                pagoViewModel.actualizarPagoRecurrente(pagoId, pagoActualizado)
+                navHostController.navigate(NavConstants.PAGOS_ROUTE) {
+                    popUpTo(NavConstants.PAGOS_ROUTE) { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() }
+        )
+    }
+}
+
+@Composable
+private fun LimiteListRoute(navHostController: NavHostController) {
+    val limiteViewModel = hiltViewModel<LimiteViewModel>()
+    val gastoViewModel = hiltViewModel<GastoViewModel>()
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            limiteViewModel.cargarLimites(usuarioId)
+            limiteViewModel.fetchCategorias(usuarioId)
+            gastoViewModel.inicializar(usuarioId)
+        }
+    }
+
+    LimiteListScreen(
+        viewModel = limiteViewModel,
+        gastoViewModel = gastoViewModel,
+        onAgregarLimiteClick = {
+            navHostController.navigate("limite_nuevo/$usuarioId")
+        },
+        onBackClick = { navHostController.popBackStack() },
+        onLimiteClick = { limiteId ->
+            navHostController.navigate("limite_detalle/$usuarioId/$limiteId")
+        }
+    )
+}
+
+@Composable
+private fun LimiteNuevoRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val limiteViewModel = hiltViewModel<LimiteViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            limiteViewModel.inicializar(usuarioId)
+        }
+    }
+
+    if (usuarioId == 0) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Usuario no autenticado")
+        }
+    } else {
+        LimiteScreen(
+            viewModel = limiteViewModel,
+            limiteParaEditar = null,
+            onGuardar = { montoLimite, categoriaId, periodo, usuarioIdGuardado ->
+                limiteViewModel.crearLimite(
+                    LimiteGastoDto(
+                        montoLimite = montoLimite,
+                        categoriaId = categoriaId,
+                        periodo = periodo,
+                        usuarioId = usuarioIdGuardado
+                    )
+                )
+                navHostController.navigate("limites/$usuarioId") {
+                    popUpTo("limites/$usuarioId") { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() },
+            usuarioId = usuarioId
+        )
+    }
+}
+
+@Composable
+private fun LimiteDetalleRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
+    val limiteViewModel = hiltViewModel<LimiteViewModel>()
+    val gastoViewModel = hiltViewModel<GastoViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            limiteViewModel.cargarLimites(usuarioId)
+            limiteViewModel.fetchCategorias(usuarioId)
+            gastoViewModel.inicializar(usuarioId)
+        }
+    }
+
+    val uiState by limiteViewModel.uiState.collectAsState()
+    val categorias by limiteViewModel.categorias.collectAsState()
+
+    if (uiState.isLoading) {
+        LoadingBox()
+    } else {
+        val limite = uiState.limites.find { it.limiteGastoId == limiteId }
+        limite?.let { limiteItem ->
+            val categoria = categorias.find { it.categoriaId == limiteItem.categoriaId }
+            val categoriaIcono = categoria?.icono ?: "💵"
+            val categoriaNombre = categoria?.nombre ?: NavConstants.SIN_CATEGORIA
+
+            LimiteDetalleScreen(
+                limite = limiteItem,
+                categoriaIcono = categoriaIcono,
+                categoriaNombre = categoriaNombre,
+                gastoViewModel = gastoViewModel,
+                onBackClick = { navHostController.popBackStack() },
+                onEditarClick = { navHostController.navigate("limite_editar/$usuarioId/$limiteId") },
+                onEliminarConfirmado = {
+                    limiteViewModel.eliminarLimite(limiteId)
+                    navHostController.navigate("limites/$usuarioId") {
+                        popUpTo("limites/$usuarioId") { inclusive = true }
+                    }
+                }
+            )
+        } ?: run {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Límite no encontrado")
+            }
+        }
+    }
+}
+
+@Composable
+private fun LimiteEditarRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val limiteId = backStackEntry.arguments?.getInt("limiteId") ?: 0
+    val limiteViewModel = hiltViewModel<LimiteViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            limiteViewModel.cargarLimites(usuarioId)
+            limiteViewModel.fetchCategorias(usuarioId)
+        }
+    }
+
+    val uiState by limiteViewModel.uiState.collectAsState()
+    val limite = uiState.limites.find { it.limiteGastoId == limiteId }
+
+    limite?.let { limiteItem ->
+        LimiteScreen(
+            viewModel = limiteViewModel,
+            limiteParaEditar = limiteItem,
+            onGuardar = { montoLimite, categoriaId, periodo, usuarioIdGuardado ->
+                val limiteActualizado = LimiteGastoDto(
+                    limiteGastoId = limiteId,
+                    montoLimite = montoLimite,
+                    categoriaId = categoriaId,
+                    periodo = periodo,
+                    usuarioId = usuarioIdGuardado
+                )
+                limiteViewModel.actualizarLimite(limiteId, limiteActualizado)
+                navHostController.navigate("limites/$usuarioId") {
+                    popUpTo("limites/$usuarioId") { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() },
+            usuarioId = usuarioId
+        )
+    }
+}
+
+@Composable
+private fun MetaListRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+    val metaViewModel = hiltViewModel<MetaViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        metaViewModel.cargarMetas(usuarioId)
+    }
+
+    MetaListScreen(
+        viewModel = metaViewModel,
+        usuarioId = usuarioId,
+        navController = navHostController,
+        onBackClick = { navHostController.popBackStack() },
+        onAgregarMetaClick = {
+            navHostController.navigate("meta_nueva/$usuarioId")
+        },
+        onMetaClick = { metaId ->
+            navHostController.navigate("meta_detalle/$usuarioId/$metaId")
+        },
+        onAgregarMontoClick = { metaId ->
+            navHostController.navigate("meta_monto_ahorro/$usuarioId/$metaId")
+        }
+    )
+}
+
+@Composable
+private fun MetaNuevaRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val metaViewModel = hiltViewModel<MetaViewModel>()
+
+    MetaScreen(
+        metaParaEditar = null,
+        usuarioId = usuarioId,
+        onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen, usuarioId ->
+            metaViewModel.crearMeta(
+                MetaAhorroDto(
+                    nombreMeta = nombre,
+                    montoObjetivo = montoObjetivo,
+                    fechaFinalizacion = fechaFinal,
+                    contribucionRecurrente = if (contribucion) 0.0 else null,
+                    imagen = imagen,
+                    montoAhorrado = 0.0,
+                    fechaMontoAhorrado = fechaFinal,
+                    usuarioId = usuarioId
+                ),
+                usuarioId = usuarioId
+            )
+            navHostController.navigate("metaahorros/$usuarioId") {
+                popUpTo("metaahorros/$usuarioId") { inclusive = true }
+            }
+        },
+        onCancel = { navHostController.popBackStack() },
+        onImagenSeleccionada = { },
+    )
+}
+
+@Composable
+private fun MetaDetalleRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
+    val metaViewModel = hiltViewModel<MetaViewModel>()
+    val uiState by metaViewModel.uiState.collectAsState()
+
+    LaunchedEffect(usuarioId, metaId) {
+        metaViewModel.cargarMetas(usuarioId, metaId)
+    }
+
+    uiState.metaSeleccionada?.let { meta ->
+        MetaDetalleScreen(
+            meta = meta,
+            onBackClick = { navHostController.popBackStack() },
+            onEditarClick = {
+                navHostController.navigate("meta_editar/$usuarioId/$metaId")
+            },
+            onEliminarClick = { },
+            onEliminarConfirmado = {
+                metaViewModel.eliminarMeta(metaId)
+                navHostController.navigate("metaahorros/$usuarioId") {
+                    popUpTo("metaahorros/$usuarioId") { inclusive = true }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun MetaEditarRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
+    val metaViewModel = hiltViewModel<MetaViewModel>()
+    val uiState by metaViewModel.uiState.collectAsState()
+
+    LaunchedEffect(usuarioId, metaId) {
+        metaViewModel.setUsuarioId(usuarioId)
+        metaViewModel.cargarMetas(usuarioId, metaId)
+    }
+
+    uiState.metaSeleccionada?.let { meta ->
+        MetaScreen(
+            metaParaEditar = meta,
+            usuarioId = usuarioId,
+            onGuardar = { nombre, montoObjetivo, fechaFinal, contribucion, imagen, _ ->
+                val metaActualizada = meta.copy(
+                    nombreMeta = nombre,
+                    montoObjetivo = montoObjetivo,
+                    fechaFinalizacion = fechaFinal,
+                    contribucionRecurrente = if (contribucion) 0.0 else null,
+                    imagen = imagen,
+                    usuarioId = usuarioId
+                )
+                metaViewModel.actualizarMeta(metaId, metaActualizada)
+                navHostController.navigate("metaahorros/$usuarioId") {
+                    popUpTo("metaahorros/$usuarioId") { inclusive = true }
+                }
+            },
+            onCancel = { navHostController.popBackStack() },
+            onImagenSeleccionada = { }
+        )
+    }
+}
+
+@Composable
+private fun MetaMontoRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    val metaId = backStackEntry.arguments?.getInt("metaId") ?: 0
+    val metaViewModel = hiltViewModel<MetaViewModel>()
+
+    LaunchedEffect(usuarioId, metaId) {
+        metaViewModel.setUsuarioId(usuarioId)
+        metaViewModel.cargarMetas(usuarioId, metaId)
+    }
+
+    val meta = metaViewModel.obtenerMetas(metaId) ?: MetaAhorroDto(
+        metaAhorroId = 0,
+        nombreMeta = "",
+        montoObjetivo = 0.0,
+        fechaFinalizacion = OffsetDateTime.now(),
+        usuarioId = usuarioId
+    )
+
+    MetaMAhorroScreen(
+        meta = meta,
+        onGuardarMonto = { montoAhorrado, fechaMonto ->
+            metaViewModel.actualizarMontoAhorrado(meta.metaAhorroId, montoAhorrado, fechaMonto)
+            navHostController.popBackStack()
+        },
+        onCancel = { navHostController.popBackStack() }
+    )
+}
+
+@Composable
+private fun CambiarFotoRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toInt() ?: 0
+    CambiarFotoScreen(
+        usuarioId = usuarioId,
+        onNavigateBack = { navHostController.popBackStack() }
+    )
+}
+
+@Composable
+private fun AjustesRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+    val scope = rememberCoroutineScope()
+
+    AjustesListScreen(
+        navController = navHostController,
+        usuarioId = usuarioId,
+        onEditarPerfil = {
+            navHostController.navigate("panel_usuario/$usuarioId")
+        },
+        onCambiarContrasena = {
+            navHostController.navigate("cambiar_contrasena/$usuarioId")
+        },
+        onCerrarSesion = {
+            scope.launch {
+                DataLogin.limpiarSesion(context)
+                navHostController.navigate("login") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        },
+        onNotificaciones = {
+            navHostController.navigate("notificaciones/$usuarioId")
+        },
+        onApariencia = {
+            navHostController.navigate("apariencia/$usuarioId")
+        },
+        onCentroAyuda = {
+            navHostController.navigate("centro_ayuda")
+        },
+        onSoporte = {
+            navHostController.navigate("soporte")
+        }
+    )
+}
+
+@Composable
+private fun NotificacionesRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    NotificacionesScreen(
+        navController = navHostController,
+        usuarioId = usuarioId
+    )
+}
+
+@Composable
+private fun AparienciaRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    AparienciaScreen(
+        navController = navHostController,
+        usuarioId = usuarioId
+    )
+}
+
+@Composable
+private fun CambiarContrasenaRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+
+    CambiarContrasenaScreen(
+        usuarioId = usuarioId,
+        onBack = { navHostController.popBackStack() }
+    )
+}
+
+@Composable
+private fun PanelUsuarioRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getString("usuarioId")?.toIntOrNull() ?: 0
+
+    PanelUsuarioScreen(
+        navController = navHostController,
+        usuarioId = usuarioId,
+        onCambiarContrasenaClick = {
+            navHostController.navigate("cambiar_contrasena/$usuarioId") {
+                launchSingleTop = true
+            }
+        },
+        onCambiarFoto = {
+            navHostController.navigate("cambiarFoto/$usuarioId")
+        },
+        onDivisa = { },
+        onAjustes = {
+            navHostController.navigate("ajustes/$usuarioId")
+        },
+        onTransacciones = {
+            navHostController.navigate("gastos")
+        }
+    )
+}
+
+@Composable
+private fun ChatIARoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+    ChatIaScreen(
+        navController = navHostController,
+        usuarioId = usuarioId
+    )
+}
+
+@Composable
+private fun GraficoRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
+    val gastoViewModel = hiltViewModel<GastoViewModel>()
+
+    LaunchedEffect(usuarioId) {
+        if (usuarioId != 0) {
+            gastoViewModel.inicializar(usuarioId)
+        }
+    }
+
+    if (usuarioId != 0) {
+        GraficoScreen(
+            usuarioId = usuarioId,
+            gastoviewModel = hiltViewModel(),
+            onBackClick = { navHostController.popBackStack() }
+        )
+    } else {
+        LoadingTextBox(NavConstants.CARGANDO_USUARIO)
+    }
+}
+
+@Composable
+private fun LoadingBox() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun LoadingTextBox(text: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, modifier = Modifier.padding(16.dp))
+    }
 }
 
 suspend fun verificarSesion(context: Context): Boolean {
