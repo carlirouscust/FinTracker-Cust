@@ -8,24 +8,34 @@ import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.LocalDateTime
 
 class LocalDateTimeAdapter {
-    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+
+    private val formatters = listOf(
+        DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+    )
 
     @ToJson
     fun toJson(dateTime: OffsetDateTime): String {
-        return dateTime.withOffsetSameInstant(ZoneOffset.UTC).format(formatter)
+        return dateTime.withOffsetSameInstant(ZoneOffset.UTC).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     }
 
     @FromJson
     fun fromJson(json: String): OffsetDateTime {
-        return try {
-            // Intenta parsear con offset
-            OffsetDateTime.parse(json, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        } catch (e: Exception) {
-            // Si no tiene offset, lo asumimos UTC
-            val localFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-            val localDateTime = LocalDateTime.parse(json, localFormatter)
-            localDateTime.atOffset(ZoneOffset.UTC)
+        for (formatter in formatters) {
+            try {
+                return when (formatter) {
+                    DateTimeFormatter.ISO_OFFSET_DATE_TIME -> OffsetDateTime.parse(json, formatter)
+                    else -> {
+                        val localDateTime = LocalDateTime.parse(json, formatter)
+                        localDateTime.atOffset(ZoneOffset.UTC)
+                    }
+                }
+            } catch (_: Exception) {
+            }
         }
+        throw IllegalArgumentException("Formato de fecha no reconocido: $json")
     }
 }
+
 
