@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -12,10 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.threeten.bp.OffsetDateTime
@@ -120,13 +125,38 @@ fun PagoScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            var monto by remember { mutableStateOf(TextFieldValue("")) }
+
             OutlinedTextField(
                 value = monto,
-                onValueChange = { monto = it },
+                onValueChange = { nuevoValor ->
+                    if (nuevoValor.text.matches(Regex("^\\d*(\\.\\d*)?$"))) {
+                        monto = nuevoValor
+                    }
+                },
                 label = { Text("Monto") },
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            monto = monto.copy(selection = TextRange(0, monto.text.length))
+                        } else {
+                            val numero = monto.text.toDoubleOrNull() ?: 0.0
+                            val redondeado = String.format("%.2f", numero)
+                            monto = TextFieldValue(redondeado, TextRange(redondeado.length))
+                        }
+                    },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
+
 
             var expandedCategoria by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
@@ -143,7 +173,14 @@ fun PagoScreen(
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedCategoria,
@@ -176,7 +213,15 @@ fun PagoScreen(
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedFrecuencia,
@@ -197,13 +242,15 @@ fun PagoScreen(
             FechaSelector(
                 label = "Fecha de Inicio",
                 fecha = fechaInicio,
-                onFechaSeleccionada = { fechaInicio = it }
+                onFechaSeleccionada = { fechaInicio = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
 
             FechaSelector(
                 label = "Fecha de Finalización (Opcional)",
                 fecha = fechaFin,
-                onFechaSeleccionada = { fechaFin = it }
+                onFechaSeleccionada = { fechaFin = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
         }
     }
@@ -211,7 +258,11 @@ fun PagoScreen(
 
 
 @Composable
-private fun FechaSelector(label: String, fecha: String, onFechaSeleccionada: (String) -> Unit) {
+private fun FechaSelector(
+label: String,
+ fecha: String,
+ modifier: Modifier = Modifier,
+ onFechaSeleccionada: (String) -> Unit) {
     val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -222,6 +273,7 @@ private fun FechaSelector(label: String, fecha: String, onFechaSeleccionada: (St
             value = fecha,
             onValueChange = {},
             label = { Text(label) },
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.weight(1f),
             readOnly = true
         )
