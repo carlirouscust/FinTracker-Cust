@@ -32,8 +32,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.navArgument
 import ucne.edu.fintracker.presentation.ajustes.AjustesListScreen
-import org.threeten.bp.ZoneOffset
-import ucne.edu.fintracker.presentation.remote.DateUtil
 import ucne.edu.fintracker.presentation.limitegasto.LimiteDetalleScreen
 import ucne.edu.fintracker.presentation.asesorIA.ChatIaScreen
 import ucne.edu.fintracker.presentation.limitegasto.LimiteScreen
@@ -459,16 +457,15 @@ private fun GastoNuevoRoute(
             categorias = categoriasFiltradas,
             tipoInicial = tipoInicial,
             usuarioId = usuarioId,
-            onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
+            onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaSeleccionada, notas, usuarioIdGuardado ->
                 val categoriaId = categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0
-                val fechaOffsetDateTime = DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
 
                 gastoViewModel.crearTransaccion(
                     TransaccionDto(
                         transaccionId = 0,
                         monto = monto,
                         categoriaId = categoriaId,
-                        fecha = fechaOffsetDateTime,
+                        fecha = fechaSeleccionada,
                         notas = notas,
                         tipo = tipoSeleccionado,
                         usuarioId = usuarioIdGuardado
@@ -564,16 +561,15 @@ private fun GastoEditarRoute(
             tipoInicial = txn.tipo,
             transaccionParaEditar = txn,
             usuarioId = usuarioId,
-            onGuardar = { tipoSeleccionado, monto, categoriaNombre, fechaStr, notas, usuarioIdGuardado ->
+            onGuardar = { tipoSeleccionado, monto, categoriaNombre, fecha, notas, usuarioIdGuardado ->
                 val categoriaId = categoriasFiltradas.find { it.nombre == categoriaNombre }?.categoriaId ?: 0
-                val fechaOffsetDateTime = DateUtil.parseFecha(fechaStr).atOffset(ZoneOffset.UTC)
 
                 gastoViewModel.actualizarTransaccion(
                     TransaccionDto(
                         transaccionId = txn.transaccionId,
                         monto = monto,
                         categoriaId = categoriaId,
-                        fecha = fechaOffsetDateTime,
+                        fecha = fecha,
                         notas = notas,
                         tipo = tipoSeleccionado,
                         usuarioId = usuarioIdGuardado
