@@ -23,7 +23,7 @@ object ApiModule {
     @Singleton
     fun providesMoshi(): Moshi =
         Moshi.Builder()
-            .add(LocalDateTimeAdapter())      // Aquí agregas tu adapter
+            .add(LocalDateTimeAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
 
@@ -44,16 +44,3 @@ object ApiModule {
         .build()
 
 }
-
-
-//    val moshi = Moshi.Builder()
-//        .add(LocalDateTimeAdapter())
-//        .build()
-//
-//
-////    val retrofit = Retrofit.Builder()
-////        .baseUrl("https://api.tuservicio.com/")
-////        .addConverterFactory(MoshiConverterFactory.create(moshi))
-////        .build()
-//
-//}
