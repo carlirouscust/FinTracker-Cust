@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -13,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -144,6 +146,7 @@ fun MetaMontoAhorroScreen(
                 label = { Text("Monto de ahorro (RD$)", color = MaterialTheme.colorScheme.onSurface) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -155,7 +158,8 @@ fun MetaMontoAhorroScreen(
             FechaMontoSelector(
                 label = "Fecha del monto",
                 fecha = fechaMonto,
-                onFechaSeleccionada = { fechaMonto = it }
+                onFechaSeleccionada = { fechaMonto = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
         }
     }
@@ -165,6 +169,7 @@ fun MetaMontoAhorroScreen(
 private fun FechaMontoSelector(
     label: String,
     fecha: OffsetDateTime,
+    modifier: Modifier = Modifier,
     onFechaSeleccionada: (OffsetDateTime) -> Unit
 ) {
     val context = LocalContext.current
@@ -180,13 +185,14 @@ private fun FechaMontoSelector(
             onValueChange = {},
             label = { Text(label, color = MaterialTheme.colorScheme.onSurface) },
             modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(16.dp),
             readOnly = true,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
                 cursorColor = MaterialTheme.colorScheme.primary,
-                disabledTextColor = MaterialTheme.colorScheme.onSurface // Color del texto cuando está deshabilitado
+                disabledTextColor = MaterialTheme.colorScheme.onSurface
             )
         )
         IconButton(
