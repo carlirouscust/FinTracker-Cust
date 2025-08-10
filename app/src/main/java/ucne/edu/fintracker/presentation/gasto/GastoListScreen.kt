@@ -36,8 +36,21 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CardDefaults
 import org.threeten.bp.DayOfWeek
-import org.threeten.bp.format.TextStyle
 import java.util.Locale
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import org.threeten.bp.LocalDate
+import org.threeten.bp.Instant
+import org.threeten.bp.ZoneId
+import org.threeten.bp.ZoneOffset
+import org.threeten.bp.Month
+import org.threeten.bp.format.TextStyle as ThreeTextStyle
 
 
 @Composable
@@ -184,20 +197,51 @@ private fun TipoSelector(
     }
 }
 
+fun calcularRangoFechas(filtro: String, fechaSeleccionada: OffsetDateTime): Pair<OffsetDateTime, OffsetDateTime> {
+    return when (filtro) {
+        "Día" -> {
+            val inicio = fechaSeleccionada.withHour(0).withMinute(0).withSecond(0).withNano(0)
+            val fin = inicio.plusDays(1).minusNanos(1)
+            inicio to fin
+        }
+        "Semana" -> {
+            val inicio = fechaSeleccionada.with(DayOfWeek.MONDAY).withHour(0).withMinute(0).withSecond(0).withNano(0)
+            val fin = inicio.plusDays(7).minusNanos(1)
+            inicio to fin
+        }
+        "Mes" -> {
+            val inicio = fechaSeleccionada.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
+            val fin = inicio.plusMonths(1).minusNanos(1)
+            inicio to fin
+        }
+        "Año" -> {
+            val inicio = fechaSeleccionada.withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0)
+            val fin = inicio.plusYears(1).minusNanos(1)
+            inicio to fin
+        }
+        else -> fechaSeleccionada to fechaSeleccionada
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FechaTexto(filtro: String) {
-    val fechaActual = OffsetDateTime.now()
+fun FechaTexto(
+    filtro: String,
+    fechaActual: OffsetDateTime,
+    onFechaSeleccionada: (OffsetDateTime) -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var mostrarDatePicker by remember { mutableStateOf(false) }
+
     val fechaTexto = when (filtro) {
-        "Día" -> "${fechaActual.dayOfMonth} ${fechaActual.month.getDisplayName(TextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
+        "Día" -> "${fechaActual.dayOfMonth} ${fechaActual.month.getDisplayName(ThreeTextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
         "Semana" -> {
             val inicioSemana = fechaActual.with(DayOfWeek.MONDAY)
             val finSemana = inicioSemana.plusDays(6)
             val formatter = DateTimeFormatter.ofPattern("d 'de' MMM", Locale("es"))
-            val inicioStr = inicioSemana.format(formatter).lowercase()
-            val finStr = finSemana.format(formatter).lowercase()
-            "$inicioStr al $finStr"
+            "${inicioSemana.format(formatter)} al ${finSemana.format(formatter)}"
         }
-        "Mes" -> "${fechaActual.month.getDisplayName(TextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
+        "Mes" -> "${fechaActual.month.getDisplayName(ThreeTextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
         "Año" -> "${fechaActual.year}"
         else -> ""
     }
@@ -206,13 +250,149 @@ private fun FechaTexto(filtro: String) {
         text = fechaTexto,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        fontSize = 16.sp,
-        color = Color.Gray,
-        fontWeight = FontWeight.Medium,
+            .padding(vertical = 8.dp)
+            .clickable { mostrarDatePicker = true },
         textAlign = TextAlign.Center
     )
+
+    if (mostrarDatePicker) {
+        when (filtro) {
+            "Día", "Semana" -> {
+                DatePickerDialogThreeTen(
+                    onDateSelected = { localDate ->
+                        val fechaOffset = localDate.atStartOfDay().atOffset(ZoneOffset.UTC)
+                        val fechaFinal = if (filtro == "Semana") {
+                            fechaOffset.with(DayOfWeek.MONDAY)
+                        } else {
+                            fechaOffset
+                        }
+                        onFechaSeleccionada(fechaFinal)
+                        mostrarDatePicker = false
+                    },
+                    onDismiss = { mostrarDatePicker = false }
+                )
+            }
+
+            "Mes" -> {
+                MonthPickerDialogThreeTen(
+                    mesInicial = fechaActual.monthValue,
+                    añoInicial = fechaActual.year,
+                    onMonthSelected = { mes, año ->
+                        val newOd = fechaActual.withMonth(mes).withYear(año)
+                        onFechaSeleccionada(newOd)
+                        mostrarDatePicker = false
+                    },
+                    onDismiss = { mostrarDatePicker = false }
+                )
+            }
+            "Año" -> {
+                YearPickerDialog(
+                    añoInicial = fechaActual.year,
+                    onYearSelected = { año ->
+                        onFechaSeleccionada(fechaActual.withYear(año))
+                        mostrarDatePicker = false
+                    },
+                    onDismiss = { mostrarDatePicker = false }
+                )
+            }
+        }
+    }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDialogThreeTen(
+    onDateSelected: (LocalDate) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val datePickerState = rememberDatePickerState()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seleccionar día") },
+        text = {
+            DatePicker(state = datePickerState)
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                datePickerState.selectedDateMillis?.let { millis ->
+                    val ld = Instant.ofEpochMilli(millis)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    onDateSelected(ld)
+                }
+                onDismiss()
+            }) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
+}
+
+@Composable
+fun MonthPickerDialogThreeTen(
+    mesInicial: Int,
+    añoInicial: Int,
+    onMonthSelected: (mes: Int, año: Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val meses = Month.values().map {
+        it.getDisplayName(ThreeTextStyle.FULL, Locale("es")).replaceFirstChar { c -> c.uppercase() }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seleccionar mes") },
+        text = {
+            LazyColumn {
+                items(meses.indices.toList()) { index ->
+                    Text(
+                        text = "${meses[index]} $añoInicial",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onMonthSelected(index + 1, añoInicial)
+                                onDismiss()
+                            }
+                            .padding(12.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {}
+    )
+}
+
+@Composable
+fun YearPickerDialog(
+    añoInicial: Int,
+    onYearSelected: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val años = (1900..OffsetDateTime.now().year).toList().reversed() // ej: desde 1900 hasta ahora
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Seleccionar año") },
+        text = {
+            LazyColumn {
+                items(años) { año ->
+                    Text(
+                        text = año.toString(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onYearSelected(año)
+                                onDismiss()
+                            }
+                            .padding(12.dp)
+                    )
+                }
+            }
+        },
+        confirmButton = {}
+    )
+}
+
 
 @Composable
 private fun MensajeNoHayTransacciones(filtro: String, tipo: String) {
@@ -354,10 +534,24 @@ fun GastoListScreen(
 ) {
     val categoriaState by categoriaViewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
-    val transaccionesFiltradas by viewModel.transaccionesFiltradas.collectAsState()
 
-    val total = transaccionesFiltradas.sumOf { it.monto }
+    var fechaSeleccionada by remember { mutableStateOf(OffsetDateTime.now()) }
+    val filtro = state.filtro
+
+    val (fechaInicio, fechaFin) = calcularRangoFechas(filtro, fechaSeleccionada)
+
+    val transacciones = state.transacciones
+
     val tipo = state.tipoSeleccionado
+
+    val transaccionesFiltradas = remember(transacciones, filtro, fechaSeleccionada, tipo) {
+        transacciones.filter { transaccion ->
+            transaccion.fecha.isAfter(fechaInicio.minusNanos(1)) &&
+                    transaccion.fecha.isBefore(fechaFin.plusNanos(1)) &&
+                    transaccion.tipo.equals(tipo, ignoreCase = true)
+        }
+    }
+    val total = transaccionesFiltradas.sumOf { it.monto }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -417,11 +611,18 @@ fun GastoListScreen(
                         .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
                         .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     TipoSelector(tipo, viewModel::cambiarTipo, total)
                     GastoFiltroBar(state.filtro, viewModel::cambiarFiltro)
-                    FechaTexto(state.filtro)
+                    FechaTexto(
+                        filtro = state.filtro,
+                        fechaActual = fechaSeleccionada,
+                        onFechaSeleccionada = { nuevaFecha ->
+                            fechaSeleccionada = nuevaFecha
+                            viewModel.cambiarFecha(nuevaFecha)
+                        }
+                    )
 
                     if (transaccionesFiltradas.isEmpty()) {
                         MensajeNoHayTransacciones(state.filtro, tipo)
