@@ -32,15 +32,19 @@ fun LimiteScreen(
     val categorias by viewModel.categorias.collectAsState()
     val context = LocalContext.current
 
+    val categoriasGasto = remember(categorias) {
+        categorias.filter { it.tipo.equals("Gasto", ignoreCase = true) }
+    }
+
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
     var montoLimite by remember { mutableStateOf(limiteParaEditar?.montoLimite?.toString() ?: "") }
     var periodoSeleccionado by remember { mutableStateOf(limiteParaEditar?.periodo ?: "") }
 
     val periodos = listOf("Diario", "Semanal", "Quincenal", "Mensual", "Anual")
 
-    LaunchedEffect(categorias, limiteParaEditar) {
-        if (limiteParaEditar != null && categorias.isNotEmpty()) {
-            categoriaSeleccionada = categorias.find { it.categoriaId == limiteParaEditar.categoriaId }
+    LaunchedEffect(categoriasGasto, limiteParaEditar) {
+        if (limiteParaEditar != null && categoriasGasto.isNotEmpty()) {
+            categoriaSeleccionada = categoriasGasto.find { it.categoriaId == limiteParaEditar.categoriaId }
         }
     }
 
@@ -122,7 +126,7 @@ fun LimiteScreen(
                     value = categoriaSeleccionada?.nombre ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Categoría") },
+                    label = { Text("Categoría (Solo Gastos)") },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoria)
                     },
@@ -142,7 +146,7 @@ fun LimiteScreen(
                     expanded = expandedCategoria,
                     onDismissRequest = { expandedCategoria = false }
                 ) {
-                    categorias.forEach { cat ->
+                    categoriasGasto.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
