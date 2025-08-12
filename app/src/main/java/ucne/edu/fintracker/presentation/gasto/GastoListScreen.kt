@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
@@ -237,7 +239,6 @@ fun FechaTexto(
     fechaActual: OffsetDateTime,
     onFechaSeleccionada: (OffsetDateTime) -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
     var mostrarDatePicker by remember { mutableStateOf(false) }
 
     val fechaTexto = when (filtro) {
@@ -376,7 +377,7 @@ fun YearPickerDialog(
     onYearSelected: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val años = (1900..OffsetDateTime.now().year).toList().reversed() // ej: desde 1900 hasta ahora
+    val años = (1900..OffsetDateTime.now().year).toList().reversed()
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Seleccionar año") },
@@ -451,84 +452,6 @@ private fun MensajeNoHayTransacciones(filtro: String, tipo: String) {
     }
 }
 
-@Composable
-private fun TransaccionesList(
-    transacciones: List<TransaccionDto>,
-    categorias: List<CategoriaDto>,
-    navController: NavController,
-    usuarioId: Int
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(transacciones) { transaccion ->
-
-            val categoria = categorias.find {
-                it.categoriaId == transaccion.categoriaId
-            }
-
-            val colorFondo = try {
-                Color(android.graphics.Color.parseColor("#${categoria?.colorFondo?.removePrefix("#") ?: "CCCCCC"}"))
-            } catch (e: Exception) {
-                Color.Gray
-            }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        navController.navigate("gasto_detalle/$usuarioId/${transaccion.transaccionId}")
-                    },
-                elevation = CardDefaults.cardElevation(2.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(colorFondo),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = categoria?.icono ?: "❓",
-                                fontSize = 18.sp
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column {
-                            Text(
-                                text = categoria?.nombre ?: "Desconocida",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                transaccion.fecha.format(
-                                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                                ),
-                                color = Color.Gray
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = "%,.2f RD$".format(transaccion.monto),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -537,7 +460,6 @@ fun GastoListScreen(
     usuarioId: Int,
     categoriaViewModel: CategoriaViewModel,
     navController: NavController,
-    onNuevoClick: () -> Unit,
     panelUsuarioViewModel: PanelUsuarioViewModel = hiltViewModel()
 ) {
     val categoriaState by categoriaViewModel.uiState.collectAsState()
@@ -642,66 +564,163 @@ fun GastoListScreen(
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    TipoSelector(tipo, viewModel::cambiarTipo, total)
-                    GastoFiltroBar(state.filtro, viewModel::cambiarFiltro)
-                    FechaTexto(
-                        filtro = state.filtro,
-                        fechaActual = fechaSeleccionada,
-                        onFechaSeleccionada = { nuevaFecha ->
-                            fechaSeleccionada = nuevaFecha
-                            viewModel.cambiarFecha(nuevaFecha)
-                        }
-                    )
 
-                    if (transaccionesFiltradas.isEmpty()) {
-                        MensajeNoHayTransacciones(state.filtro, tipo)
-                    } else {
-                        GastoPieChart(
-                            transacciones = transaccionesFiltradas,
-                            categorias = categoriaState.categorias,
-                            modifier = Modifier
-                                .size(200.dp)
-                                .align(Alignment.CenterHorizontally)
+                   Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TipoSelector(tipo, viewModel::cambiarTipo, total)
+
+                        GastoFiltroBar(state.filtro, viewModel::cambiarFiltro)
+
+                        FechaTexto(
+                            filtro = state.filtro,
+                            fechaActual = fechaSeleccionada,
+                            onFechaSeleccionada = { nuevaFecha ->
+                                fechaSeleccionada = nuevaFecha
+                                viewModel.cambiarFecha(nuevaFecha)
+                            }
                         )
                     }
 
-                    Box(modifier = Modifier.weight(1f)) {
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+
+                        if (transaccionesFiltradas.isEmpty()) {
+                            MensajeNoHayTransacciones(state.filtro, tipo)
+                        } else {
+                            GastoPieChart(
+                                transacciones = transaccionesFiltradas,
+                                categorias = categoriaState.categorias,
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+
+
                         when {
                             state.isLoading -> {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.align(Alignment.Center),
-                                    color = Color(0xFF8BC34A)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color(0xFF8BC34A)
+                                    )
+                                }
                             }
 
                             state.error != null -> {
-                                Text(
-                                    text = state.error ?: "Error desconocido",
-                                    color = Color.Red,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = state.error ?: "Error desconocido",
+                                        color = Color.Red
+                                    )
+                                }
                             }
 
                             transaccionesFiltradas.isEmpty() -> {
-                                Text(
-                                    text = "No hay transacciones.",
-                                    modifier = Modifier.align(Alignment.Center),
-                                    color = Color.Gray
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No hay transacciones.",
+                                        color = Color.Gray
+                                    )
+                                }
                             }
 
                             else -> {
-                                TransaccionesList(
-                                    transacciones = transaccionesFiltradas,
-                                    categorias = categoriaState.categorias,
-                                    navController = navController,
-                                    usuarioId = usuarioId
-                                )
+
+                                transaccionesFiltradas.forEach { transaccion ->
+                                    val categoria = categoriaState.categorias.find {
+                                        it.categoriaId == transaccion.categoriaId
+                                    }
+
+                                    val colorFondo = try {
+                                        Color(android.graphics.Color.parseColor("#${categoria?.colorFondo?.removePrefix("#") ?: "CCCCCC"}"))
+                                    } catch (e: Exception) {
+                                        Color.Gray
+                                    }
+
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                navController.navigate("gasto_detalle/$usuarioId/${transaccion.transaccionId}")
+                                            },
+                                        elevation = CardDefaults.cardElevation(2.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .padding(16.dp)
+                                                .fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(40.dp)
+                                                        .clip(CircleShape)
+                                                        .background(colorFondo),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = categoria?.icono ?: "❓",
+                                                        fontSize = 18.sp
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.width(12.dp))
+
+                                                Column {
+                                                    Text(
+                                                        text = categoria?.nombre ?: "Desconocida",
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                    Text(
+                                                        transaccion.fecha.format(
+                                                            DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                                        ),
+                                                        color = Color.Gray
+                                                    )
+                                                }
+                                            }
+
+                                            Text(
+                                                text = "%,.2f RD$".format(transaccion.monto),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
+
+
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
