@@ -88,7 +88,7 @@ class GastoViewModel @Inject constructor(
     fun inicializar(usuarioId: Int) {
         Log.d("GastoViewModel", "Inicializando con usuarioId: $usuarioId")
         if (usuarioId <= 0) { Log.e("GastoViewModel", "usuarioId inválido")
-        return}
+            return }
 
         if (usuarioIdActual != usuarioId) {
             usuarioIdActual = usuarioId
@@ -279,37 +279,38 @@ class GastoViewModel @Inject constructor(
         viewModelScope.launch {
             transaccionRepository.updateTransaccion(transaccionDto.transaccionId, transaccionDto)
                 .collect { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        _uiState.update { it.copy(isLoading = true, error = null) }
-                    }
+                    when (result) {
+                        is Resource.Loading -> {
+                            _uiState.update { it.copy(isLoading = true, error = null) }
+                        }
 
-                    is Resource.Success -> {
-                        val listaActual = _uiState.value.transacciones.toMutableList()
-                        val index = listaActual.indexOfFirst { it.transaccionId == transaccionDto.transaccionId }
-                        if (index != -1) {
-                            listaActual[index] = transaccionDto
+                        is Resource.Success -> {
+                            val listaActual = _uiState.value.transacciones.toMutableList()
+                            val index =
+                                listaActual.indexOfFirst { it.transaccionId == transaccionDto.transaccionId }
+                            if (index != -1) {
+                                listaActual[index] = transaccionDto
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        transacciones = listaActual,
+                                        error = null
+                                    )
+                                }
+                                usuarioIdActual?.let { userId -> cargarDatos(userId) }
+                            }
+                        }
+
+                        is Resource.Error -> {
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
-                                    transacciones = listaActual,
-                                    error = null
+                                    error = result.message ?: "Error actualizando transacción"
                                 )
                             }
-                            usuarioIdActual?.let { userId -> cargarDatos(userId) }
-                        }
-                    }
-
-                    is Resource.Error -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                error = result.message ?: "Error actualizando transacción"
-                            )
                         }
                     }
                 }
-            }
         }
     }
 
@@ -340,7 +341,6 @@ class GastoViewModel @Inject constructor(
                         }
 
                         _eventoEliminacion.emit(Unit)
-                        usuarioIdActual?.let { userId -> cargarDatos(userId) }
                     }
 
                     is Resource.Error -> {
