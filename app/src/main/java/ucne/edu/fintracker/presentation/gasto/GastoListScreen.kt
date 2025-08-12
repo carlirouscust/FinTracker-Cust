@@ -538,16 +538,14 @@ fun GastoListScreen(
     categoriaViewModel: CategoriaViewModel,
     navController: NavController,
     onNuevoClick: () -> Unit,
-    panelUsuarioViewModel: PanelUsuarioViewModel = hiltViewModel() // Agregar el ViewModel
+    panelUsuarioViewModel: PanelUsuarioViewModel = hiltViewModel()
 ) {
     val categoriaState by categoriaViewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
-    val panelUiState by panelUsuarioViewModel.uiState.collectAsStateWithLifecycle() // Estado del usuario
+    val panelUiState by panelUsuarioViewModel.uiState.collectAsStateWithLifecycle()
 
     var fechaSeleccionada by remember { mutableStateOf(OffsetDateTime.now()) }
     val filtro = state.filtro
-
-    // Cargar datos del usuario
     LaunchedEffect(usuarioId) {
         panelUsuarioViewModel.cargarUsuario(usuarioId)
     }
@@ -593,7 +591,7 @@ fun GastoListScreen(
                                         .background(MaterialTheme.colorScheme.secondaryContainer),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    // Mostrar foto de perfil si existe, sino mostrar ícono por defecto
+
                                     if (!panelUiState.usuario?.fotoPerfil.isNullOrEmpty()) {
                                         AsyncImage(
                                             model = File(panelUiState.usuario!!.fotoPerfil!!),
