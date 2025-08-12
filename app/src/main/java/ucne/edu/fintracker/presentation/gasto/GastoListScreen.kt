@@ -239,6 +239,7 @@ fun FechaTexto(
     fechaActual: OffsetDateTime,
     onFechaSeleccionada: (OffsetDateTime) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var mostrarDatePicker by remember { mutableStateOf(false) }
 
     val fechaTexto = when (filtro) {
@@ -460,6 +461,7 @@ fun GastoListScreen(
     usuarioId: Int,
     categoriaViewModel: CategoriaViewModel,
     navController: NavController,
+    onNuevoClick: () -> Unit,
     panelUsuarioViewModel: PanelUsuarioViewModel = hiltViewModel()
 ) {
     val categoriaState by categoriaViewModel.uiState.collectAsState()
@@ -565,7 +567,7 @@ fun GastoListScreen(
                         .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
                 ) {
-
+                    // Sección fija - no scrollea
                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
