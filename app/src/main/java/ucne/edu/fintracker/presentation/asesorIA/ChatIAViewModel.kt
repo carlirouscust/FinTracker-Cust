@@ -25,6 +25,7 @@ import java.text.NumberFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import org.threeten.bp.format.DateTimeFormatter
+import ucne.edu.fintracker.BuildConfig
 
 class ChatIAViewModel : ViewModel() {
 
@@ -52,10 +53,9 @@ class ChatIAViewModel : ViewModel() {
             .build()
             .create(FinTrackerApi::class.java)
     }
-
     private val generativeModel = GenerativeModel(
         modelName = BuildConfig1.GEMINI_MODEL,
-        apiKey = BuildConfig1.apiKey,
+        apiKey = BuildConfig.apiKey,
         systemInstruction = content {
             text("""
                 Eres un asesor financiero experto para una app móvil llamada FinTracker. 

@@ -4,6 +4,7 @@ import java.io.FileInputStream
 val localProperties = Properties().apply {
     load(FileInputStream(rootProject.file("local.properties")))
 }
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -28,7 +29,7 @@ android {
         buildConfigField(
             "String",
             "apiKey",
-            "\"${localProperties.getProperty("apiKey")}\""
+            localProperties.getProperty("apiKey")
         )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
