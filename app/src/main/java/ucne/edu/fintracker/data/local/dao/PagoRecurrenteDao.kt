@@ -2,11 +2,14 @@ package ucne.edu.fintracker.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import ucne.edu.fintracker.data.local.entity.PagoRecurrenteEntity
+import ucne.edu.fintracker.data.local.entity.TransaccionEntity
 
 @Dao
 interface PagoRecurrenteDao {
@@ -16,6 +19,10 @@ interface PagoRecurrenteDao {
 
     @Query("SELECT * FROM PagosRecurrentes WHERE pagoRecurrenteId = :id LIMIT 1")
     suspend fun find(id: Int): PagoRecurrenteEntity?
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(pagoRecurrente: PagoRecurrenteEntity)
+    @Upsert
+    suspend fun insertOrUpdateAll(pagosRecurrentes: List<PagoRecurrenteEntity>)
 
     @Query("SELECT * FROM PagosRecurrentes WHERE usuarioId = :usuarioId")
     fun getByUsuario(usuarioId: Int): Flow<List<PagoRecurrenteEntity>>
@@ -31,4 +38,6 @@ interface PagoRecurrenteDao {
 
     @Delete
     suspend fun delete(pagoRecurrente: PagoRecurrenteEntity)
+    @Query("DELETE FROM PagosRecurrentes WHERE pagoRecurrenteId = :id")
+    suspend fun deleteById(id: Int)
 }
