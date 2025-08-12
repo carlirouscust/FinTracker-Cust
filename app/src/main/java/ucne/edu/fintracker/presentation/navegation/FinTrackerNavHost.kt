@@ -1124,11 +1124,10 @@ private fun MetaMontoRoute(
 
     MetaMAhorroScreen(
         meta = meta,
+        usuarioId = usuarioId,
+        navController = navHostController,
         onGuardarMonto = { montoAhorrado, fechaMonto ->
             metaViewModel.actualizarMontoAhorrado(meta.metaAhorroId, montoAhorrado, fechaMonto)
-            navHostController.navigate("meta_detalle/$usuarioId/$metaId") {
-                popUpTo("metaMonto") { inclusive = true }
-            }
         },
         onCancel = { navHostController.popBackStack() }
     )

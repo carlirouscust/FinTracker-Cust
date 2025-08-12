@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.OffsetDateTime
@@ -34,6 +35,8 @@ import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 @Composable
 fun MetaMAhorroScreen(
     meta: MetaAhorroDto,
+    usuarioId: Int,
+    navController: NavController,
     onGuardarMonto: (Double, OffsetDateTime) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -77,10 +80,14 @@ fun MetaMAhorroScreen(
             Button(
                 onClick = {
                     val monto = montoAhorrado.toDoubleOrNull()
-                    if (monto != null) {
+                    if (monto != null && monto > 0) {
                         onGuardarMonto(monto, fechaMonto)
+                        Toast.makeText(context, "Ahorro guardado exitosamente", Toast.LENGTH_SHORT).show()
+                        navController.navigate("metaahorros/$usuarioId") {
+                            popUpTo("metaahorros/$usuarioId") { inclusive = true }
+                        }
                     } else {
-                        Toast.makeText(context, "Ingrese un monto válido", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Ingrese un monto válido mayor a 0", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -147,7 +154,8 @@ fun MetaMAhorroScreen(
                 label = { Text("Monto Ahorrado (RD$)", color = MaterialTheme.colorScheme.onSurface) },
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Ej: 1000", color = MaterialTheme.colorScheme.onSurfaceVariant) }
             )
 
             FechaSelector(
