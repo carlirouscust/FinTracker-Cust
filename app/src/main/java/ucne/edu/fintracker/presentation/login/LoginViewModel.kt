@@ -64,6 +64,7 @@ class LoginViewModel @Inject constructor(
                     apellido = state.registerApellido,
                     email = state.registerEmail,
                     contraseña = state.registerPassword,
+                    fotoPerfil = null,
                     divisa = "DOP"
                 )
                 loginRepository.register(newUser)
@@ -101,11 +102,9 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(registerNombre = value) }
     }
 
-
     fun onRegisterApellidoChange(value: String) {
         _uiState.update { it.copy(registerApellido = value) }
     }
-
 
     fun onRegisterEmailChange(value: String) {
         _uiState.update { it.copy(registerEmail = value) }
@@ -115,14 +114,11 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(registerPassword = value) }
     }
 
-
     fun onResetEmailChange(value: String) {
         _uiState.update { it.copy(resetEmail = value, resetError = null, resetSuccess = null) }
     }
-
 
     fun changeTab(index: Int) {
         _uiState.update { it.copy(tabIndex = index) }
     }
 }
-
