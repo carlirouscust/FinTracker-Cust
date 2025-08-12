@@ -14,8 +14,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import ucne.edu.fintracker.data.local.repository.TransaccionRepository
-import ucne.edu.fintracker.presentation.remote.DataSource
 import javax.inject.Singleton
 
 @Module
@@ -28,7 +26,7 @@ object AppModule {
         Room.databaseBuilder(
             context,
             FinTrackerDb::class.java,
-            "RegistroTecnicos.db"
+            "Fintracker.db"
         )
             .fallbackToDestructiveMigration()
             .build()
@@ -40,12 +38,6 @@ object AppModule {
     @Provides
     @Singleton
     fun provideTransaccionDao(db: FinTrackerDb): TransaccionDao = db.transaccionDao()
-//    @Provides
-//    @Singleton
-//    fun provideTransaccionRepository(
-//        dataSource: DataSource,
-//        transaccionDao: TransaccionDao
-//    ): TransaccionRepository = TransaccionRepository(dataSource, transaccionDao)
 
     @Provides
     @Singleton
