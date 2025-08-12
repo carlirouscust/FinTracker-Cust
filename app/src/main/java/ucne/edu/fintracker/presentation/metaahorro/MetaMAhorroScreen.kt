@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.metaahorro
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.OffsetDateTime
@@ -103,6 +105,7 @@ fun MetaMAhorroScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (meta.imagen != null) {
+                Log.d("MetaMAhorroScreen", "Imagen recibida: ${meta.imagen}")
                 Image(
                     painter = rememberAsyncImagePainter(meta.imagen),
                     contentDescription = "Imagen meta",

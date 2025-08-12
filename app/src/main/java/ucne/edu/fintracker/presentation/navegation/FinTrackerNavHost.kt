@@ -1112,7 +1112,9 @@ private fun MetaMontoRoute(
         metaViewModel.cargarMetas(usuarioId, metaId)
     }
 
-    val meta = metaViewModel.obtenerMetas(metaId) ?: MetaAhorroDto(
+    val uiState by metaViewModel.uiState.collectAsState()
+
+    val meta = uiState.metaSeleccionada ?: MetaAhorroDto(
         metaAhorroId = 0,
         nombreMeta = "",
         montoObjetivo = 0.0,
@@ -1124,11 +1126,14 @@ private fun MetaMontoRoute(
         meta = meta,
         onGuardarMonto = { montoAhorrado, fechaMonto ->
             metaViewModel.actualizarMontoAhorrado(meta.metaAhorroId, montoAhorrado, fechaMonto)
-            navHostController.popBackStack()
+            navHostController.navigate("detalleMeta/${meta.metaAhorroId}") {
+                popUpTo("metaMonto") { inclusive = true }
+            }
         },
         onCancel = { navHostController.popBackStack() }
     )
 }
+
 
 @Composable
 private fun CambiarFotoRoute(
