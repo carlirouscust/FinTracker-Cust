@@ -262,7 +262,7 @@ fun FechaSelector(fechaSeleccionada: OffsetDateTime, onFechaChange: (OffsetDateT
                     onFechaChange(fecha)
                 },
                 colors = if (selected)
-                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
                 else
                     ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.weight(1f)
