@@ -46,6 +46,7 @@ class GastoViewModel @Inject constructor(
     private val _totalesAnuales = mutableStateOf<List<TotalAnual>>(emptyList())
     val totalesAnuales: State<List<TotalAnual>> = _totalesAnuales
     private val _transacciones = MutableStateFlow<List<TransaccionDto>>(emptyList())
+    val transacciones: StateFlow<List<TransaccionDto>> = _transacciones
 
     private val _uiState = MutableStateFlow(GastoUiState())
     val uiState: StateFlow<GastoUiState> = _uiState
@@ -86,13 +87,15 @@ class GastoViewModel @Inject constructor(
     }
 
     fun inicializar(usuarioId: Int) {
-        Log.d("GastoViewModel", "Inicializando con usuarioId: $usuarioId")
-        if (usuarioId <= 0) { Log.e("GastoViewModel", "usuarioId inválido")
-            return }
+        if (usuarioId <= 0) return
 
         if (usuarioIdActual != usuarioId) {
             usuarioIdActual = usuarioId
-            Log.d("GastoViewModel", "Cargando datos del usuario...")
+            cargarTransacciones(usuarioId)
+            viewModelScope.launch {
+                transaccionRepository.syncTransacciones(usuarioId)
+                cargarTransacciones(usuarioId)
+            }
             cargarTodosDatos(usuarioId)
         }
     }
@@ -155,7 +158,7 @@ class GastoViewModel @Inject constructor(
     fun cargarTransacciones(usuarioId: Int? = usuarioIdActual) {
         usuarioId?.let {
             viewModelScope.launch {
-                transaccionRepository.getTransacciones(it).collect { result ->
+                transaccionRepository.getTransacciones(usuarioId).collect { result ->
                     when (result) {
                         is Resource.Loading -> {
                             _uiState.update { it.copy(isLoading = true, error = null) }
