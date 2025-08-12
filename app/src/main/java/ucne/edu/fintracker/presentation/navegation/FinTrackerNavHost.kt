@@ -65,6 +65,8 @@ import ucne.edu.fintracker.presentation.metaahorro.MetaMAhorroScreen
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarContrasenaScreen
 import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
 import org.threeten.bp.OffsetDateTime
+import ucne.edu.fintracker.presentation.ajustes.CentroAyudaScreen
+import ucne.edu.fintracker.presentation.ajustes.SoporteScreen
 
 private object NavConstants {
     const val CARGANDO_USUARIO = "Cargando usuario..."
@@ -310,6 +312,14 @@ private fun NavGraphBuilder.setupSettingsRoutes(navHostController: NavHostContro
 
     composable("panel_usuario/{usuarioId}") { backStackEntry ->
         PanelUsuarioRoute(navHostController, backStackEntry)
+    }
+
+    composable("centro_ayuda") { backStackEntry ->
+        CentroAyudaRoute(navHostController, backStackEntry)
+    }
+
+    composable("soporte") { backStackEntry ->
+        SoporteRoute(navHostController, backStackEntry)
     }
 }
 
@@ -1171,6 +1181,38 @@ private fun AjustesRoute(
         onSoporte = {
             navHostController.navigate("soporte")
         }
+    )
+}
+
+@Composable
+private fun CentroAyudaRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    CentroAyudaScreen(
+        navController = navHostController,
+        usuarioId = usuarioId
+    )
+}
+
+@Composable
+private fun SoporteRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val context = LocalContext.current
+    val usuarioId by produceState(initialValue = 0) {
+        value = DataLogin.obtenerUsuarioId(context) ?: 0
+    }
+
+    SoporteScreen(
+        navController = navHostController,
+        usuarioId = usuarioId
     )
 }
 
