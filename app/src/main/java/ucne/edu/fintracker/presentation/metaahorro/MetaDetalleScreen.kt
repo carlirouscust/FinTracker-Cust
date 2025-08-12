@@ -3,7 +3,9 @@ package ucne.edu.fintracker.presentation.metaahorro
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -67,10 +69,13 @@ fun MetaDetalleScreen(
             )
         }
     ) { padding ->
+        val scrollState = rememberScrollState()
+
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -168,24 +173,30 @@ fun MetaDetalleScreen(
 
 
             Divider()
-            Text(
-                text = "Ahorros registrados",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Text(text = "Ahorros registrados", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "RD$ ${meta.montoAhorrado}",
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = meta.fechaMontoAhorrado?.format(fechaFormatter) ?: "Fecha no disponible",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                meta.ahorros.forEach { ahorro ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "RD$ ${String.format("%.2f", ahorro.monto)}",
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = ahorro.fecha.format(fechaFormatter),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(24.dp))
