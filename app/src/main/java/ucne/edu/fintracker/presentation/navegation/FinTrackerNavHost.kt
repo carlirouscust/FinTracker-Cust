@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.navegation
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -1295,10 +1296,21 @@ private fun ChatIARoute(
     backStackEntry: NavBackStackEntry
 ) {
     val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
-    ChatIaScreen(
-        navController = navHostController,
-        usuarioId = usuarioId
-    )
+
+    Log.d("ChatIARoute", "Usuario ID recibido: $usuarioId") // Debug temporal
+
+
+    if (usuarioId == 0) {
+        // Manejar caso de usuario no válido
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Error: Usuario no válido")
+        }
+    } else {
+        ChatIaScreen(
+            navController = navHostController,
+            usuarioId = usuarioId
+        )
+    }
 }
 
 @Composable
