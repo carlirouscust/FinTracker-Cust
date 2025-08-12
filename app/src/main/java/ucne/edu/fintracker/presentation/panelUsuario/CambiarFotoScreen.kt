@@ -31,6 +31,7 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import ucne.edu.fintracker.presentation.remote.ImagenAdapter
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,11 +51,25 @@ fun CambiarFotoScreen(
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? -> viewModel.seleccionarFotoDesdeGaleria(uri) }
+    ) { uri: Uri? ->
+        uri?.let {
+            val path = ImagenAdapter(context, it)
+            if (path != null) {
+                viewModel.seleccionarFotoDesdeGaleria(path)
+            }
+        }
+    }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
-    ) { success -> if (success) viewModel.seleccionarFotoDesdeCamara(photoUri) }
+    ) { success ->
+        if (success) {
+            val path = ImagenAdapter(context, photoUri)
+            if (path != null) {
+                viewModel.seleccionarFotoDesdeCamara(path)
+            }
+        }
+    }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -247,7 +262,7 @@ private fun Content(
 
         Spacer(Modifier.weight(1f))
 
-        if (uiState.fotoPerfilUri != null) {
+        if (uiState.fotoPerfilPath != null) {
             GuardarFotoButton(onGuardar, uiState.isUploadingFoto)
         }
 
@@ -265,8 +280,8 @@ private fun PerfilFoto(uiState: CambiarFotoUiState) {
         contentAlignment = Alignment.Center
     ) {
         when {
-            uiState.fotoPerfilUri != null -> AsyncImage(
-                model = uiState.fotoPerfilUri,
+            uiState.fotoPerfilPath != null -> AsyncImage(
+                model = File(uiState.fotoPerfilPath),
                 contentDescription = FOTO_DE_PERFIL,
                 modifier = Modifier.fillMaxSize().clip(CircleShape),
                 contentScale = ContentScale.Crop
