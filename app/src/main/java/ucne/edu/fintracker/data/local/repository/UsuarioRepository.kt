@@ -6,6 +6,7 @@ import retrofit2.HttpException
 import ucne.edu.fintracker.presentation.remote.FinTrackerApi
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.presentation.remote.dto.CambiarContrasenaRequest
 import java.io.File
 import javax.inject.Inject
 
@@ -60,26 +61,58 @@ class UsuarioRepository @Inject constructor(
         return flow {
             try {
                 emit(Resource.Loading())
+
+                // Obtener el usuario actual primero
                 val usuarioActual = api.getUsuario(usuarioId)
+
+                // Crear el archivo desde el path
                 val file = File(fotoPath)
                 if (!file.exists()) {
                     emit(Resource.Error("El archivo de imagen no existe"))
                     return@flow
                 }
+
+                // Validar que el archivo sea una imagen
                 val allowedExtensions = listOf("jpg", "jpeg", "png", "gif", "webp")
                 val fileExtension = file.extension.lowercase()
                 if (!allowedExtensions.contains(fileExtension)) {
                     emit(Resource.Error("Formato de imagen no válido. Use: ${allowedExtensions.joinToString(", ")}"))
                     return@flow
                 }
-                val maxSizeInBytes = 5 * 1024 * 1024
+
+                // Validar el tamaño del archivo (máximo 5MB)
+                val maxSizeInBytes = 5 * 1024 * 1024 // 5MB
                 if (file.length() > maxSizeInBytes) {
                     emit(Resource.Error("La imagen es demasiado grande. Máximo 5MB permitido"))
                     return@flow
                 }
-                val usuarioActualizado = usuarioActual.copy(fotoPerfil = fotoPath)
-                val resultado = api.updateUsuario(usuarioId, usuarioActualizado)
-                emit(Resource.Success(resultado))
+
+                // Actualizar el usuario con la nueva ruta de foto
+                // IMPORTANTE: No incluir la contraseña en la actualización
+                val usuarioActualizado = usuarioActual.copy(
+                    fotoPerfil = fotoPath,
+                    contraseña = "" // Enviar contraseña vacía o null para evitar problemas
+                )
+
+                try {
+                    val resultado = api.updateUsuario(usuarioId, usuarioActualizado)
+                    // Si el resultado es null, obtener el usuario actualizado
+                    val usuarioFinal = resultado ?: api.getUsuario(usuarioId)
+                    emit(Resource.Success(usuarioFinal))
+                } catch (e: Exception) {
+                    // Si hay error en updateUsuario, verificar si la actualización se hizo
+                    try {
+                        val usuarioVerificado = api.getUsuario(usuarioId)
+                        if (usuarioVerificado.fotoPerfil == fotoPath) {
+                            // La actualización fue exitosa aunque el endpoint retornó null
+                            emit(Resource.Success(usuarioVerificado))
+                        } else {
+                            throw e
+                        }
+                    } catch (verifyException: Exception) {
+                        throw e // Lanzar el error original
+                    }
+                }
 
             } catch (e: HttpException) {
                 emit(Resource.Error(
@@ -88,7 +121,7 @@ class UsuarioRepository @Inject constructor(
                         401 -> "No autorizado"
                         404 -> "Usuario no encontrado"
                         500 -> "Error del servidor"
-                        else -> "Error al guardar la foto"
+                        else -> "Error al guardar la foto: ${e.message()}"
                     }
                 ))
             } catch (e: Exception) {
