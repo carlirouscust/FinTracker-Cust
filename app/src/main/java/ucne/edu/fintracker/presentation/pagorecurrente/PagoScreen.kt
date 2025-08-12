@@ -40,7 +40,7 @@ fun PagoScreen(
     val categorias by viewModel.categorias.collectAsState()
     val context = LocalContext.current
 
-    var monto by remember { mutableStateOf(pagoParaEditar?.monto?.toString() ?: "") }
+    var monto by remember { mutableStateOf(TextFieldValue(pagoParaEditar?.monto?.toString() ?: "")) }
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
     var frecuencia by remember { mutableStateOf(pagoParaEditar?.frecuencia ?: "") }
     var fechaInicio by remember { mutableStateOf(pagoParaEditar?.fechaInicio?.toString() ?: "") }
@@ -53,7 +53,6 @@ fun PagoScreen(
             categoriaSeleccionada = categorias.find { it.categoriaId == pagoParaEditar.categoriaId }
         }
     }
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -86,27 +85,41 @@ fun PagoScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    categoriaSeleccionada?.let { cat ->
-                        if (monto.isNotBlank() && frecuencia.isNotBlank() && fechaInicio.isNotBlank()) {
+                    val montoVal = monto.text.toDoubleOrNull()
+                    when {
+                        monto.text.isBlank() -> {
+                            Toast.makeText(context, "El monto es obligatorio", Toast.LENGTH_SHORT).show()
+                        }
+                        montoVal == null || montoVal <= 0.0 -> {
+                            Toast.makeText(context, "El monto debe ser un número válido mayor que cero", Toast.LENGTH_SHORT).show()
+                        }
+                        categoriaSeleccionada == null -> {
+                            Toast.makeText(context, "Selecciona una categoría", Toast.LENGTH_SHORT).show()
+                        }
+                        frecuencia.isBlank() -> {
+                            Toast.makeText(context, "Selecciona una frecuencia", Toast.LENGTH_SHORT).show()
+                        }
+                        fechaInicio.isBlank() -> {
+                            Toast.makeText(context, "Selecciona una fecha de inicio", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
                             onGuardar(
-                                monto.toDoubleOrNull() ?: 0.0,
-                                cat.categoriaId,
+                                montoVal,
+                                categoriaSeleccionada!!.categoriaId,
                                 frecuencia,
                                 OffsetDateTime.parse(fechaInicio),
                                 fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) },
                                 usuarioId
                             )
                             if (pagoParaEditar == null) {
-                                monto = ""
+                                monto = TextFieldValue("")
                                 categoriaSeleccionada = null
                                 frecuencia = ""
                                 fechaInicio = ""
                                 fechaFin = ""
                             }
-                        } else {
-                            Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                         }
-                    } ?: Toast.makeText(context, "Selecciona una categoría", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,8 +138,6 @@ fun PagoScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            var monto by remember { mutableStateOf(TextFieldValue("")) }
-
             OutlinedTextField(
                 value = monto,
                 onValueChange = { nuevoValor ->
