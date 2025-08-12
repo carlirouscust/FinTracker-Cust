@@ -22,7 +22,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.OffsetDateTime
@@ -46,7 +45,7 @@ fun MetaMAhorroScreen(
     val fechaFormatter = DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy")
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -55,7 +54,7 @@ fun MetaMAhorroScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -63,14 +62,14 @@ fun MetaMAhorroScreen(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cerrar",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -91,7 +90,7 @@ fun MetaMAhorroScreen(
                     containerColor = Color(0xFF8BC34A)
                 )
             ) {
-                Text("Guardar Ahorro", color = Color.White)
+                Text("Guardar Ahorro", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     ) { padding ->
@@ -99,7 +98,7 @@ fun MetaMAhorroScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -119,17 +118,17 @@ fun MetaMAhorroScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .background(Color(0xFFEFEFEF)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Sin imagen", color = Color.Gray)
+                    Text("Sin imagen", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
             Text(
                 text = "Meta: RD$ ${meta.montoObjetivo}",
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -137,7 +136,7 @@ fun MetaMAhorroScreen(
             Text(
                 text = "Fecha límite: ${meta.fechaFinalizacion.format(fechaFormatter)}",
                 fontWeight = FontWeight.Medium,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -145,7 +144,7 @@ fun MetaMAhorroScreen(
             OutlinedTextField(
                 value = montoAhorrado,
                 onValueChange = { montoAhorrado = it },
-                label = { Text("Monto Ahorrado (RD$)") },
+                label = { Text("Monto Ahorrado (RD$)", color = MaterialTheme.colorScheme.onSurface) },
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -179,7 +178,7 @@ private fun FechaSelector(
         OutlinedTextField(
             value = fecha?.format(formatter) ?: "",
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(label, color = MaterialTheme.colorScheme.onSurface) },
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(16.dp),
             readOnly = true
@@ -205,7 +204,8 @@ private fun FechaSelector(
         ) {
             Icon(
                 imageVector = Icons.Default.DateRange,
-                contentDescription = "Seleccionar fecha"
+                contentDescription = "Seleccionar fecha",
+                tint = Color(0xFF8BC34A)
             )
         }
     }

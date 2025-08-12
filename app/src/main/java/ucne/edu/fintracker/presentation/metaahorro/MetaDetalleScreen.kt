@@ -38,7 +38,7 @@ fun MetaDetalleScreen(
     val context = LocalContext.current
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -47,7 +47,7 @@ fun MetaDetalleScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -55,14 +55,14 @@ fun MetaDetalleScreen(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cerrar",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -71,7 +71,7 @@ fun MetaDetalleScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -90,17 +90,17 @@ fun MetaDetalleScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .background(Color(0xFFEFEFEF)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Sin imagen", color = Color.Gray)
+                    Text("Sin imagen", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
             Text(
                 text = "Meta: RD$ ${meta.montoObjetivo}",
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -108,7 +108,7 @@ fun MetaDetalleScreen(
             Text(
                 text = "Fecha límite: ${meta.fechaFinalizacion.format(fechaFormatter)}",
                 fontWeight = FontWeight.Medium,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -118,9 +118,9 @@ fun MetaDetalleScreen(
             } else 0.0
 
             val colorProgreso = when {
-                porcentajeProgreso <= 100 -> Color(0xFF4CAF50)
-                porcentajeProgreso <= 120 -> Color(0xFFFFC107)
-                else -> Color(0xFFF44336)
+                porcentajeProgreso <= 100 -> MaterialTheme.colorScheme.primary
+                porcentajeProgreso <= 120 -> MaterialTheme.colorScheme.tertiary
+                else -> MaterialTheme.colorScheme.error
             }
 
             Column(
@@ -133,7 +133,7 @@ fun MetaDetalleScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(24.dp)
-                        .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(12.dp))
                 ) {
                     Box(
                         modifier = Modifier
@@ -150,7 +150,7 @@ fun MetaDetalleScreen(
                             text = "${porcentajeProgreso.toInt()}%",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -161,7 +161,7 @@ fun MetaDetalleScreen(
                     text = "Progreso: RD$ ${String.format("%.2f", montoAhorrado)} / RD$ ${String.format("%.2f", meta.montoObjetivo)}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
             }
@@ -184,7 +184,7 @@ fun MetaDetalleScreen(
                 )
                 Text(
                     text = meta.fechaMontoAhorrado?.format(fechaFormatter) ?: "Fecha no disponible",
-                    color = Color.DarkGray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -196,22 +196,22 @@ fun MetaDetalleScreen(
             ) {
                 Button(
                     onClick = onEditarClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A)),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.White)
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Editar", color = Color.White)
+                    Text("Editar", color = MaterialTheme.colorScheme.onPrimary)
                 }
 
                 Button(
                     onClick = { mostrarDialogoEliminar = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.White)
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.onPrimary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Eliminar", color = Color.White)
+                    Text("Eliminar", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -220,26 +220,31 @@ fun MetaDetalleScreen(
     if (mostrarDialogoEliminar) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoEliminar = false },
-            title = { Text("Confirmar eliminación") },
-            text = { Text("¿Seguro que deseas eliminar la meta?") },
+            title = { Text("Confirmar eliminación", color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text("¿Seguro que deseas eliminar la meta?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         mostrarDialogoEliminar = false
                         onEliminarConfirmado()
                         onEliminarClick()
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
                 ) {
-                    Text("Eliminar", color = Color.Black)
+                    Text("Eliminar")
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { mostrarDialogoEliminar = false }
+                    onClick = { mostrarDialogoEliminar = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF8BC34A))
                 ) {
-                    Text("Cancelar", color = Color.Black)
+                    Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
