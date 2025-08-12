@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import org.threeten.bp.LocalDate
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
@@ -32,6 +33,7 @@ import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 
 @Composable
 fun GastoScreen(
+    gastoViewModel: GastoViewModel = hiltViewModel(),
     categorias: List<CategoriaDto>,
     usuarioId: Int,
     transaccionParaEditar: TransaccionDto? = null,
@@ -50,12 +52,13 @@ fun GastoScreen(
     var notas by remember { mutableStateOf(transaccionParaEditar?.notas ?: "") }
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
 
+
     LaunchedEffect(transaccionParaEditar, categorias) {
         categoriaSeleccionada = transaccionParaEditar?.let { trans ->
             categorias.find { it.categoriaId == trans.categoriaId }
         }
     }
-
+    val categorias by gastoViewModel.categorias.collectAsState()
     val context = LocalContext.current
     val categoriasFiltradas = categorias.filter { it.tipo.equals(tipo, ignoreCase = true) }
 
