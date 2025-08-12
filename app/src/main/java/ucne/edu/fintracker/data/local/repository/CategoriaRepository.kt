@@ -3,6 +3,8 @@ package ucne.edu.fintracker.data.local.repository
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import ucne.edu.fintracker.data.local.dao.CategoriaDao
+import ucne.edu.fintracker.data.local.toEntity
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
@@ -10,7 +12,8 @@ import javax.inject.Inject
 
 
 class CategoriaRepository @Inject constructor(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val categoriaDao: CategoriaDao
 ) {
     fun getCategorias(usuarioId: Int): Flow<Resource<List<CategoriaDto>>> = flow {
         emit(Resource.Loading())
@@ -32,6 +35,7 @@ class CategoriaRepository @Inject constructor(
         try {
             Log.d("CategoriaRepository", "Creando categoría: $categoriaDto")
             val result = dataSource.createCategoria(categoriaDto)
+            categoriaDao.insert(result.toEntity())
             Log.d("CategoriaRepository", "Categoría creada: $result")
             emit(Resource.Success(result))
         } catch (e: Exception) {
