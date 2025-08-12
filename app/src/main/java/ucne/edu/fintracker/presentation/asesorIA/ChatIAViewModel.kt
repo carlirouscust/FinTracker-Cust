@@ -33,7 +33,6 @@ class ChatIAViewModel : ViewModel() {
     val uiState: StateFlow<ChatIaUiState> =
         _uiState.asStateFlow()
 
-    // Crear API manualmente con la misma configuración que tu ApiModule
     private val api: FinTrackerApi by lazy {
         val moshi = Moshi.Builder()
             .add(LocalDateTimeAdapter())
@@ -79,20 +78,16 @@ class ChatIAViewModel : ViewModel() {
 
     fun inicializarConUsuario(usuarioId: Int) {
         if (!usuarioInicializado) {
-            // ✅ Mostrar que la IA está escribiendo desde el inicio
             _uiState.value = ChatIaUiState.Loading
 
             viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    // Obtener todos los datos del usuario
                     val usuario = api.getUsuario(usuarioId)
                     val transacciones = api.getTransaccionesPorUsuario(usuarioId)
                     val metas = api.getMetaAhorrosPorUsuario(usuarioId)
 
-                    // Construir el contexto completo
                     val promptInicial = construirPromptCompleto(usuario, transacciones, metas)
 
-                    // La animación de "escribiendo" seguirá mostrándose durante este proceso
                     val response = chat.sendMessage(content { text(promptInicial) })
 
                     response.text?.let { outputContent ->
@@ -121,15 +116,12 @@ class ChatIAViewModel : ViewModel() {
         val nombreCompleto = "${usuario.nombre} ${usuario.apellido}".trim()
         val nombreSimple = usuario.nombre
 
-        // Análisis de transacciones
         val gastos = transacciones.filter { it.tipo.equals("Gasto", ignoreCase = true) }
         val ingresos = transacciones.filter { it.tipo.equals("Ingreso", ignoreCase = true) }
 
         val totalGastos = gastos.sumOf { it.monto ?: 0.0 }
         val totalIngresos = ingresos.sumOf { it.monto ?: 0.0 }
         val balanceNeto = totalIngresos - totalGastos
-
-        // Transacciones recientes (últimas 5)
         val transaccionesRecientes = transacciones
             .sortedByDescending { it.fecha }
             .take(5)
