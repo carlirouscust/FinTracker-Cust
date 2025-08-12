@@ -12,6 +12,7 @@ import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.data.local.repository.MetaRepository
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
+import ucne.edu.fintracker.presentation.remote.dto.AhorroRegistro
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import javax.inject.Inject
 
@@ -150,12 +151,20 @@ class MetaViewModel @Inject constructor(
         }
     }
 
-    fun actualizarMontoAhorrado(metaId: Int, montoAhorrado: Double, fechaMonto: OffsetDateTime) {
+    fun actualizarMontoAhorrado(metaId: Int, montoNuevo: Double, fechaMonto: OffsetDateTime) {
         val metaActual = obtenerMetas(metaId) ?: return
-        val metaActualizada = metaActual.copy(
-            montoAhorrado = montoAhorrado,
-            fechaMontoAhorrado = fechaMonto
+       val montoTotal = (metaActual.montoAhorrado ?: 0.0) + montoNuevo
+        val nuevosAhorros = metaActual.ahorros + AhorroRegistro(
+            monto = montoNuevo,
+            fecha = fechaMonto
         )
+
+        val metaActualizada = metaActual.copy(
+            montoAhorrado = montoTotal,
+            fechaMontoAhorrado = fechaMonto,
+            ahorros = nuevosAhorros
+        )
+
         actualizarMeta(metaId, metaActualizada)
     }
 
