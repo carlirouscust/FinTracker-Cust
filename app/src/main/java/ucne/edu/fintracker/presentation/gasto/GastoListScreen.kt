@@ -39,6 +39,7 @@ import org.threeten.bp.DayOfWeek
 import java.util.Locale
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +52,12 @@ import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.Month
 import org.threeten.bp.format.TextStyle as ThreeTextStyle
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import java.io.File
+import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioViewModel
 
 
 @Composable
@@ -530,13 +537,20 @@ fun GastoListScreen(
     usuarioId: Int,
     categoriaViewModel: CategoriaViewModel,
     navController: NavController,
-    onNuevoClick: () -> Unit
+    onNuevoClick: () -> Unit,
+    panelUsuarioViewModel: PanelUsuarioViewModel = hiltViewModel() // Agregar el ViewModel
 ) {
     val categoriaState by categoriaViewModel.uiState.collectAsState()
     val state by viewModel.uiState.collectAsState()
+    val panelUiState by panelUsuarioViewModel.uiState.collectAsStateWithLifecycle() // Estado del usuario
 
     var fechaSeleccionada by remember { mutableStateOf(OffsetDateTime.now()) }
     val filtro = state.filtro
+
+    // Cargar datos del usuario
+    LaunchedEffect(usuarioId) {
+        panelUsuarioViewModel.cargarUsuario(usuarioId)
+    }
 
     val (fechaInicio, fechaFin) = calcularRangoFechas(filtro, fechaSeleccionada)
 
@@ -576,8 +590,28 @@ fun GastoListScreen(
                                     modifier = Modifier
                                         .size(32.dp)
                                         .clip(CircleShape)
-                                        .background(Color.Gray)
-                                )
+                                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // Mostrar foto de perfil si existe, sino mostrar ícono por defecto
+                                    if (!panelUiState.usuario?.fotoPerfil.isNullOrEmpty()) {
+                                        AsyncImage(
+                                            model = File(panelUiState.usuario!!.fotoPerfil!!),
+                                            contentDescription = "Foto de perfil",
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.Person,
+                                            contentDescription = "Perfil",
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
