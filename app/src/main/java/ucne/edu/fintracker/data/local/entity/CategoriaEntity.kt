@@ -11,6 +11,7 @@ data class CategoriaEntity(
     val tipo: String = "Gasto", // "Gasto" o "Ingreso"
     val icono: String = "",
     val colorFondo: String = "FFFFFF", // "#FF5733"
-    val usuarioId: Int
+    val usuarioId: Int,
+    val syncPending: Boolean = false
 )
 

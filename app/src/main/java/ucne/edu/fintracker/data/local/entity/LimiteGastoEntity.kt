@@ -11,6 +11,7 @@ data class LimiteGastoEntity(
     val montoLimite: Double,
     val periodo: String, // "Diario", "Mensual", etc.
     val gastadoActual: Double? = null,
-    val usuarioId: Int
+    val usuarioId: Int,
+    val syncPending: Boolean = false
 )
 

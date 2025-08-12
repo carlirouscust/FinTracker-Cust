@@ -14,5 +14,6 @@ data class PagoRecurrenteEntity(
     val fechaInicio: OffsetDateTime,
     val fechaFin: OffsetDateTime? = null,
     val activo: Boolean = true,
-    val usuarioId: Int
+    val usuarioId: Int,
+    val syncPending: Boolean = false
 )

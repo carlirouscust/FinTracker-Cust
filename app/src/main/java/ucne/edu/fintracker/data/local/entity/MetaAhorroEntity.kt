@@ -16,6 +16,7 @@ data class MetaAhorroEntity(
     val montoActual: Double? = null,
     val montoAhorrado: Double? = null,
     val fechaMontoAhorrado: OffsetDateTime? = null,
-    val usuarioId: Int
+    val usuarioId: Int,
+    val syncPending: Boolean = false
 )
 
