@@ -118,9 +118,9 @@ fun MetaDetalleScreen(
             } else 0.0
 
             val colorProgreso = when {
-                porcentajeProgreso <= 100 -> MaterialTheme.colorScheme.primary
-                porcentajeProgreso <= 120 -> MaterialTheme.colorScheme.tertiary
-                else -> MaterialTheme.colorScheme.error
+                porcentajeProgreso <= 100 -> Color(0xFFFF9800)
+                porcentajeProgreso <= 120 -> Color(0xFFFFC107)
+                else -> Color.Red
             }
 
             Column(
