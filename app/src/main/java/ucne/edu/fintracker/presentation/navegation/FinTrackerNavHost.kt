@@ -1126,7 +1126,7 @@ private fun MetaMontoRoute(
         meta = meta,
         onGuardarMonto = { montoAhorrado, fechaMonto ->
             metaViewModel.actualizarMontoAhorrado(meta.metaAhorroId, montoAhorrado, fechaMonto)
-            navHostController.navigate("detalleMeta/${meta.metaAhorroId}") {
+            navHostController.navigate("meta_detalle/$usuarioId/$metaId") {
                 popUpTo("metaMonto") { inclusive = true }
             }
         },
