@@ -2,6 +2,8 @@ package ucne.edu.fintracker.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
@@ -16,7 +18,8 @@ interface LimiteGastoDao {
 
     @Query("SELECT * FROM LimitesGasto WHERE limiteGastoId = :id LIMIT 1")
     suspend fun find(id: Int): LimiteGastoEntity?
-
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(limiteGasto: LimiteGastoEntity)
     @Query("SELECT * FROM LimitesGasto WHERE usuarioId = :usuarioId")
     fun getByUsuario(usuarioId: Int): Flow<List<LimiteGastoEntity>>
 
@@ -28,4 +31,6 @@ interface LimiteGastoDao {
 
     @Delete
     suspend fun delete(limiteGasto: LimiteGastoEntity)
+    @Query("DELETE FROM LimitesGasto WHERE limiteGastoId = :id")
+    suspend fun deleteById(id: Int)
 }
