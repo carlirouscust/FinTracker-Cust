@@ -44,7 +44,6 @@ fun PanelUsuarioScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Cargar datos del usuario cuando se crea el composable
     LaunchedEffect(usuarioId) {
         viewModel.cargarUsuario(usuarioId)
     }
@@ -191,7 +190,6 @@ fun PanelUsuarioScreen(
                         ) {
                             Spacer(modifier = Modifier.height(32.dp))
 
-                            // Foto de perfil
                             Box(
                                 modifier = Modifier
                                     .size(100.dp)
@@ -200,7 +198,6 @@ fun PanelUsuarioScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (!usuario.fotoPerfil.isNullOrEmpty()) {
-                                    // Si hay una foto de perfil, mostrarla
                                     AsyncImage(
                                         model = File(usuario.fotoPerfil),
                                         contentDescription = "Foto de perfil",
@@ -210,7 +207,6 @@ fun PanelUsuarioScreen(
                                         contentScale = ContentScale.Crop
                                     )
                                 } else {
-                                    // Si no hay foto, mostrar el ícono por defecto
                                     Icon(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = "Foto de perfil",
@@ -222,7 +218,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Nombre del usuario (nombre + apellido)
                             Text(
                                 text = "${usuario.nombre} ${usuario.apellido}".trim(),
                                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -234,7 +229,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(4.dp))
 
-                            // Usuario Premium
                             Text(
                                 text = "Usuario Premium",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -245,7 +239,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Email del usuario real
                             Text(
                                 text = "Email: ${usuario.email}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -256,7 +249,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(40.dp))
 
-                            // Sección Resumen Financiero
                             Column(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -270,7 +262,6 @@ fun PanelUsuarioScreen(
                                         .padding(bottom = 16.dp)
                                 )
 
-                                // Saldo Total del usuario real
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -332,7 +323,6 @@ fun PanelUsuarioScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // Transacciones
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -367,7 +357,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(40.dp))
 
-                            // Sección Opciones
                             Column(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -381,7 +370,6 @@ fun PanelUsuarioScreen(
                                         .padding(bottom = 16.dp)
                                 )
 
-                                // Cambiar Foto de Perfil
                                 OpcionItem(
                                     titulo = "Cambiar Foto de Perfil",
                                     icono = Icons.Default.PhotoCamera,
@@ -399,7 +387,6 @@ fun PanelUsuarioScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // Divisa
                                 OpcionItem(
                                     titulo = "Divisa",
                                     icono = Icons.Default.AttachMoney,
@@ -408,7 +395,6 @@ fun PanelUsuarioScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // Ajustes
                                 OpcionItem(
                                     titulo = "Ajustes",
                                     icono = Icons.Default.Settings,
