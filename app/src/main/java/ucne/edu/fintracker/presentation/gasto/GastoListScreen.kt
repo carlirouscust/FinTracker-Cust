@@ -186,7 +186,7 @@ private fun TipoSelector(
             modifier = Modifier.weight(2f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Balance", fontSize = 14.sp, color = Color.Gray)
+            Text("Total", fontSize = 14.sp, color = Color.Gray)
             Text(
                 text = "%,.0f RD$".format(total),
                 style = MaterialTheme.typography.titleLarge.copy(
