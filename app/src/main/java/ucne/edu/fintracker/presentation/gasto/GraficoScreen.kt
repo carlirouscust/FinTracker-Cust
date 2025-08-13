@@ -14,12 +14,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
-import ucne.edu.fintracker.presentation.remote.dto.TotalMes
 
 @Composable
-fun BarChart(datos: List<TotalMes>, modifier: Modifier = Modifier) {
-    val maxTotal = datos.maxOfOrNull { it.total } ?: 1.0
+fun <T> BarChartGenerico(
+    datos: List<T>,
+    totalSelector: (T) -> Double,
+    labelSelector: (T) -> String,
+    barColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val maxTotal = datos.maxOfOrNull(totalSelector) ?: 1.0
     val barWidth = 24.dp
 
     Row(
@@ -31,42 +35,16 @@ fun BarChart(datos: List<TotalMes>, modifier: Modifier = Modifier) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                        .height(((dato.total / maxTotal).toFloat().coerceIn(0f, 1f) * 100).dp)
+                        .height(((totalSelector(dato) / maxTotal).toFloat().coerceIn(0f, 1f) * 100).dp)
                         .width(barWidth)
-                        .background(Color(0xFF8BC34A), RoundedCornerShape(4.dp))
+                        .background(barColor, RoundedCornerShape(4.dp))
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(dato.mes, fontSize = 12.sp)
+                Text(labelSelector(dato), fontSize = 12.sp)
             }
         }
     }
 }
-
-@Composable
-fun BarChartAnual(datos: List<TotalAnual>, modifier: Modifier = Modifier) {
-    val maxTotal = datos.maxOfOrNull { it.total } ?: 1.0
-    val barWidth = 24.dp
-
-    Row(
-        modifier = modifier.height(150.dp),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        datos.forEach { dato ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    modifier = Modifier
-                        .height(((dato.total / maxTotal).toFloat().coerceIn(0f, 1f) * 100).dp)
-                        .width(barWidth)
-                        .background(Color(0xFF03A9F4), RoundedCornerShape(4.dp))
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(dato.ano.toString(), fontSize = 12.sp)
-            }
-        }
-    }
-}
-
 
 @Composable
 fun GraficoScreen(
@@ -74,7 +52,6 @@ fun GraficoScreen(
     gastoviewModel: GastoViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-
     val tipoActual by gastoviewModel.uiState.collectAsState()
     val datosMensuales = gastoviewModel.totalesMensuales.value
     val datosAnuales = gastoviewModel.totalesAnuales.value
@@ -117,7 +94,6 @@ fun GraficoScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-
             }
         }
     ) { paddingValues ->
@@ -131,12 +107,24 @@ fun GraficoScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text("Resumen mensual", fontWeight = FontWeight.SemiBold)
-            BarChart(datosMensuales, modifier = Modifier.fillMaxWidth())
+            BarChartGenerico(
+                datos = datosMensuales,
+                totalSelector = { it.total },
+                labelSelector = { it.mes },
+                barColor = Color(0xFF8BC34A),
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text("Resumen anual", fontWeight = FontWeight.SemiBold)
-            BarChartAnual(datosAnuales, modifier = Modifier.fillMaxWidth())
+            BarChartGenerico(
+                datos = datosAnuales,
+                totalSelector = { it.total },
+                labelSelector = { it.ano.toString() },
+                barColor = Color(0xFF03A9F4),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
