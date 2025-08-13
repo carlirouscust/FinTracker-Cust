@@ -34,10 +34,9 @@ Su misión es ayudarte a **gestionar tus finanzas personales** de forma simple, 
 ---
 
 ## 📸 Capturas de Pantalla
-*![WhatsApp Image 2025-08-13 at 14 01 20_4d1f7834](https://github.com/user-attachments/assets/3ac3c635-2df6-40ef-b2af-dee7a6d428ab)*
-*![WhatsApp Image 2025-08-13 at 14 01 20_14bf28dd](https://github.com/user-attachments/assets/e0b03679-4ef3-4626-ae81-040b022f996a)*
-*![WhatsApp Image 2025-08-13 at 14 01 20_aaedc2da](https://github.com/user-attachments/assets/06edc052-a4e3-4e18-bc54-e82b9d0b51c3)*
-
+<img src="https://github.com/user-attachments/assets/3ac3c635-2df6-40ef-b2af-dee7a6d428ab" width="300">
+<img src="https://github.com/user-attachments/assets/e0b03679-4ef3-4626-ae81-040b022f996a" width="300">
+<img src="https://github.com/user-attachments/assets/06edc052-a4e3-4e18-bc54-e82b9d0b51c3" width="300">
 
 ---
 
@@ -46,7 +45,11 @@ Su misión es ayudarte a **gestionar tus finanzas personales** de forma simple, 
 Desarrollado por:  
 
 - **Alma Bet. Rosa** — Desarrollador  
-- **Carlos M. Custodio** — Desarrollador 
+- **Carlos M. Custodio** — Desarrollador
+  
+El proyecto forma parte de la empresa emergente Ozcudi-Studios que estamos creando Carlos Custodio y Alma Bet. Rosa.
+ 
+![ozcudistudios](https://github.com/user-attachments/assets/8cdaf05d-c72e-4d11-bee0-3983ca93f425)
 
 ---
 
