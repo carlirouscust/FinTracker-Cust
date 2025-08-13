@@ -612,7 +612,31 @@ fun GastoListScreen(
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { },
+                        title = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Fin",
+                                    color = Color(0xFF8BC34A),
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 32.sp
+                                    ),
+                                    modifier = Modifier.padding(end = 2.dp)
+                                )
+                                Text(
+                                    text = "Tracker",
+                                    color = Color(0xFF8BC34A),
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 32.sp
+                                    )
+                                )
+                            }
+                        },
                         navigationIcon = {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(Icons.Default.Menu, contentDescription = "Menu")
