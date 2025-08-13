@@ -366,7 +366,6 @@ private fun CategoriaListRoute(
     LaunchedEffect(usuarioId) {
         if (usuarioId != 0) {
             categoriaVM.setUsuarioId(usuarioId)
-
         }
     }
 
