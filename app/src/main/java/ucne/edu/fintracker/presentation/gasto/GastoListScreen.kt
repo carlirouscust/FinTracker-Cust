@@ -324,7 +324,6 @@ fun CalendarioDialog(
         title = { Text("Seleccionar día") },
         text = {
             Column {
-                // Header con navegación mes
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -343,7 +342,6 @@ fun CalendarioDialog(
                     }
                 }
 
-                // Días de la semana
                 val diasSemana = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -359,12 +357,11 @@ fun CalendarioDialog(
                     }
                 }
 
-                // Grilla de días del mes
                 val primerDiaMes = mesActual.atDay(1)
                 val ultimoDiaMes = mesActual.atEndOfMonth()
 
                 val primerDiaSemanaMes =
-                    (primerDiaMes.dayOfWeek.value + 6) % 7  // lunes=0,...domingo=6
+                    (primerDiaMes.dayOfWeek.value + 6) % 7
                 val diasDelMes = ultimoDiaMes.dayOfMonth
 
                 val totalCeldasMin = primerDiaSemanaMes + diasDelMes
