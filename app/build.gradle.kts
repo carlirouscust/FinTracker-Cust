@@ -100,6 +100,11 @@ dependencies {
     implementation("com.google.cloud:google-cloud-aiplatform:3.69.0") {
         exclude(group = "org.threeten", module = "threetenbp")
     }
+    // Notificaciones
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // Para manejo de permisos
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     //Navegacion
     implementation(libs.androidx.navigation.compose)
