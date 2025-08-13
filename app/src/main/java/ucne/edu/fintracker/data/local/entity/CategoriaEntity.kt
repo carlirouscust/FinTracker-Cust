@@ -8,9 +8,9 @@ data class CategoriaEntity(
     @PrimaryKey(autoGenerate = true)
     val categoriaId: Int = 0,
     val nombre: String = "",
-    val tipo: String = "Gasto", // "Gasto" o "Ingreso"
+    val tipo: String = "Gasto",
     val icono: String = "",
-    val colorFondo: String = "FFFFFF", // "#FF5733"
+    val colorFondo: String = "FFFFFF",
     val usuarioId: Int,
     val syncPending: Boolean = false
 )

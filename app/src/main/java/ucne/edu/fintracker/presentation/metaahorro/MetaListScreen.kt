@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 
 @Composable
@@ -38,8 +37,6 @@ fun MetaListScreen(
     onAgregarMontoClick: (Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -110,8 +107,6 @@ fun MetaListScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         ) }
                     )
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentRoute = navBackStackEntry?.destination?.route
 
                     NavigationBarItem(
                         selected = true,

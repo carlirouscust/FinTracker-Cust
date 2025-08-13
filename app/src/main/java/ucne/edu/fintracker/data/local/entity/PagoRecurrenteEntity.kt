@@ -10,7 +10,7 @@ data class PagoRecurrenteEntity(
     val pagoRecurrenteId: Int = 0,
     val monto: Double,
     val categoriaId: Int,
-    val frecuencia: String, // "Mensual", "Semanal", etc.
+    val frecuencia: String,
     val fechaInicio: OffsetDateTime,
     val fechaFin: OffsetDateTime? = null,
     val activo: Boolean = true,
