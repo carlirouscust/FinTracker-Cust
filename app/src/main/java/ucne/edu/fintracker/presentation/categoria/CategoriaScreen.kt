@@ -31,7 +31,6 @@ import androidx.navigation.NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriaScreen(
-    navController: NavController,
     viewModel: CategoriaViewModel,
     usuarioId: Int,
     tipo: String,
