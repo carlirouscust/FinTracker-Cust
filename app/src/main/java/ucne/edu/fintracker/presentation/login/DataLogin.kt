@@ -18,7 +18,7 @@ object DataLogin {
     suspend fun guardarUsuarioId(context: Context, id: Int) {
         context.dataStore.edit { prefs ->
             prefs[USUARIO_ID] = id
-            prefs[SESION_ACTIVA] = true // Marcar sesión como activa
+            prefs[SESION_ACTIVA] = true
         }
     }
 
@@ -28,15 +28,13 @@ object DataLogin {
         return if (sesionActiva) {
             prefs[USUARIO_ID]
         } else {
-            null // Si la sesión no está activa, retornar null
+            null
         }
     }
 
     suspend fun limpiarSesion(context: Context) {
         context.dataStore.edit { prefs ->
-            prefs[SESION_ACTIVA] = false // Marcar sesión como inactiva
-            // Opcionalmente puedes mantener el usuarioId para recordar el último usuario
-            // o limpiarlo completamente con: prefs.clear()
+            prefs[SESION_ACTIVA] = false
         }
     }
 
