@@ -13,7 +13,7 @@ class UsuarioRepository @Inject constructor(
     private val api: FinTrackerApi
 ) {
 
-    suspend fun getUsuario(usuarioId: Int): Flow<Resource<UsuarioDto>> {
+     fun getUsuario(usuarioId: Int): Flow<Resource<UsuarioDto>> {
         return flow {
             try {
                 emit(Resource.Loading())
@@ -34,7 +34,7 @@ class UsuarioRepository @Inject constructor(
         }
     }
 
-    suspend fun actualizarUsuario(usuarioId: Int, usuarioDto: UsuarioDto): Flow<Resource<UsuarioDto>> {
+     fun actualizarUsuario(usuarioId: Int, usuarioDto: UsuarioDto): Flow<Resource<UsuarioDto>> {
         return flow {
             try {
                 emit(Resource.Loading())
@@ -56,7 +56,7 @@ class UsuarioRepository @Inject constructor(
         }
     }
 
-    suspend fun actualizarFotoPerfil(usuarioId: Int, fotoPath: String): Flow<Resource<UsuarioDto>> {
+     fun actualizarFotoPerfil(usuarioId: Int, fotoPath: String): Flow<Resource<UsuarioDto>> {
         return flow {
             try {
                 emit(Resource.Loading())
@@ -97,7 +97,7 @@ class UsuarioRepository @Inject constructor(
                             throw e
                         }
                     } catch (verifyException: Exception) {
-                        throw e // Lanzar el error original
+                        throw e
                     }
                 }
 
@@ -117,7 +117,7 @@ class UsuarioRepository @Inject constructor(
         }
     }
 
-    suspend fun eliminarUsuario(usuarioId: Int): Flow<Resource<Unit>> {
+     fun eliminarUsuario(usuarioId: Int): Flow<Resource<Unit>> {
         return flow {
             try {
                 emit(Resource.Loading())
