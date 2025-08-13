@@ -59,6 +59,21 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
+data class AjusteItem(
+    val titulo: String,
+    val subtitulo: String,
+    val icono: ImageVector,
+    val onClick: () -> Unit,
+    val colorIcono: Color? = null
+)
+
+data class NavItem(
+    val route: String,
+    val icon: ImageVector,
+    val label: String,
+    val onClick: () -> Unit = {}
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AjustesListScreen(
@@ -75,133 +90,192 @@ fun AjustesListScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Ajustes",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
-        bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                NavigationBarItem(
-                    selected = currentRoute == "gastos",
-                    onClick = { navController.navigate("gastos") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
-                )
-
-                NavigationBarItem(
-                    selected = currentRoute == "chatIA",
-                    onClick = { navController.navigate("chatIA/$usuarioId") },
-                    icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                    label = { Text("IA Asesor") }
-                )
-
-                NavigationBarItem(
-                    selected = currentRoute == "metaahorros/$usuarioId",
-                    onClick = {
-                        navController.navigate("metaahorros/$usuarioId") {
-                            launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                        }
-                    },
-                    icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                    label = { Text("Metas") }
-                )
-            }
-        }
+        topBar = { AjustesTopBar(onBackClick = { navController.popBackStack() }) },
+        bottomBar = { AjustesBottomBar(navController, usuarioId) }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            AjustesSeccion(titulo = "Cuenta") {
-                ItemAjuste("Información del perfil", "Editar información personal", Icons.Default.Person, onEditarPerfil)
-                ItemAjuste("Contraseña", "Cambiar contraseña", Icons.Default.Lock, onCambiarContrasena)
-                ItemAjuste(
-                    "Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp,
-                    onClick = { showLogoutDialog = true },
-                    colorIcono = Color.Red
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            AjustesSeccion(titulo = "Preferencias de la aplicación") {
-                ItemAjuste("Notificaciones", "Gestionar notificaciones", Icons.Default.Notifications, onNotificaciones)
-                ItemAjuste("Apariencia", "Cambiar apariencia de la aplicación", Icons.Default.Palette, onApariencia)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            AjustesSeccion(titulo = "Ayuda y soporte") {
-                ItemAjuste("Centro de ayuda", "Preguntas frecuentes", Icons.Default.Help, onCentroAyuda)
-                ItemAjuste("Soporte", "Contactar con soporte", Icons.Default.Support, onSoporte)
-            }
-        }
+        AjustesContent(
+            paddingValues = paddingValues,
+            ajustesSections = createAjustesSections(
+                onEditarPerfil = onEditarPerfil,
+                onCambiarContrasena = onCambiarContrasena,
+                onCerrarSesion = { showLogoutDialog = true },
+                onNotificaciones = onNotificaciones,
+                onApariencia = onApariencia,
+                onCentroAyuda = onCentroAyuda,
+                onSoporte = onSoporte
+            )
+        )
     }
 
     if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = {
-                Text(
-                    text = "Cerrar sesión",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+        LogoutConfirmationDialog(
+            onConfirm = {
+                showLogoutDialog = false
+                onCerrarSesion()
             },
-            text = {
-                Text(
-                    text = "¿Está seguro que quiere cerrar la sesión?",
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showLogoutDialog = false
-                        onCerrarSesion()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Sí, cerrar sesión", color = MaterialTheme.colorScheme.onError)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancelar", color = MaterialTheme.colorScheme.primary)
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(16.dp)
+            onDismiss = { showLogoutDialog = false }
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AjustesTopBar(onBackClick: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "Ajustes",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Atrás",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    )
+}
+
+@Composable
+private fun AjustesBottomBar(navController: NavController, usuarioId: Int) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        val navItems = listOf(
+            NavItem("gastos", Icons.Default.Home, "Home") {
+                navController.navigate("gastos")
+            },
+            NavItem("chatIA", Icons.Default.Assistant, "IA Asesor") {
+                navController.navigate("chatIA/$usuarioId")
+            },
+            NavItem("metaahorros/$usuarioId", Icons.Default.Star, "Metas") {
+                navController.navigate("metaahorros/$usuarioId") {
+                    launchSingleTop = true
+                    restoreState = true
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                }
+            }
+        )
+
+        navItems.forEach { navItem ->
+            NavigationBarItem(
+                selected = currentRoute == navItem.route,
+                onClick = navItem.onClick,
+                icon = { Icon(navItem.icon, contentDescription = navItem.label) },
+                label = { Text(navItem.label) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AjustesContent(
+    paddingValues: androidx.compose.foundation.layout.PaddingValues,
+    ajustesSections: List<Pair<String, List<AjusteItem>>>
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(paddingValues)
+            .padding(16.dp)
+    ) {
+        ajustesSections.forEachIndexed { index, (titulo, items) ->
+            if (index > 0) {
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            AjustesSeccion(titulo = titulo) {
+                items.forEach { item ->
+                    ItemAjuste(
+                        titulo = item.titulo,
+                        subtitulo = item.subtitulo,
+                        icono = item.icono,
+                        onClick = item.onClick,
+                        colorIcono = item.colorIcono ?: MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogoutConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Cerrar sesión",
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        text = {
+            Text(
+                text = "¿Está seguro que quiere cerrar la sesión?",
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Sí, cerrar sesión", color = MaterialTheme.colorScheme.onError)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = MaterialTheme.colorScheme.primary)
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp)
+    )
+}
+
+private fun createAjustesSections(
+    onEditarPerfil: () -> Unit,
+    onCambiarContrasena: () -> Unit,
+    onCerrarSesion: () -> Unit,
+    onNotificaciones: () -> Unit,
+    onApariencia: () -> Unit,
+    onCentroAyuda: () -> Unit,
+    onSoporte: () -> Unit
+): List<Pair<String, List<AjusteItem>>> {
+    return listOf(
+        "Cuenta" to listOf(
+            AjusteItem("Información del perfil", "Editar información personal", Icons.Default.Person, onEditarPerfil),
+            AjusteItem("Contraseña", "Cambiar contraseña", Icons.Default.Lock, onCambiarContrasena),
+            AjusteItem("Cerrar sesión", "Cerrar sesión de perfil", Icons.Default.ExitToApp, onCerrarSesion, Color.Red)
+        ),
+        "Preferencias de la aplicación" to listOf(
+            AjusteItem("Notificaciones", "Gestionar notificaciones", Icons.Default.Notifications, onNotificaciones),
+            AjusteItem("Apariencia", "Cambiar apariencia de la aplicación", Icons.Default.Palette, onApariencia)
+        ),
+        "Ayuda y soporte" to listOf(
+            AjusteItem("Centro de ayuda", "Preguntas frecuentes", Icons.Default.Help, onCentroAyuda),
+            AjusteItem("Soporte", "Contactar con soporte", Icons.Default.Support, onSoporte)
+        )
+    )
 }
 
 @Composable

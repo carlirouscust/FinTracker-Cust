@@ -20,6 +20,28 @@ import androidx.compose.ui.unit.dp
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
 
+data class TextFieldConfig(
+    val value: String,
+    val onValueChange: (String) -> Unit,
+    val label: String,
+    val keyboardType: KeyboardType = KeyboardType.Text,
+    val readOnly: Boolean = false
+)
+
+data class ValidationResult(
+    val isValid: Boolean,
+    val errorMessage: String = ""
+)
+
+private class LimiteState(
+    categoriaSeleccionada: CategoriaDto?,
+    montoLimite: String,
+    periodoSeleccionado: String
+) {
+    var categoriaSeleccionada by mutableStateOf(categoriaSeleccionada)
+    var montoLimite by mutableStateOf(montoLimite)
+    var periodoSeleccionado by mutableStateOf(periodoSeleccionado)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,8 +59,8 @@ fun LimiteScreen(
         categorias.filter { it.tipo.equals("Gasto", ignoreCase = true) }
     }
 
-    val estadoLimite = remember {
-        EstadoLimite(
+    val limiteState = remember {
+        LimiteState(
             categoriaSeleccionada = null,
             montoLimite = limiteParaEditar?.montoLimite?.toString() ?: "",
             periodoSeleccionado = limiteParaEditar?.periodo ?: ""
@@ -47,7 +69,7 @@ fun LimiteScreen(
 
     LaunchedEffect(categoriasGasto, limiteParaEditar) {
         if (limiteParaEditar != null && categoriasGasto.isNotEmpty()) {
-            estadoLimite.categoriaSeleccionada = categoriasGasto.find {
+            limiteState.categoriaSeleccionada = categoriasGasto.find {
                 it.categoriaId == limiteParaEditar.categoriaId
             }
         }
@@ -62,8 +84,8 @@ fun LimiteScreen(
             )
         },
         bottomBar = {
-            BotonGuardarLimite(
-                estadoLimite = estadoLimite,
+            LimiteSaveButton(
+                limiteState = limiteState,
                 context = context,
                 limiteParaEditar = limiteParaEditar,
                 usuarioId = usuarioId,
@@ -72,7 +94,7 @@ fun LimiteScreen(
         }
     ) { padding ->
         LimiteContent(
-            estadoLimite = estadoLimite,
+            limiteState = limiteState,
             categoriasGasto = categoriasGasto,
             padding = padding
         )
@@ -113,8 +135,8 @@ private fun LimiteTopBar(
 }
 
 @Composable
-private fun BotonGuardarLimite(
-    estadoLimite: EstadoLimite,
+private fun LimiteSaveButton(
+    limiteState: LimiteState,
     context: Context,
     limiteParaEditar: LimiteGastoDto?,
     usuarioId: Int,
@@ -122,8 +144,8 @@ private fun BotonGuardarLimite(
 ) {
     Button(
         onClick = {
-            manejarGuardadoLimite(
-                estadoLimite = estadoLimite,
+            handleLimiteSave(
+                limiteState = limiteState,
                 context = context,
                 limiteParaEditar = limiteParaEditar,
                 usuarioId = usuarioId,
@@ -141,10 +163,14 @@ private fun BotonGuardarLimite(
 
 @Composable
 private fun LimiteContent(
-    estadoLimite: EstadoLimite,
+    limiteState: LimiteState,
     categoriasGasto: List<CategoriaDto>,
     padding: PaddingValues
 ) {
+    var expandedCategoria by remember { mutableStateOf(false) }
+    var expandedPeriodo by remember { mutableStateOf(false) }
+    val periodos = listOf("Diario", "Semanal", "Quincenal", "Mensual", "Anual")
+
     Column(
         modifier = Modifier
             .padding(padding)
@@ -153,36 +179,45 @@ private fun LimiteContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        SelectorCategoriaLimite(
+        LimiteCategoriaDropdown(
             categorias = categoriasGasto,
-            categoriaSeleccionada = estadoLimite.categoriaSeleccionada,
-            onCategoriaSeleccionada = { estadoLimite.categoriaSeleccionada = it }
+            categoriaSeleccionada = limiteState.categoriaSeleccionada,
+            onCategoriaSeleccionada = { limiteState.categoriaSeleccionada = it },
+            expanded = expandedCategoria,
+            onExpandedChange = { expandedCategoria = it }
         )
 
-        CampoMontoLimite(
-            monto = estadoLimite.montoLimite,
-            onMontoChange = { estadoLimite.montoLimite = it }
+        LimiteTextField(
+            config = TextFieldConfig(
+                value = limiteState.montoLimite,
+                onValueChange = { limiteState.montoLimite = it },
+                label = "Monto del Límite",
+                keyboardType = KeyboardType.Number
+            )
         )
 
-        SelectorPeriodoLimite(
-            periodo = estadoLimite.periodoSeleccionado,
-            onPeriodoSeleccionado = { estadoLimite.periodoSeleccionado = it }
+        LimitePeriodoDropdown(
+            periodos = periodos,
+            periodoSeleccionado = limiteState.periodoSeleccionado,
+            onPeriodoSeleccionado = { limiteState.periodoSeleccionado = it },
+            expanded = expandedPeriodo,
+            onExpandedChange = { expandedPeriodo = it }
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SelectorCategoriaLimite(
+private fun LimiteCategoriaDropdown(
     categorias: List<CategoriaDto>,
     categoriaSeleccionada: CategoriaDto?,
-    onCategoriaSeleccionada: (CategoriaDto) -> Unit
+    onCategoriaSeleccionada: (CategoriaDto) -> Unit,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit
 ) {
-    var expandedCategoria by remember { mutableStateOf(false) }
-
     ExposedDropdownMenuBox(
-        expanded = expandedCategoria,
-        onExpandedChange = { expandedCategoria = !expandedCategoria }
+        expanded = expanded,
+        onExpandedChange = onExpandedChange
     ) {
         OutlinedTextField(
             value = categoriaSeleccionada?.nombre ?: "",
@@ -190,84 +225,68 @@ private fun SelectorCategoriaLimite(
             readOnly = true,
             label = { Text("Categoría (Solo Gastos)") },
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoria)
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = obtenerColoresTextFieldLimite()
+            colors = getLimiteTextFieldColors()
         )
         ExposedDropdownMenu(
-            expanded = expandedCategoria,
-            onDismissRequest = { expandedCategoria = false }
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
         ) {
-            categorias.forEach { cat ->
+            categorias.forEach { categoria ->
                 DropdownMenuItem(
-                    text = { Text(cat.nombre) },
+                    text = { Text(categoria.nombre) },
                     onClick = {
-                        onCategoriaSeleccionada(cat)
-                        expandedCategoria = false
+                        onCategoriaSeleccionada(categoria)
+                        onExpandedChange(false)
                     }
                 )
             }
         }
     }
-}
-
-@Composable
-private fun CampoMontoLimite(
-    monto: String,
-    onMontoChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = monto,
-        onValueChange = onMontoChange,
-        label = { Text("Monto del Límite") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = obtenerColoresTextFieldLimite()
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SelectorPeriodoLimite(
-    periodo: String,
-    onPeriodoSeleccionado: (String) -> Unit
+private fun LimitePeriodoDropdown(
+    periodos: List<String>,
+    periodoSeleccionado: String,
+    onPeriodoSeleccionado: (String) -> Unit,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit
 ) {
-    val periodos = listOf("Diario", "Semanal", "Quincenal", "Mensual", "Anual")
-    var expandedPeriodo by remember { mutableStateOf(false) }
-
     ExposedDropdownMenuBox(
-        expanded = expandedPeriodo,
-        onExpandedChange = { expandedPeriodo = !expandedPeriodo }
+        expanded = expanded,
+        onExpandedChange = onExpandedChange
     ) {
         OutlinedTextField(
-            value = periodo,
+            value = periodoSeleccionado,
             onValueChange = {},
             readOnly = true,
             label = { Text("Período") },
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedPeriodo)
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = obtenerColoresTextFieldLimite()
+            colors = getLimiteTextFieldColors()
         )
         ExposedDropdownMenu(
-            expanded = expandedPeriodo,
-            onDismissRequest = { expandedPeriodo = false }
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
         ) {
-            periodos.forEach { p ->
+            periodos.forEach { periodo ->
                 DropdownMenuItem(
-                    text = { Text(p) },
+                    text = { Text(periodo) },
                     onClick = {
-                        onPeriodoSeleccionado(p)
-                        expandedPeriodo = false
+                        onPeriodoSeleccionado(periodo)
+                        onExpandedChange(false)
                     }
                 )
             }
@@ -275,67 +294,68 @@ private fun SelectorPeriodoLimite(
     }
 }
 
-private class EstadoLimite(
-    categoriaSeleccionada: CategoriaDto?,
-    montoLimite: String,
-    periodoSeleccionado: String
+@Composable
+private fun LimiteTextField(
+    config: TextFieldConfig
 ) {
-    var categoriaSeleccionada by mutableStateOf(categoriaSeleccionada)
-    var montoLimite by mutableStateOf(montoLimite)
-    var periodoSeleccionado by mutableStateOf(periodoSeleccionado)
+    OutlinedTextField(
+        value = config.value,
+        onValueChange = config.onValueChange,
+        label = { Text(config.label) },
+        keyboardOptions = KeyboardOptions(keyboardType = config.keyboardType),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = getLimiteTextFieldColors(),
+        readOnly = config.readOnly
+    )
 }
 
-private data class ResultadoValidacionLimite(
-    val esValido: Boolean,
-    val mensajeError: String = ""
-)
-
-private fun validarDatosLimite(estadoLimite: EstadoLimite): ResultadoValidacionLimite {
+private fun validateLimiteData(limiteState: LimiteState): ValidationResult {
     return when {
-        estadoLimite.categoriaSeleccionada == null ->
-            ResultadoValidacionLimite(false, "Selecciona una categoría")
-        estadoLimite.montoLimite.isBlank() ->
-            ResultadoValidacionLimite(false, "Ingresa el monto del límite")
-        estadoLimite.montoLimite.toDoubleOrNull() == null || estadoLimite.montoLimite.toDoubleOrNull()!! <= 0 ->
-            ResultadoValidacionLimite(false, "El monto debe ser un número válido mayor que cero")
-        estadoLimite.periodoSeleccionado.isBlank() ->
-            ResultadoValidacionLimite(false, "Selecciona un período")
-        else -> ResultadoValidacionLimite(true)
+        limiteState.categoriaSeleccionada == null ->
+            ValidationResult(false, "Selecciona una categoría")
+        limiteState.montoLimite.isBlank() ->
+            ValidationResult(false, "Ingresa el monto del límite")
+        limiteState.montoLimite.toDoubleOrNull() == null || limiteState.montoLimite.toDoubleOrNull()!! <= 0 ->
+            ValidationResult(false, "El monto debe ser un número válido mayor que cero")
+        limiteState.periodoSeleccionado.isBlank() ->
+            ValidationResult(false, "Selecciona un período")
+        else -> ValidationResult(true)
     }
 }
 
-private fun manejarGuardadoLimite(
-    estadoLimite: EstadoLimite,
+private fun handleLimiteSave(
+    limiteState: LimiteState,
     context: Context,
     limiteParaEditar: LimiteGastoDto?,
     usuarioId: Int,
     onGuardar: (Double, Int, String, Int) -> Unit
 ) {
-    val validacion = validarDatosLimite(estadoLimite)
+    val validacion = validateLimiteData(limiteState)
 
-    if (!validacion.esValido) {
-        Toast.makeText(context, validacion.mensajeError, Toast.LENGTH_SHORT).show()
+    if (!validacion.isValid) {
+        Toast.makeText(context, validacion.errorMessage, Toast.LENGTH_SHORT).show()
         return
     }
 
-    val monto = estadoLimite.montoLimite.toDoubleOrNull() ?: 0.0
-    val categoriaId = estadoLimite.categoriaSeleccionada!!.categoriaId
+    val monto = limiteState.montoLimite.toDoubleOrNull() ?: 0.0
+    val categoriaId = limiteState.categoriaSeleccionada!!.categoriaId
 
-    onGuardar(monto, categoriaId, estadoLimite.periodoSeleccionado, usuarioId)
+    onGuardar(monto, categoriaId, limiteState.periodoSeleccionado, usuarioId)
 
     if (limiteParaEditar == null) {
-        limpiarFormularioLimite(estadoLimite)
+        clearLimiteForm(limiteState)
     }
 }
 
-private fun limpiarFormularioLimite(estadoLimite: EstadoLimite) {
-    estadoLimite.montoLimite = ""
-    estadoLimite.categoriaSeleccionada = null
-    estadoLimite.periodoSeleccionado = ""
+private fun clearLimiteForm(limiteState: LimiteState) {
+    limiteState.montoLimite = ""
+    limiteState.categoriaSeleccionada = null
+    limiteState.periodoSeleccionado = ""
 }
 
 @Composable
-private fun obtenerColoresTextFieldLimite(): TextFieldColors {
+private fun getLimiteTextFieldColors(): TextFieldColors {
     return OutlinedTextFieldDefaults.colors(
         focusedTextColor = MaterialTheme.colorScheme.onSurface,
         unfocusedTextColor = MaterialTheme.colorScheme.onSurface,

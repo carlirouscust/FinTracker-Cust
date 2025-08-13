@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assistant
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
@@ -15,73 +14,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificacionesScreen(
-    navController: NavController,
-    usuarioId: Int
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Notificaciones",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
-            )
-        },
-        bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                NavigationBarItem(
-                    selected = currentRoute == "gastos",
-                    onClick = { navController.navigate("gastos") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
-                )
-
-                NavigationBarItem(
-                    selected = currentRoute == "chatIA",
-                    onClick = { navController.navigate("chatIA/$usuarioId") },
-                    icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                    label = { Text("IA Asesor") }
-                )
-
-                NavigationBarItem(
-                    selected = currentRoute == "metaahorros/$usuarioId",
-                    onClick = {
-                        navController.navigate("metaahorros/$usuarioId") {
+fun NavegacionInferior(navController: NavController, usuarioId: Int) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+        listOf(
+            Triple("gastos", Icons.Default.Home, "Home"),
+            Triple("chatIA/$usuarioId", Icons.Default.Assistant, "IA Asesor"),
+            Triple("metaahorros/$usuarioId", Icons.Default.Star, "Metas")
+        ).forEach { (route, icon, label) ->
+            NavigationBarItem(
+                selected = currentRoute == route,
+                onClick = {
+                    navController.navigate(route) {
+                        if (route.startsWith("metaahorros")) {
                             launchSingleTop = true
                             restoreState = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
                         }
-                    },
-                    icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                    label = { Text("Metas") }
-                )
-            }
+                    }
+                },
+                icon = { Icon(icon, contentDescription = label) },
+                label = { Text(label) }
+            )
         }
+    }
+}
+
+@Composable
+fun NotificacionesScreen(navController: NavController, usuarioId: Int) {
+    Scaffold(
+        topBar = { MetaTopBar("Notificaciones") { navController.popBackStack() } },
+        bottomBar = { NavegacionInferior(navController, usuarioId) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -91,39 +60,24 @@ fun NotificacionesScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            NotificacionesSeccion(titulo = "General") {
-                ItemNotificacion(
-                    titulo = "Alertas de Transacciones",
-                    descripcion = "Recibe alertas sobre transacciones, incluyendo compras, depósitos y transferencias."
-                )
-                ItemNotificacion(
-                    titulo = "Recordatorios de Límites de Gastos",
-                    descripcion = "Recibe recordatorios para revisar cuando te acercas a tus límites de gastos."
-                )
-                ItemNotificacion(
-                    titulo = "Actualizaciones de Metas de Ahorro",
-                    descripcion = "Recibe actualizaciones sobre el progreso de tus metas de ahorro."
-                )
-            }
+            NotificacionesSeccion("General", listOf(
+                "Alertas de Transacciones" to "Recibe alertas sobre transacciones, incluyendo compras, depósitos y transferencias.",
+                "Recordatorios de Límites de Gastos" to "Recibe recordatorios para revisar cuando te acercas a tus límites de gastos.",
+                "Actualizaciones de Metas de Ahorro" to "Recibe actualizaciones sobre el progreso de tus metas de ahorro."
+            ))
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            NotificacionesSeccion(titulo = "Consejos y Sugerencias") {
-                ItemNotificacion(
-                    titulo = "Consejos Financieros",
-                    descripcion = "Recibe consejos personalizados para mejorar tus hábitos financieros."
-                )
-                ItemNotificacion(
-                    titulo = "Sugerencias de Ahorro",
-                    descripcion = "Recibe sugerencias para optimizar tus gastos y encontrar oportunidades de ahorro."
-                )
-            }
+            NotificacionesSeccion("Consejos y Sugerencias", listOf(
+                "Consejos Financieros" to "Recibe consejos personalizados para mejorar tus hábitos financieros.",
+                "Sugerencias de Ahorro" to "Recibe sugerencias para optimizar tus gastos y encontrar oportunidades de ahorro."
+            ))
         }
     }
 }
 
 @Composable
-fun NotificacionesSeccion(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
+fun NotificacionesSeccion(titulo: String, items: List<Pair<String, String>>) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = titulo,
@@ -132,17 +86,15 @@ fun NotificacionesSeccion(titulo: String, contenido: @Composable ColumnScope.() 
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        contenido()
+        items.forEach { (titulo, descripcion) ->
+            ItemNotificacion(titulo, descripcion)
+        }
     }
 }
 
 @Composable
-fun ItemNotificacion(
-    titulo: String,
-    descripcion: String
-) {
+fun ItemNotificacion(titulo: String, descripcion: String) {
     var isEnabled by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()

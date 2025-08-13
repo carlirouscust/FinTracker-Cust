@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
 
 @Composable
 fun PagoListScreen(
@@ -32,159 +33,126 @@ fun PagoListScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(16.dp),
-
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Pagos Recurrente",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        },
+        topBar = { PagoTopBar(title = "Pagos Recurrente", onBackClick = onBackClick) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAgregarPagoClick,
                 containerColor = Color(0xFF8BC34A)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Agregar Pago",
-                    tint = Color.White
-                )
+                Icon(Icons.Default.Add, contentDescription = "Agregar Pago", tint = Color.White)
             }
         }
-
     ) { padding ->
         when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-
-            uiState.error != null -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = uiState.error ?: "Error desconocido",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background),
-                    contentPadding = padding
-                ) {
-                    items(uiState.pagos) { pago ->
-
-                        val categoria = categorias.find { it.categoriaId == pago.categoriaId }
-
-                        val colorFondo = try {
-                            Color(android.graphics.Color.parseColor(categoria?.colorFondo ?: "#EFEFEF"))
-                        } catch (e: Exception) {
-                            MaterialTheme.colorScheme.surfaceVariant
-                        }
-
-                        var isActivo by remember { mutableStateOf(pago.activo) }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp)
-                            .clickable {
-                            onPagoClick(pago.pagoRecurrenteId)
-                        },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(colorFondo, RoundedCornerShape(12.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = categoria?.icono?.takeIf { it.isNotBlank() } ?: "💵",
-                                    fontSize = 20.sp
-                                )
-                            }
-
-                            Spacer(Modifier.width(12.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = categoria?.nombre ?: "Categoría desconocida",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
-                                Text(
-                                    text = "RD$ ${pago.monto} • ${pago.frecuencia}",
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Switch(
-                                checked = isActivo,
-                                onCheckedChange = { checked ->
-                                    isActivo = checked
-                                    viewModel.actualizarPagoRecurrente(
-                                        pago.pagoRecurrenteId,
-                                        pago.copy(activo = checked)
-                                    )
-                                },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                    checkedTrackColor = Color(0xFF8BC34A),
-                                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant                                )
-                            )
-                        }
-
-                        Divider()
+            uiState.isLoading -> ScreenState(message = "Cargando...", isError = false, padding = padding)
+            uiState.error != null -> ScreenState(message = uiState.error!!, isError = true, padding = padding)
+            else -> LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentPadding = padding
+            ) {
+                items(uiState.pagos) { pago ->
+                    val categoria = categorias.find { it.categoriaId == pago.categoriaId }
+                    PagoItem(pago = pago, categoria = categoria, onPagoClick = onPagoClick) { checked ->
+                        viewModel.actualizarPagoRecurrente(pago.pagoRecurrenteId, pago.copy(activo = checked))
                     }
+                    Divider()
                 }
             }
         }
+    }
+}
+
+@Composable
+fun PagoTopBar(title: String, onBackClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBackClick) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = MaterialTheme.colorScheme.onSurface)
+        }
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 24.sp),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(Modifier.weight(1f))
+    }
+}
+
+@Composable
+fun ScreenState(message: String, isError: Boolean, padding: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(padding),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isError) {
+            Text(message, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+        } else {
+            CircularProgressIndicator()
+        }
+    }
+}
+
+@Composable
+fun PagoItem(
+    pago: PagoRecurrenteDto,
+    categoria: CategoriaDto?,
+    onPagoClick: (Int) -> Unit,
+    onActivoChange: (Boolean) -> Unit
+) {
+    val colorFondo = try {
+        Color(android.graphics.Color.parseColor(categoria?.colorFondo ?: "#EFEFEF"))
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    var isActivo by remember { mutableStateOf(pago.activo) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp)
+            .clickable { onPagoClick(pago.pagoRecurrenteId) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(colorFondo, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(categoria?.icono?.takeIf { it.isNotBlank() } ?: "💵", fontSize = 20.sp)
+        }
+
+        Spacer(Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(categoria?.nombre ?: "Categoría desconocida", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("RD$ ${pago.monto} • ${pago.frecuencia}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+
+        Switch(
+            checked = isActivo,
+            onCheckedChange = { checked ->
+                isActivo = checked
+                onActivoChange(checked)
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = Color(0xFF8BC34A),
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        )
     }
 }
