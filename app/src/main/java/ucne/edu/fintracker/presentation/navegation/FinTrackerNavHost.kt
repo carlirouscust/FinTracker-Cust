@@ -1,7 +1,6 @@
 package ucne.edu.fintracker.presentation.navegation
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -140,7 +139,7 @@ private fun NavGraphBuilder.setupCategoriaRoutes(navHostController: NavHostContr
 
 private fun NavGraphBuilder.setupGastoRoutes(navHostController: NavHostController) {
     composable("gastos") { backStackEntry ->
-        GastoListRoute(navHostController, backStackEntry)
+        GastoListRoute(navHostController)
     }
 
     composable(
@@ -183,7 +182,7 @@ private fun NavGraphBuilder.setupPagoRoutes(navHostController: NavHostController
         "pago_nuevo/{usuarioId}",
         arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        PagoNuevoRoute(navHostController, backStackEntry)
+        PagoNuevoRoute(navHostController)
     }
 
     composable(
@@ -216,7 +215,7 @@ private fun NavGraphBuilder.setupLimiteRoutes(navHostController: NavHostControll
         "limite_nuevo/{usuarioId}",
         arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        LimiteNuevoRoute(navHostController, backStackEntry)
+        LimiteNuevoRoute(navHostController)
     }
 
     composable(
@@ -252,7 +251,7 @@ private fun NavGraphBuilder.setupMetaRoutes(navHostController: NavHostController
         route = "meta_nueva/{usuarioId}",
         arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        MetaNuevaRoute(navHostController, backStackEntry)
+        MetaNuevaRoute(navHostController)
     }
 
     composable(
@@ -298,21 +297,21 @@ private fun NavGraphBuilder.setupSettingsRoutes(navHostController: NavHostContro
     }
 
     composable("ajustes/{usuarioId}") { backStackEntry ->
-        AjustesRoute(navHostController, backStackEntry)
+        AjustesRoute(navHostController)
     }
 
     composable(
         route = "notificaciones/{usuarioId}",
         arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        NotificacionesRoute(navHostController, backStackEntry)
+        NotificacionesRoute(navHostController)
     }
 
     composable(
         route = "apariencia/{usuarioId}",
         arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        AparienciaRoute(navHostController, backStackEntry)
+        AparienciaRoute(navHostController)
     }
 
     composable("cambiar_contrasena/{usuarioId}") { backStackEntry ->
@@ -324,11 +323,11 @@ private fun NavGraphBuilder.setupSettingsRoutes(navHostController: NavHostContro
     }
 
     composable("centro_ayuda") { backStackEntry ->
-        CentroAyudaRoute(navHostController, backStackEntry)
+        CentroAyudaRoute(navHostController)
     }
 
     composable("soporte") { backStackEntry ->
-        SoporteRoute(navHostController, backStackEntry)
+        SoporteRoute(navHostController)
     }
     composable("reset_password") {
         ResetPasswordRoute(navHostController)
@@ -420,7 +419,6 @@ private fun CategoriaNuevaRoute(
 @Composable
 private fun GastoListRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -639,7 +637,6 @@ private fun PagoListRoute(navHostController: NavHostController) {
 @Composable
 private fun PagoNuevoRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -812,7 +809,6 @@ private fun LimiteListRoute(navHostController: NavHostController) {
 @Composable
 private fun LimiteNuevoRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -991,7 +987,6 @@ private fun MetaListRoute(
 @Composable
 private fun MetaNuevaRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -1160,7 +1155,6 @@ private fun CambiarFotoRoute(
 @Composable
 private fun AjustesRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -1203,7 +1197,6 @@ private fun AjustesRoute(
 @Composable
 private fun CentroAyudaRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -1230,7 +1223,6 @@ fun DivisasRoute(
 @Composable
 private fun SoporteRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -1246,7 +1238,6 @@ private fun SoporteRoute(
 @Composable
 private fun NotificacionesRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -1262,7 +1253,6 @@ private fun NotificacionesRoute(
 @Composable
 private fun AparienciaRoute(
     navHostController: NavHostController,
-    backStackEntry: NavBackStackEntry
 ) {
     val context = LocalContext.current
     val usuarioId by produceState(initialValue = 0) {
@@ -1334,8 +1324,6 @@ private fun ChatIARoute(
     backStackEntry: NavBackStackEntry
 ) {
     val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
-
-    Log.d("ChatIARoute", "Usuario ID recibido: $usuarioId")
 
 
     if (usuarioId == 0) {
