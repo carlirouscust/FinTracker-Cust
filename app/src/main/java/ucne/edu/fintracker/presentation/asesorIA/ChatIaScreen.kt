@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.presentation.asesorIA
 
+import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -53,7 +54,7 @@ fun ChatIaScreen(
                         ChatMessage("Error: ${(uiState as ChatIaUiState.Error).errorMessage}", isUser = false)
             }
 
-            else -> {}
+            else -> Log.w("ChatIA", "Estado de UI inesperado: $uiState")
         }
     }
 

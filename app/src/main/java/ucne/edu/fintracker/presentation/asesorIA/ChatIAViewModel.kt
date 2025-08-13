@@ -54,6 +54,7 @@ class ChatIAViewModel : ViewModel() {
             .build()
             .create(FinTrackerApi::class.java)
     }
+
     private val generativeModel = GenerativeModel(
         modelName = BuildConfig1.GEMINI_MODEL,
         apiKey = BuildConfig.apiKey,
@@ -91,10 +92,10 @@ class ChatIAViewModel : ViewModel() {
 
                     val response = chat.sendMessage(content { text(promptInicial) })
 
-                    response.text?.let { outputContent ->
-                        _uiState.value = ChatIaUiState.Success(outputContent)
+                    if (response.text != null) {
+                        _uiState.value = ChatIaUiState.Success(response.text!!)
                         usuarioInicializado = true
-                    } ?: run {
+                    } else {
                         _uiState.value = ChatIaUiState.Error("Error en inicialización")
                     }
 
@@ -120,8 +121,8 @@ class ChatIAViewModel : ViewModel() {
         val gastos = transacciones.filter { it.tipo.equals("Gasto", ignoreCase = true) }
         val ingresos = transacciones.filter { it.tipo.equals("Ingreso", ignoreCase = true) }
 
-        val totalGastos = gastos.sumOf { it.monto ?: 0.0 }
-        val totalIngresos = ingresos.sumOf { it.monto ?: 0.0 }
+        val totalGastos = gastos.sumOf { it.monto }
+        val totalIngresos = ingresos.sumOf { it.monto }
         val balanceNeto = totalIngresos - totalGastos
         val transaccionesRecientes = transacciones
             .sortedByDescending { it.fecha }
@@ -129,12 +130,13 @@ class ChatIAViewModel : ViewModel() {
 
         val metasActivas = metas.filter {
             val montoAhorrado = it.montoAhorrado ?: 0.0
-            val montoObjetivo = it.montoObjetivo ?: 0.0
+            val montoObjetivo = it.montoObjetivo
             montoAhorrado < montoObjetivo
         }
+
         val metasCompletadas = metas.filter {
             val montoAhorrado = it.montoAhorrado ?: 0.0
-            val montoObjetivo = it.montoObjetivo ?: 0.0
+            val montoObjetivo = it.montoObjetivo
             montoAhorrado >= montoObjetivo
         }
 
@@ -146,7 +148,7 @@ class ChatIAViewModel : ViewModel() {
             - Nombre: $nombreCompleto
             - Email: ${usuario.email}
             - Saldo Total Actual: ${formatter.format(usuario.saldoTotal)}
-            - Divisa: ${usuario.divisa.ifEmpty { "RD$" }}
+            - Divisa: ${if (usuario.divisa.isEmpty()) "RD$" else usuario.divisa}
             
             === ANÁLISIS DE TRANSACCIONES ===
             Total de transacciones registradas: ${transacciones.size}
@@ -157,9 +159,9 @@ class ChatIAViewModel : ViewModel() {
             • Balance neto: ${formatter.format(balanceNeto)}
             
             TRANSACCIONES RECIENTES:
-            ${transaccionesRecientes.take(5).mapIndexed { _, t ->
-            "• ${t.fecha.format(dateFormatter)}: ${if (t.tipo == "Gasto") "-" else "+"}${formatter.format(t.monto ?: 0.0)} (${t.tipo})"
-        }.joinToString("\n")}
+            ${transaccionesRecientes.take(5).joinToString("\n") { t ->
+            "• ${t.fecha.format(dateFormatter)}: ${if (t.tipo == "Gasto") "-" else "+"}${formatter.format(t.monto)} (${t.tipo})"
+        }}
             
             === METAS DE AHORRO ===
             Total de metas: ${metas.size}
@@ -167,18 +169,19 @@ class ChatIAViewModel : ViewModel() {
             • Metas completadas: ${metasCompletadas.size}
             
             METAS ACTIVAS EN PROGRESO:
-            ${metasActivas.take(4).map { meta ->
+            ${metasActivas.take(4).joinToString("\n") { meta ->
             val montoAhorrado = meta.montoAhorrado ?: 0.0
-            val montoObjetivo = meta.montoObjetivo ?: 1.0
+            val montoObjetivo = meta.montoObjetivo
             val progreso = if (montoObjetivo > 0) (montoAhorrado / montoObjetivo * 100).toInt() else 0
             val fechaLimite = meta.fechaFinalizacion.format(dateFormatter)
             "• ${meta.nombreMeta}: ${formatter.format(montoAhorrado)} / ${formatter.format(montoObjetivo)} (${progreso}%) - Fecha límite: $fechaLimite"
-        }.joinToString("\n")}
+        }}
             
-            METAS COMPLETADAS:
-            ${metasCompletadas.take(3).map { meta ->
-            "• ${meta.nombreMeta}: ✅ ${formatter.format(meta.montoObjetivo ?: 0.0)} completada"
-        }.joinToString("\n")}
+           METAS COMPLETADAS:
+            ${metasCompletadas.take(3).joinToString("\n") { meta ->
+            "• ${meta.nombreMeta}: ✅ ${formatter.format(meta.montoObjetivo)} completada"
+            
+        }}
             
             === PATRONES FINANCIEROS DETECTADOS ===
             ${if (gastos.isNotEmpty()) {
@@ -225,9 +228,9 @@ class ChatIAViewModel : ViewModel() {
                     }
                 )
 
-                response.text?.let { outputContent ->
-                    _uiState.value = ChatIaUiState.Success(outputContent)
-                } ?: run {
+                if (response.text != null) {
+                    _uiState.value = ChatIaUiState.Success(response.text!!)
+                } else {
                     _uiState.value = ChatIaUiState.Error("Respuesta vacía")
                 }
             } catch (e: Exception) {

@@ -241,7 +241,7 @@ private fun GastoListProfileAction(
         ) {
             if (!panelUiState.usuario?.fotoPerfil.isNullOrEmpty()) {
                 AsyncImage(
-                    model = File(panelUiState.usuario!!.fotoPerfil!!),
+                    model = File(panelUiState?.usuario?.fotoPerfil),
                     contentDescription = "Foto de perfil",
                     modifier = Modifier
                         .fillMaxSize()

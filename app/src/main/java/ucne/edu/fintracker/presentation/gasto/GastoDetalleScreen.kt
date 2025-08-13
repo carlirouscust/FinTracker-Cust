@@ -30,7 +30,6 @@ fun GastoDetalleScreen(
     categoriaNombre: String,
     onBackClick: () -> Unit,
     onEditarClick: () -> Unit,
-    onEliminarClick: () -> Unit,
     onEliminarConfirmado: () -> Unit,
     gastoViewModel: GastoViewModel = hiltViewModel()
 ) {

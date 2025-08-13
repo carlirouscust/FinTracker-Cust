@@ -141,7 +141,9 @@ class GastoViewModel @Inject constructor(
                 Log.d("GastoViewModel", "Cargando categorías para usuario $it")
                 categoriaRepository.getCategorias(it).collect { result ->
                     when (result) {
-                        is Resource.Loading -> {}
+                        is Resource.Loading -> {
+                            Log.d("Repository", "Cargando recurso...")
+                        }
                         is Resource.Success -> {
                             Log.d("GastoViewModel", "Categorías cargadas: ${result.data?.size}")
                             _categorias.value = result.data ?: emptyList()
@@ -333,8 +335,7 @@ class GastoViewModel @Inject constructor(
             }
             transaccionRepository.deleteTransaccion(id).collect { result ->
                 when (result) {
-                    is Resource.Loading -> {
-                    }
+                    is Resource.Loading -> {  Log.d("Repository", "Cargando recurso...") }
 
                     is Resource.Success -> {
                         _uiState.update {
