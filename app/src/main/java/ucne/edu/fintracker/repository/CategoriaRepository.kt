@@ -4,7 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.CategoriaDao
-import ucne.edu.fintracker.mappers.toEntity
+import ucne.edu.fintracker.data.mappers.toEntity
 import ucne.edu.fintracker.remote.DataSource
 import ucne.edu.fintracker.remote.Resource
 import ucne.edu.fintracker.remote.dto.CategoriaDto

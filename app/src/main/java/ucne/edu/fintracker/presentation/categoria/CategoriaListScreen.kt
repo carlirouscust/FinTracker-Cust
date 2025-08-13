@@ -223,7 +223,7 @@ fun CategoriaBody(
     categoria: CategoriaDto
 ) {
     val colorFondo = try {
-        Color(android.graphics.Color.parseColor("#${categoria?.colorFondo?.removePrefix("#") ?: "CCCCCC"}"))
+        Color(android.graphics.Color.parseColor("#" + categoria.colorFondo.removePrefix("#")))
     } catch (e: Exception) {
         Color.Gray
     }

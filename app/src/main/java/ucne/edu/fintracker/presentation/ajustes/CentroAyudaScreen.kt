@@ -39,7 +39,6 @@ fun CentroAyudaScreen(
         bottomBar = {
             NavegacionInferior(
                 navController = navController,
-                usuarioId = usuarioId,
                 items = listOf(
                     NavItem("gastos", Icons.Default.Home, "Home"),
                     NavItem("chatIA/$usuarioId", Icons.Default.Assistant, "IA Asesor"),

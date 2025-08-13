@@ -39,7 +39,6 @@ fun AparienciaScreen(
         bottomBar = {
             NavegacionInferior(
                 navController = navController,
-                usuarioId = usuarioId,
                 items = listOf(
                     NavItem("gastos", Icons.Default.Home, "Home"),
                     NavItem("chatIA/$usuarioId", Icons.Default.Assistant, "IA Asesor"),
@@ -95,7 +94,7 @@ fun MetaTopBar(title: String, onBackClick: () -> Unit) {
 data class NavItem(val route: String, val icon: ImageVector, val label: String)
 
 @Composable
-fun NavegacionInferior(navController: NavController, usuarioId: Int, items: List<NavItem>) {
+fun NavegacionInferior(navController: NavController, items: List<NavItem>) {
     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route

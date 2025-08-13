@@ -1,4 +1,4 @@
-package ucne.edu.fintracker.mappers
+package ucne.edu.fintracker.data.mappers
 
 import ucne.edu.fintracker.data.local.entity.CategoriaEntity
 import ucne.edu.fintracker.data.local.entity.LimiteGastoEntity

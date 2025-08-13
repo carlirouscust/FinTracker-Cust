@@ -402,7 +402,6 @@ private fun CategoriaNuevaRoute(
         LoadingBox()
     } else {
         CategoriaScreen(
-            navController = navHostController,
             viewModel = categoriaVM,
             usuarioId = usuarioId,
             tipo = tipo,
@@ -540,7 +539,6 @@ private fun GastoDetalleRoute(
             onEditarClick = {
                 navHostController.navigate("gasto_editar/$usuarioId/$trasaccionId")
             },
-            onEliminarClick = { },
             onEliminarConfirmado = {
                 gastoViewModel.eliminarTransaccion(trasaccionId)
                 navHostController.popBackStack()

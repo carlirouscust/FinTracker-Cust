@@ -8,8 +8,8 @@ import ucne.edu.fintracker.remote.Resource
 import ucne.edu.fintracker.remote.dto.TransaccionDto
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.TransaccionDao
-import ucne.edu.fintracker.mappers.toDto
-import ucne.edu.fintracker.mappers.toEntity
+import ucne.edu.fintracker.data.mappers.toDto
+import ucne.edu.fintracker.data.mappers.toEntity
 import ucne.edu.fintracker.remote.dto.TotalAnual
 import ucne.edu.fintracker.remote.dto.TotalMes
 import javax.inject.Inject
