@@ -46,26 +46,17 @@ fun CategoriaListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // CORREGIDO: Solo una inicialización controlada
     LaunchedEffect(usuarioId) {
-        if (usuarioId != 0) {
-            viewModel.setUsuarioId(usuarioId)
-            // Eliminar la llamada duplicada a inicializarCategoriasPorDefecto
-            // ya que se maneja automáticamente en el ViewModel
+        viewModel.fetchCategorias(usuarioId)
+        if (tipoFiltro.isBlank()) {
+            viewModel.inicializarSinFiltro()
         }
     }
-
-    // Manejar filtro por separado - CORREGIDO para mostrar todas por defecto
     LaunchedEffect(tipoFiltro) {
-        if (tipoFiltro.isNotBlank() && tipoFiltro != "Gasto" && tipoFiltro != "Ingreso") {
-            // Solo aplicar filtro si es un filtro específico diferente de los tipos básicos
+        if (tipoFiltro.isNotBlank()) {
             viewModel.onFiltroTipoChange(tipoFiltro)
-        } else {
-            // Por defecto mostrar todas las categorías sin filtro
-            viewModel.limpiarFiltro()
         }
     }
-
     val categorias = viewModel.getCategoriasFiltradas()
 
     Column(
@@ -95,7 +86,6 @@ fun CategoriaListScreen(
     }
 }
 
-// Resto de composables sin cambios...
 @Composable
 private fun CategoriaTopBar(onBackClick: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -226,6 +216,7 @@ private fun CategoriaFab(
         }
     }
 }
+
 
 @Composable
 fun CategoriaBody(
