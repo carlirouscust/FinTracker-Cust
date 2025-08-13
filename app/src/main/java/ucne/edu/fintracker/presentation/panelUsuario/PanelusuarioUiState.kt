@@ -1,6 +1,6 @@
 package ucne.edu.fintracker.presentation.panelUsuario
 
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 
 data class PanelUsuarioUiState(
     val isLoading: Boolean = true,

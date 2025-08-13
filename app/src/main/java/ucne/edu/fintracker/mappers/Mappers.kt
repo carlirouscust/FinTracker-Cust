@@ -1,15 +1,15 @@
-package ucne.edu.fintracker.data.local
+package ucne.edu.fintracker.mappers
 
 import ucne.edu.fintracker.data.local.entity.CategoriaEntity
 import ucne.edu.fintracker.data.local.entity.LimiteGastoEntity
 import ucne.edu.fintracker.data.local.entity.MetaAhorroEntity
 import ucne.edu.fintracker.data.local.entity.PagoRecurrenteEntity
 import ucne.edu.fintracker.data.local.entity.TransaccionEntity
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
-import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.remote.dto.TransaccionDto
 
 fun TransaccionDto.toEntity() = TransaccionEntity(
     transaccionId = this.transaccionId,

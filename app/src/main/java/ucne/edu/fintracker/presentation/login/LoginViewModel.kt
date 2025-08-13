@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
-import ucne.edu.fintracker.data.local.repository.LoginRepository
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.repository.LoginRepository
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 import javax.inject.Inject
 
 @HiltViewModel

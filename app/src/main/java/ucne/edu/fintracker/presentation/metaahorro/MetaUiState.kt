@@ -1,6 +1,6 @@
 package ucne.edu.fintracker.presentation.metaahorro
 
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
 
 data class MetaUiState(
     val metas: List<MetaAhorroDto> = emptyList(),

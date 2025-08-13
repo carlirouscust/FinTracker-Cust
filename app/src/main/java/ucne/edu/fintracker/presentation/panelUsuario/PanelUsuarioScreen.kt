@@ -26,7 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.components.MenuScreen
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)

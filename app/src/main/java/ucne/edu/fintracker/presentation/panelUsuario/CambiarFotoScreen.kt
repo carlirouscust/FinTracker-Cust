@@ -31,7 +31,7 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import ucne.edu.fintracker.presentation.remote.ImagenAdapter
+import ucne.edu.fintracker.remote.ImagenAdapter
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*

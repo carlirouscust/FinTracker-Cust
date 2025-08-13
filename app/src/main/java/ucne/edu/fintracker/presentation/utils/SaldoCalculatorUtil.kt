@@ -1,8 +1,8 @@
 package ucne.edu.fintracker.presentation.utils
 
 import android.util.Log
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 import javax.inject.Inject
 import javax.inject.Singleton
 

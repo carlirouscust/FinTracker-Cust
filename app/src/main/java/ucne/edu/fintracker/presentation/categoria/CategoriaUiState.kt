@@ -1,6 +1,6 @@
 package ucne.edu.fintracker.presentation.categoria
 
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
 
 data class CategoriaUiState(
     val nombre: String = "",

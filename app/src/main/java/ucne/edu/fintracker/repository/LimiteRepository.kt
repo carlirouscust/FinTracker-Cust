@@ -1,12 +1,12 @@
-package ucne.edu.fintracker.data.local.repository
+package ucne.edu.fintracker.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.LimiteGastoDao
-import ucne.edu.fintracker.data.local.toEntity
-import ucne.edu.fintracker.presentation.remote.DataSource
-import ucne.edu.fintracker.presentation.remote.Resource
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.mappers.toEntity
+import ucne.edu.fintracker.remote.DataSource
+import ucne.edu.fintracker.remote.Resource
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
 import javax.inject.Inject
 
 
