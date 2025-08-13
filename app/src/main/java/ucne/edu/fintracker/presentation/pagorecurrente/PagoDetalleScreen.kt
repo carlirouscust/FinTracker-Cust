@@ -77,7 +77,6 @@ fun PagoDetalleScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Icono y Nombre con Monto abajo
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = categoriaIcono.takeIf { it.isNotBlank() } ?: "💵",
@@ -101,31 +100,26 @@ fun PagoDetalleScreen(
 
             Divider()
 
-            // Categoría
             Text("Categoría", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
             Text(categoriaNombre, color = MaterialTheme.colorScheme.onBackground)
 
             Divider()
 
-            // Frecuencia
             Text("Frecuencia", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
             Text(pago.frecuencia, color = MaterialTheme.colorScheme.onBackground)
 
             Divider()
 
-            // Fecha Inicio
             Text("Fecha de Inicio", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
             Text(pago.fechaInicio.format(formatter), color = MaterialTheme.colorScheme.onBackground)
 
             Divider()
 
-            // Fecha Fin (opcional)
             Text("Fecha de Finalización", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
             Text(pago.fechaFin?.format(formatter) ?: "-", color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Botones Editar y Eliminar
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
