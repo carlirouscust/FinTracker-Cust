@@ -41,6 +41,8 @@ import org.threeten.bp.DayOfWeek
 import java.util.Locale
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -58,6 +60,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import org.threeten.bp.YearMonth
+import org.threeten.bp.temporal.TemporalAdjusters
 import java.io.File
 import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioViewModel
 
@@ -239,13 +243,12 @@ fun FechaTexto(
     fechaActual: OffsetDateTime,
     onFechaSeleccionada: (OffsetDateTime) -> Unit
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
     var mostrarDatePicker by remember { mutableStateOf(false) }
 
     val fechaTexto = when (filtro) {
         "Día" -> "${fechaActual.dayOfMonth} ${fechaActual.month.getDisplayName(ThreeTextStyle.FULL, Locale("es")).replaceFirstChar { it.uppercase() }} ${fechaActual.year}"
         "Semana" -> {
-            val inicioSemana = fechaActual.with(DayOfWeek.MONDAY)
+            val inicioSemana = fechaActual.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
             val finSemana = inicioSemana.plusDays(6)
             val formatter = DateTimeFormatter.ofPattern("d 'de' MMM", Locale("es"))
             "${inicioSemana.format(formatter)} al ${finSemana.format(formatter)}"
@@ -267,11 +270,12 @@ fun FechaTexto(
     if (mostrarDatePicker) {
         when (filtro) {
             "Día", "Semana" -> {
-                DatePickerDialogThreeTen(
-                    onDateSelected = { localDate ->
+                CalendarioDialog(
+                    mesInicial = YearMonth.of(fechaActual.year, fechaActual.monthValue),
+                    onFechaSeleccionada = { localDate ->
                         val fechaOffset = localDate.atStartOfDay().atOffset(ZoneOffset.UTC)
                         val fechaFinal = if (filtro == "Semana") {
-                            fechaOffset.with(DayOfWeek.MONDAY)
+                            fechaOffset.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                         } else {
                             fechaOffset
                         }
@@ -281,7 +285,6 @@ fun FechaTexto(
                     onDismiss = { mostrarDatePicker = false }
                 )
             }
-
             "Mes" -> {
                 MonthPickerDialogThreeTen(
                     mesInicial = fechaActual.monthValue,
@@ -307,36 +310,148 @@ fun FechaTexto(
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerDialogThreeTen(
-    onDateSelected: (LocalDate) -> Unit,
+fun CalendarioDialog(
+    mesInicial: YearMonth = YearMonth.now(),
+    onFechaSeleccionada: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
+    var mesActual by remember { mutableStateOf(mesInicial) }
+    var fechaSeleccionada by remember { mutableStateOf<LocalDate?>(null) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Seleccionar día") },
         text = {
-            DatePicker(state = datePickerState)
+            Column {
+                // Header con navegación mes
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { mesActual = mesActual.minusMonths(1) }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Mes anterior")
+                    }
+                    Text(
+                        text = mesActual.month.getDisplayName(ThreeTextStyle.FULL, Locale("es"))
+                            .replaceFirstChar { it.uppercase() } + " ${mesActual.year}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    IconButton(onClick = { mesActual = mesActual.plusMonths(1) }) {
+                        Icon(Icons.Default.ArrowForward, contentDescription = "Mes siguiente")
+                    }
+                }
+
+                // Días de la semana
+                val diasSemana = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    diasSemana.forEach { dia ->
+                        Text(
+                            text = dia,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
+                // Grilla de días del mes
+                val primerDiaMes = mesActual.atDay(1)
+                val ultimoDiaMes = mesActual.atEndOfMonth()
+
+                val primerDiaSemanaMes =
+                    (primerDiaMes.dayOfWeek.value + 6) % 7  // lunes=0,...domingo=6
+                val diasDelMes = ultimoDiaMes.dayOfMonth
+
+                val totalCeldasMin = primerDiaSemanaMes + diasDelMes
+                val totalCeldas =
+                    if (totalCeldasMin % 7 == 0) totalCeldasMin else ((totalCeldasMin / 7) + 1) * 7
+
+                val diasEnGrilla = (0 until totalCeldas).map { index ->
+                    val dia = index - primerDiaSemanaMes + 1
+                    if (index < primerDiaSemanaMes || dia > diasDelMes) null else dia
+                }
+
+
+
+            Column {
+                diasEnGrilla.chunked(7).forEach { semana ->
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        semana.forEach { dia ->
+                            Box(
+                                modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .padding(4.dp)
+                                        .clickable(enabled = dia != null) {
+                                            dia?.let {
+                                                val fecha = mesActual.atDay(it)
+                                                fechaSeleccionada = fecha
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (dia != null) {
+                                        val isSelected =
+                                            fechaSeleccionada == mesActual.atDay(dia)
+                                        Text(
+                                            text = dia.toString(),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            modifier = if (isSelected) Modifier
+                                                .background(
+                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                                    shape = CircleShape
+                                                )
+                                                .padding(8.dp)
+                                            else Modifier.padding(8.dp),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         },
         confirmButton = {
-            TextButton(onClick = {
-                datePickerState.selectedDateMillis?.let { millis ->
-                    val ld = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    onDateSelected(ld)
-                }
-                onDismiss()
-            }) { Text("OK") }
+            TextButton(
+                onClick = {
+                    fechaSeleccionada?.let { onFechaSeleccionada(it) }
+                    onDismiss()
+                },
+                enabled = fechaSeleccionada != null
+            ) {
+                Text("OK")
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
         }
     )
 }
+
+fun obtenerFiltroPorFecha(fechaTransaccion: OffsetDateTime, fechaActual: OffsetDateTime): String {
+    val hoy = fechaActual.toLocalDate()
+    val fecha = fechaTransaccion.toLocalDate()
+
+    val inicioSemana = hoy.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    val finSemana = inicioSemana.plusDays(6)
+
+    return when {
+        fecha == hoy || fecha.isAfter(hoy) -> "Día"
+        fecha.isBefore(hoy) && fecha in inicioSemana..finSemana -> "Semana"
+        else -> "Otra"
+    }
+}
+
 
 @Composable
 fun MonthPickerDialogThreeTen(
@@ -567,7 +682,6 @@ fun GastoListScreen(
                         .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
                 ) {
-                    // Sección fija - no scrollea
                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
