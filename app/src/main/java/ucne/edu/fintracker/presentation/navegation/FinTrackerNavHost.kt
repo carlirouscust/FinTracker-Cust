@@ -68,6 +68,7 @@ import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
 import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.presentation.ajustes.CentroAyudaScreen
 import ucne.edu.fintracker.presentation.ajustes.SoporteScreen
+import ucne.edu.fintracker.presentation.panelUsuario.DivisasScreen
 
 private object NavConstants {
     const val CARGANDO_USUARIO = "Cargando usuario..."
@@ -287,6 +288,12 @@ private fun NavGraphBuilder.setupMetaRoutes(navHostController: NavHostController
 private fun NavGraphBuilder.setupSettingsRoutes(navHostController: NavHostController) {
     composable("cambiarFoto/{usuarioId}") { backStackEntry ->
         CambiarFotoRoute(navHostController, backStackEntry)
+    }
+    composable(
+        route = "divisas/{usuarioId}",
+        arguments = listOf(navArgument("usuarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        DivisasRoute(navHostController, backStackEntry)
     }
 
     composable("ajustes/{usuarioId}") { backStackEntry ->
@@ -1204,7 +1211,18 @@ private fun CentroAyudaRoute(
         usuarioId = usuarioId
     )
 }
+@Composable
+fun DivisasRoute(
+    navHostController: NavHostController,
+    backStackEntry: NavBackStackEntry
+) {
+    val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
 
+    DivisasScreen(
+        usuarioId = usuarioId,
+        onBackClick = { navHostController.popBackStack() }
+    )
+}
 @Composable
 private fun SoporteRoute(
     navHostController: NavHostController,
@@ -1284,8 +1302,11 @@ private fun PanelUsuarioRoute(
         onCambiarFoto = {
             navHostController.navigate("cambiarFoto/$usuarioId")
         },
-        onDivisa = { },
-        onAjustes = {
+        onDivisa = {
+            navHostController.navigate("divisas/$usuarioId") {
+                launchSingleTop = true
+            }
+        },        onAjustes = {
             navHostController.navigate("ajustes/$usuarioId")
         },
         onTransacciones = {
