@@ -157,8 +157,7 @@ fun MetaScreen(
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                    .fillMaxWidth(),
                 singleLine = true,
                 maxLines = 1,
                 textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Start)
