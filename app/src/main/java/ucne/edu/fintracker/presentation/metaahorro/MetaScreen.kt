@@ -43,7 +43,12 @@ fun MetaScreen(
     val contexto = LocalContext.current
 
     var nombreMeta by remember { mutableStateOf(metaParaEditar?.nombreMeta ?: "") }
-    var montoObjetivo by remember { mutableStateOf(metaParaEditar?.montoObjetivo?.toString() ?: "") }
+    var montoObjetivo by remember {
+        mutableStateOf(
+            metaParaEditar?.montoObjetivo?.let { String.format("%,.2f", it) } ?: ""
+        )
+    }
+
     var fechaFinalizacion by remember {
         mutableStateOf(
             metaParaEditar?.fechaFinalizacion
@@ -151,8 +156,14 @@ fun MetaScreen(
                 label = { Text("Monto Objetivo (RD$)") },
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                singleLine = true,
+                maxLines = 1,
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Start)
             )
+
 
             FechaSelector(
                 label = "Fecha de Finalización",
