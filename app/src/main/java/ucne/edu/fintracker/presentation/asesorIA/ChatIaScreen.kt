@@ -159,8 +159,8 @@ fun ChatIaScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 56.dp, max = 150.dp) // Altura adaptable
-                        .padding(end = 56.dp) // Espacio para el botón
+                        .heightIn(min = 56.dp, max = 150.dp)
+                        .padding(end = 56.dp)
                 )
 
                 IconButton(
@@ -172,10 +172,10 @@ fun ChatIaScreen(
                         }
                     },
                     modifier = Modifier
-                        .padding(end = 8.dp) // Espacio a la derecha del botón
-                        .size(40.dp) // Tamaño del botón
-                        .clip(RoundedCornerShape(50)) // Forma redonda
-                        .background(Color(0xFF85D844)), // Color de fondo del botón
+                        .padding(end = 8.dp)
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color(0xFF85D844)),
                     enabled = prompt.isNotBlank()
                 ) {
                     Icon(Icons.Filled.Send, contentDescription = "Enviar", tint = Color.White)
