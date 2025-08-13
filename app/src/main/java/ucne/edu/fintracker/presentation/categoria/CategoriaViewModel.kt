@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.data.local.repository.CategoriaRepository
@@ -43,6 +45,49 @@ class CategoriaViewModel @Inject constructor(
         if (id != 0) {
             _usuarioId.value = id
         }
+    }
+    init {
+        viewModelScope.launch {
+            _usuarioId
+                .filter { it != null && it != 0 }
+                .collectLatest { id ->
+                    inicializarCategoriasPorDefecto(id!!)
+                    fetchCategorias(id)
+                }
+        }
+    }
+
+    private val usuariosInicializados = mutableSetOf<Int>()
+
+    suspend fun inicializarCategoriasPorDefecto(usuarioId: Int) = coroutineScope {
+        if (usuariosInicializados.contains(usuarioId)) return@coroutineScope
+
+        repository.getCategorias(usuarioId)
+            .filter { it is Resource.Success }
+            .firstOrNull()
+            ?.let { result ->
+                val categoriasExistentes = (result as Resource.Success).data ?: emptyList()
+
+                val categoriasDefault = listOf(
+                    CategoriaDto(nombre = "Gasolina", tipo = "Gasto", icono = "⛽", colorFondo = "FF9800", usuarioId = usuarioId),
+                    CategoriaDto(nombre = "Casa", tipo = "Gasto", icono = "🏠", colorFondo = "4CAF50", usuarioId = usuarioId),
+                    CategoriaDto(nombre = "Comida", tipo = "Gasto", icono = "🍽", colorFondo = "F44336", usuarioId = usuarioId),
+                    CategoriaDto(nombre = "Viajes", tipo = "Gasto", icono = "✈", colorFondo = "2196F3", usuarioId = usuarioId),
+                    CategoriaDto(nombre = "Celular", tipo = "Gasto", icono = "📱", colorFondo = "9C27B0", usuarioId = usuarioId)
+                )
+
+                val categoriasParaCrear = categoriasDefault.filter { defaultCat ->
+                    categoriasExistentes.none { it.nombre == defaultCat.nombre && it.usuarioId == usuarioId }
+                }
+
+                categoriasParaCrear.map { categoria ->
+                    launch {
+                        repository.createCategoria(categoria).collect {}
+                    }
+                }.forEach { it.join() }
+
+                usuariosInicializados.add(usuarioId)
+            }
     }
 
     fun getCategoriasFiltradas(): List<CategoriaDto> {
