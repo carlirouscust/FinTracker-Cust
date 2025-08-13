@@ -68,6 +68,7 @@ import ucne.edu.fintracker.presentation.panelUsuario.CambiarFotoScreen
 import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.presentation.ajustes.CentroAyudaScreen
 import ucne.edu.fintracker.presentation.ajustes.SoporteScreen
+import ucne.edu.fintracker.presentation.login.ResetPasswordScreen
 import ucne.edu.fintracker.presentation.panelUsuario.DivisasScreen
 
 private object NavConstants {
@@ -328,6 +329,9 @@ private fun NavGraphBuilder.setupSettingsRoutes(navHostController: NavHostContro
 
     composable("soporte") { backStackEntry ->
         SoporteRoute(navHostController, backStackEntry)
+    }
+    composable("reset_password") {
+        ResetPasswordRoute(navHostController)
     }
 }
 
@@ -1314,7 +1318,14 @@ private fun PanelUsuarioRoute(
         }
     )
 }
-
+@Composable
+fun ResetPasswordRoute(
+    navHostController: NavHostController
+) {
+    ResetPasswordScreen(
+        onBackClick = { navHostController.popBackStack() }
+    )
+}
 @Composable
 private fun ChatIARoute(
     navHostController: NavHostController,
