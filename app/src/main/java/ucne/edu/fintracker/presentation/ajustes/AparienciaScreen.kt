@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,65 +35,17 @@ fun AparienciaScreen(
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Apariencia",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Atrás",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+        topBar = { MetaTopBar("Apariencia") { navController.popBackStack() } },
+        bottomBar = {
+            NavegacionInferior(
+                navController = navController,
+                usuarioId = usuarioId,
+                items = listOf(
+                    NavItem("gastos", Icons.Default.Home, "Home"),
+                    NavItem("chatIA/$usuarioId", Icons.Default.Assistant, "IA Asesor"),
+                    NavItem("metaahorros/$usuarioId", Icons.Default.Star, "Metas")
                 )
             )
-        },
-        bottomBar = {
-            NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
-                NavigationBarItem(
-                    selected = currentRoute == "gastos",
-                    onClick = { navController.navigate("gastos") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
-                )
-
-                NavigationBarItem(
-                    selected = currentRoute == "chatIA",
-                    onClick = { navController.navigate("chatIA/$usuarioId") },
-                    icon = { Icon(Icons.Default.Assistant, contentDescription = "IA Asesor") },
-                    label = { Text("IA Asesor") }
-                )
-
-                NavigationBarItem(
-                    selected = currentRoute == "metaahorros/$usuarioId",
-                    onClick = {
-                        navController.navigate("metaahorros/$usuarioId") {
-                            launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                        }
-                    },
-                    icon = { Icon(Icons.Default.Star, contentDescription = "Metas") },
-                    label = { Text("Metas") }
-                )
-            }
         }
     ) { paddingValues ->
         Column(
@@ -103,30 +56,63 @@ fun AparienciaScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            AparienciaSeccion(titulo = "Tema") {
-                OpcionTema(
-                    titulo = "Claro",
-                    isSelected = !isDarkTheme,
-                    onSelected = { themeViewModel.toggleTheme(false) }
-                )
-                OpcionTema(
-                    titulo = "Oscuro",
-                    isSelected = isDarkTheme,
-                    onSelected = { themeViewModel.toggleTheme(true) }
-                )
+            Seccion("Tema") {
+                FilaOpcion("Claro", isSelected = !isDarkTheme) { themeViewModel.toggleTheme(false) }
+                FilaOpcion("Oscuro", isSelected = isDarkTheme) { themeViewModel.toggleTheme(true) }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            AparienciaSeccion(titulo = "Idioma") {
+            Seccion("Idioma") {
                 SelectorIdioma()
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AparienciaSeccion(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
+fun MetaTopBar(title: String, onBackClick: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onSurface)
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+    )
+}
+
+data class NavItem(val route: String, val icon: ImageVector, val label: String)
+
+@Composable
+fun NavegacionInferior(navController: NavController, usuarioId: Int, items: List<NavItem>) {
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        items.forEach { item ->
+            NavigationBarItem(
+                selected = currentRoute == item.route,
+                onClick = { navController.navigate(item.route) { launchSingleTop = true; restoreState = true; popUpTo(navController.graph.startDestinationId) { saveState = true } } },
+                icon = { Icon(item.icon, contentDescription = item.label) },
+                label = { Text(item.label) }
+            )
+        }
+    }
+}
+
+@Composable
+fun Seccion(titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = titulo,
@@ -140,11 +126,7 @@ fun AparienciaSeccion(titulo: String, contenido: @Composable ColumnScope.() -> U
 }
 
 @Composable
-fun OpcionTema(
-    titulo: String,
-    isSelected: Boolean,
-    onSelected: () -> Unit
-) {
+fun FilaOpcion(titulo: String, isSelected: Boolean, onSelected: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -168,7 +150,6 @@ fun OpcionTema(
         )
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectorIdioma() {
@@ -176,24 +157,13 @@ fun SelectorIdioma() {
     var selectedIdioma by remember { mutableStateOf("Español") }
     val idiomas = listOf("Español", "English", "Français", "Português")
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
             value = selectedIdioma,
             onValueChange = {},
             readOnly = true,
-            trailingIcon = {
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(),
+            trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown", tint = MaterialTheme.colorScheme.onSurface) },
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
@@ -209,16 +179,8 @@ fun SelectorIdioma() {
         ) {
             idiomas.forEach { idioma ->
                 DropdownMenuItem(
-                    text = {
-                        Text(
-                            idioma,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    onClick = {
-                        selectedIdioma = idioma
-                        expanded = false
-                    }
+                    text = { Text(idioma, color = MaterialTheme.colorScheme.onSurface) },
+                    onClick = { selectedIdioma = idioma; expanded = false }
                 )
             }
         }
