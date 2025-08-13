@@ -49,7 +49,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import org.threeten.bp.LocalDate
-import org.threeten.bp.ZoneOffset
 import org.threeten.bp.Month
 import org.threeten.bp.format.TextStyle as ThreeTextStyle
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import org.threeten.bp.YearMonth
+import org.threeten.bp.ZoneId
 import org.threeten.bp.temporal.TemporalAdjusters
 import ucne.edu.fintracker.presentation.categoria.CategoriaUiState
 import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioUiState
@@ -552,7 +552,6 @@ private fun TransactionAmount(monto: Double) {
     )
 }
 
-// Funciones utilitarias
 private fun getFilteredTransactions(
     transacciones: List<TransaccionDto>,
     filtro: String,
@@ -576,7 +575,6 @@ private fun getCategoriaColor(categoria: CategoriaDto?): Color {
     }
 }
 
-// Otros componentes reutilizables (se mantienen igual)
 @Composable
 fun ToggleTextButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Text(
@@ -781,7 +779,9 @@ fun FechaTexto(
                 CalendarioDialog(
                     mesInicial = YearMonth.of(fechaActual.year, fechaActual.monthValue),
                     onFechaSeleccionada = { localDate ->
-                        val fechaOffset = localDate.atStartOfDay().atOffset(ZoneOffset.UTC)
+                        val fechaOffset = localDate
+                            .atStartOfDay(ZoneId.systemDefault())
+                            .toOffsetDateTime()
                         val fechaFinal = if (filtro == "Semana") {
                             fechaOffset.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                         } else {

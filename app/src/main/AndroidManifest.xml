@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".FinTrackerApp"
@@ -19,6 +22,12 @@
         android:theme="@style/Theme.FinTracker"
         tools:targetApi="31"
         android:usesCleartextTraffic="true">
+
+        <receiver
+            android:name=".notification.NotificationReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -28,6 +37,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -35,10 +55,10 @@
             android:theme="@style/Theme.FinTracker" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
