@@ -25,17 +25,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Obtener el ViewModel del tema
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
 
-            // Aplicar el tema basado en la preferencia del usuario
             FinTrackerTheme(darkTheme = isDarkTheme) {
                 val navController = rememberNavController()
 
                 Scaffold { innerPadding ->
                     FinTrackerNavHost(
-                        navHostController = navController, // Usa la misma instancia de navController
+                        navHostController = navController,
                         finTrackerApi = finTrackerApi,
                         modifier = Modifier.padding(innerPadding)
                     )

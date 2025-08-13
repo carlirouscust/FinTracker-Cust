@@ -15,7 +15,6 @@ class LimiteRepository @Inject constructor(
     private val limiteGastoDao: LimiteGastoDao
 ) {
 
-    // Obtener límites de gasto filtrados por usuarioId
     fun getLimites(usuarioId: Int): Flow<Resource<List<LimiteGastoDto>>> = flow {
         emit(Resource.Loading())
         try {
@@ -26,7 +25,6 @@ class LimiteRepository @Inject constructor(
         }
     }
 
-    // Crear un nuevo límite de gasto
     fun createLimite(limiteDto: LimiteGastoDto): Flow<Resource<LimiteGastoDto>> = flow {
         val entity = limiteDto.toEntity(syncPending = true)
         limiteGastoDao.insert(entity)
@@ -40,7 +38,6 @@ class LimiteRepository @Inject constructor(
         }
     }
 
-    // Actualizar un límite de gasto existente
     fun updateLimite(id: Int, limiteDto: LimiteGastoDto): Flow<Resource<LimiteGastoDto>> = flow {
         emit(Resource.Loading())
         try {
@@ -51,7 +48,6 @@ class LimiteRepository @Inject constructor(
         }
     }
 
-    // Eliminar un límite de gasto
     fun deleteLimite(id: Int): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {

@@ -4,8 +4,8 @@ import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 
 data class GastoUiState(
     val transacciones: List<TransaccionDto> = emptyList(),
-    val filtro: String = "Semana", // "Día", "Semana", etc.
-    val tipoSeleccionado: String = "Gasto", // "Gasto" o "Ingreso"
+    val filtro: String = "Semana",
+    val tipoSeleccionado: String = "Gasto",
     val isLoading: Boolean = false,
     val error: String? = null
 )

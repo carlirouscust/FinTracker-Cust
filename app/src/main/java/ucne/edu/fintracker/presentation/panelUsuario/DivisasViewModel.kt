@@ -67,7 +67,6 @@ class DivisasViewModel @Inject constructor(
                     android.util.Log.e("DivisasVM", "Error en updateUsuario: ${updateException.message}")
 
                     try {
-                        // Simplemente marcar como exitoso si no hay otro error
                         _uiState.update {
                             it.copy(isLoading = false)
                         }

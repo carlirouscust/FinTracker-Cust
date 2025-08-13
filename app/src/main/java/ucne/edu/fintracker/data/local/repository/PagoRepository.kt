@@ -17,7 +17,6 @@ class PagoRepository @Inject constructor(
     private val pagoRecurrenteDao: PagoRecurrenteDao
 ) {
 
-    // Obtener pagos recurrentes filtrados por usuarioId
     fun getPagosRecurrentes(usuarioId: Int): Flow<Resource<List<PagoRecurrenteDto>>> = flow {
         emit(Resource.Loading())
 
@@ -46,11 +45,9 @@ class PagoRepository @Inject constructor(
             val filtrados = remotos.filter { it.usuarioId == usuarioId }
             pagoRecurrenteDao.insertOrUpdateAll(filtrados.map { it.toEntity() })
         } catch (e: Exception) {
-            // Manejar error si quieres
         }
     }
 
-    // Crear un nuevo pago recurrente
     fun createPagoRecurrente(pagoRecurrenteDto: PagoRecurrenteDto): Flow<Resource<PagoRecurrenteDto>> = flow {
         val entity = pagoRecurrenteDto.toEntity(syncPending = true)
         pagoRecurrenteDao.insert(entity)
@@ -64,7 +61,6 @@ class PagoRepository @Inject constructor(
         }
     }
 
-    // Actualizar un pago recurrente existente
     fun updatePagoRecurrente(id: Int, pagoRecurrenteDto: PagoRecurrenteDto): Flow<Resource<PagoRecurrenteDto>> = flow {
         emit(Resource.Loading())
         try {
@@ -79,7 +75,6 @@ class PagoRepository @Inject constructor(
         }
     }
 
-    // Eliminar un pago recurrente
     fun deletePagoRecurrente(id: Int): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {

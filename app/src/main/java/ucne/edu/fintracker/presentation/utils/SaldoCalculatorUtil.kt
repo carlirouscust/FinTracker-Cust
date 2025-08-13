@@ -15,11 +15,9 @@ class SaldoCalculatorUtil @Inject constructor(
         return try {
             Log.d("SaldoCalculator", "Iniciando cálculo de saldo para usuario: $usuarioId")
 
-            // 1. Obtener todas las transacciones del usuario
             val transacciones = api.getTransaccionesPorUsuario(usuarioId)
             Log.d("SaldoCalculator", "Transacciones obtenidas: ${transacciones.size}")
 
-            // 2. Calcular saldo total: ingresos - gastos
             val saldoCalculado = transacciones.sumOf { transaccion ->
                 when (transaccion.tipo?.lowercase()) {
                     "ingreso" -> {
@@ -39,14 +37,11 @@ class SaldoCalculatorUtil @Inject constructor(
 
             Log.d("SaldoCalculator", "Saldo total calculado: $saldoCalculado")
 
-            // 3. Obtener usuario actual
             val usuarioActual = api.getUsuario(usuarioId)
             Log.d("SaldoCalculator", "Usuario actual: $usuarioActual")
 
-            // 4. Actualizar usuario con el nuevo saldo
             val usuarioActualizado = usuarioActual.copy(saldoTotal = saldoCalculado)
 
-            // 5. Guardar en la API
             val usuarioGuardado = api.updateUsuario(usuarioId, usuarioActualizado)
             Log.d("SaldoCalculator", "Usuario guardado con nuevo saldo: $usuarioGuardado")
 

@@ -93,16 +93,13 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation ("androidx.compose.foundation:foundation:1.6.8")
+    implementation(libs.gson)
+    implementation(libs.androidx.datastore.preferences)
+    implementation (libs.androidx.foundation)
 
     implementation("com.google.cloud:google-cloud-aiplatform:3.69.0") {
         exclude(group = "org.threeten", module = "threetenbp")
     }
-//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
-
-
 
     //Navegacion
     implementation(libs.androidx.navigation.compose)

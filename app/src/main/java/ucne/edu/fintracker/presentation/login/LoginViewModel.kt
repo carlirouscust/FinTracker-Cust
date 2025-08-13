@@ -77,16 +77,6 @@ class LoginViewModel @Inject constructor(
 
     fun resetPassword() {
         viewModelScope.launch {
-//            try {
-//                val success = loginRepository.enviarResetPassword(uiState.value.resetEmail)
-//                if (success) {
-//                    println("Enlace enviado")
-//                } else {
-//                    println("Error al enviar enlace")
-//                }
-//            } catch (e: Exception) {
-//                println("Excepción: ${e.message}")
-//            }
         }
     }
 

@@ -339,8 +339,6 @@ private fun GuardarBoton(
                 return@Button
             }
 
-//            val fechaFormateada = fechaSeleccionada.format(DateTimeFormatter.ofPattern("d/M/yyyy"))
-
             onGuardar(tipo, montoDouble, categoriaSeleccionada?.nombre ?: "", fechaSeleccionada, notas, usuarioId)
         },
         modifier = Modifier

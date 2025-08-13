@@ -29,11 +29,6 @@ class MetaViewModel @Inject constructor(
         usuarioId = id
     }
 
-    fun inicializar(usuarioId: Int) {
-        setUsuarioId(usuarioId)
-        cargarMetas(usuarioId)
-    }
-
     private val _uiState = MutableStateFlow(
         MetaUiState(
             metas = emptyList(),

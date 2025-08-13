@@ -8,6 +8,6 @@ data class TransaccionDto(
     val categoriaId: Int,
     val fecha: OffsetDateTime,
     val notas: String? = null,
-    val tipo: String, // "Gasto" o "Ingreso"
+    val tipo: String,
     val usuarioId: Int
    )

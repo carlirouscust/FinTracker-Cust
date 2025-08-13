@@ -168,7 +168,7 @@ class ResetPasswordViewModel @Inject constructor(
                             } else {
                                 throw Exception("La contraseña no se actualizó correctamente")
                             }
-                        } catch (verificationException: Exception) { // Asumir que se guardó correctamente si hay error de verificación
+                        } catch (verificationException: Exception) {
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
@@ -200,7 +200,7 @@ class ResetPasswordViewModel @Inject constructor(
         return email.isNotBlank() && emailRegex.matches(email)
     }
 
-    private fun isValidPassword(password: String): Boolean { // Validación más flexible pero segura
+    private fun isValidPassword(password: String): Boolean {
         return password.length >= 8 &&
                 password.any { it.isLetter() } &&
                 password.any { it.isDigit() } &&

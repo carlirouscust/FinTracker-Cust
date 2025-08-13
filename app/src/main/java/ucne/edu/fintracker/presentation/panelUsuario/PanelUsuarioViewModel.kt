@@ -43,7 +43,6 @@ class PanelUsuarioViewModel @Inject constructor(
                     errorMessage = ""
                 )
 
-                // Automáticamente actualizar el saldo después de cargar el usuario
                 actualizarSaldoUsuarioAutomatico(usuarioId)
 
             } catch (e: HttpException) {
@@ -74,12 +73,10 @@ class PanelUsuarioViewModel @Inject constructor(
             try {
                 Log.d("PanelUsuario", "Actualizando saldo automáticamente para usuario: $usuarioId")
 
-                // Mostrar indicador de carga específico para actualización de saldo
                 _uiState.value = _uiState.value.copy(
                     isUpdatingSaldo = true
                 )
 
-                // Usar el SaldoCalculatorUtil para actualizar el saldo
                 val usuarioActualizado = saldoCalculatorUtil.actualizarSaldoUsuario(usuarioId)
 
                 if (usuarioActualizado != null) {
@@ -103,7 +100,6 @@ class PanelUsuarioViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(
                     isUpdatingSaldo = false
                 )
-                // No mostrar error en la UI para actualizaciones automáticas silenciosas
             }
         }
     }
@@ -114,14 +110,11 @@ class PanelUsuarioViewModel @Inject constructor(
             try {
                 Log.d("PanelUsuario", "Actualizando saldo manualmente para usuario: $usuarioId")
 
-                // Mostrar indicador de carga específico para actualización de saldo
                 _uiState.value = _uiState.value.copy(
                     isUpdatingSaldo = true,
                     isError = false,
                     errorMessage = ""
                 )
-
-                // Usar el SaldoCalculatorUtil para actualizar el saldo
                 val usuarioActualizado = saldoCalculatorUtil.actualizarSaldoUsuario(usuarioId)
 
                 if (usuarioActualizado != null) {
@@ -153,7 +146,6 @@ class PanelUsuarioViewModel @Inject constructor(
         }
     }
 
-    // Método para actualizar saldo cuando se detecten cambios en transacciones
     fun notificarCambioEnTransacciones(usuarioId: Int) {
         Log.d("PanelUsuario", "Cambio detectado en transacciones, actualizando saldo automáticamente")
         actualizarSaldoUsuarioAutomatico(usuarioId)
@@ -172,7 +164,6 @@ class PanelUsuarioViewModel @Inject constructor(
                     errorMessage = ""
                 )
 
-                // Automáticamente actualizar el saldo después de actualizar el usuario
                 actualizarSaldoUsuarioAutomatico(usuarioId)
 
             } catch (e: HttpException) {

@@ -23,12 +23,7 @@ class DataSource @Inject constructor(
     suspend fun cambiarContrasena(usuarioId: Int, request: CambiarContrasenaRequest): Response<Unit> {
         return api.cambiarContrasena(usuarioId, request)
     }
-
     suspend fun deleteUsuario(id: Int) = api.deleteUsuario(id)
-//    suspend fun enviarResetPassword(email: String): Boolean {
-//        val response = api.enviarLinkResetPassword(CambiarPasswordRequest(email))
-//        return response.isSuccessful
-//    }
 
     // ------------------- CATEGORÍAS -------------------
     suspend fun getCategorias(): List<CategoriaDto> = api.getCategorias()

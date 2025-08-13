@@ -7,7 +7,6 @@ import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.TransaccionDao
-import ucne.edu.fintracker.data.local.entity.TransaccionEntity
 import ucne.edu.fintracker.data.local.toDto
 import ucne.edu.fintracker.data.local.toEntity
 import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
@@ -21,7 +20,6 @@ class TransaccionRepository @Inject constructor(
     private val transaccionDao: TransaccionDao
 ) {
 
-    // Obtener transacciones filtradas por usuarioId
     fun getTransacciones(usuarioId: Int): Flow<Resource<List<TransaccionDto>>> = flow {
         emit(Resource.Loading())
 
@@ -52,7 +50,7 @@ class TransaccionRepository @Inject constructor(
 
         }
     }
-    // Crear una nueva transacción
+
     fun createTransaccion(transaccionDto: TransaccionDto): Flow<Resource<TransaccionDto>> = flow {
         val entity = transaccionDto.toEntity().copy(syncPending = true)
         transaccionDao.insert(entity)
@@ -66,7 +64,6 @@ class TransaccionRepository @Inject constructor(
         }
     }
 
-    // Actualizar una transacción existente
     fun updateTransaccion(id: Int, transaccionDto: TransaccionDto): Flow<Resource<TransaccionDto>> = flow {
         emit(Resource.Loading())
         try {
@@ -77,7 +74,6 @@ class TransaccionRepository @Inject constructor(
         }
     }
 
-    // Eliminar una transacción
     fun deleteTransaccion(id: Int): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {
@@ -88,9 +84,6 @@ class TransaccionRepository @Inject constructor(
             emit(Resource.Error("Error al eliminar transacción: ${e.message ?: "Error desconocido"}"))
         }
     }
-
-
-
 
     suspend fun obtenerTotalesPorMes(usuarioId: Int): List<TotalMes> {
         return try {

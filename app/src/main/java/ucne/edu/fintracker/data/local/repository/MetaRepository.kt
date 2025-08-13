@@ -24,8 +24,6 @@ class MetaRepository @Inject constructor(
         }
     }
 
-
-    // Crear una nueva meta
     fun createMeta(metaDto: MetaAhorroDto): Flow<Resource<MetaAhorroDto>> = flow {
         emit(Resource.Loading())
         try {
@@ -49,8 +47,6 @@ class MetaRepository @Inject constructor(
         }
     }
 
-
-    // Eliminar una meta
     fun deleteMeta(id: Int): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {
