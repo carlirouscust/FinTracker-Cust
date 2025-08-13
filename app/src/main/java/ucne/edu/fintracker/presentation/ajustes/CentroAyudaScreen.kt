@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -103,7 +102,6 @@ fun CentroAyudaScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // Barra de búsqueda
             OutlinedTextField(
                 value = textoBusqueda,
                 onValueChange = { textoBusqueda = it },
@@ -132,7 +130,6 @@ fun CentroAyudaScreen(
                 singleLine = true
             )
 
-            // Título de sección
             Text(
                 text = "Preguntas frecuentes",
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -143,7 +140,6 @@ fun CentroAyudaScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Lista de preguntas frecuentes
             val preguntas = listOf(
                 "¿Cómo puedo crear un presupuesto?",
                 "¿Cómo funciona el asesor financiero?",
