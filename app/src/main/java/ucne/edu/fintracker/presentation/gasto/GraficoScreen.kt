@@ -47,12 +47,71 @@ fun <T> BarChartGenerico(
 }
 
 @Composable
+fun CustomTopBar(
+    titulo: String,
+    onBackClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onBackClick) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Volver",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun <T> GraficoSeccion(
+    titulo: String,
+    datos: List<T>,
+    totalSelector: (T) -> Double,
+    labelSelector: (T) -> String,
+    barColor: Color
+) {
+    Column {
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(titulo, fontWeight = FontWeight.SemiBold)
+        BarChartGenerico(
+            datos = datos,
+            totalSelector = totalSelector,
+            labelSelector = labelSelector,
+            barColor = barColor,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+
+@Composable
 fun GraficoScreen(
     usuarioId: Int,
     gastoviewModel: GastoViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-    val tipoActual by gastoviewModel.uiState.collectAsState()
     val datosMensuales = gastoviewModel.totalesMensuales.value
     val datosAnuales = gastoviewModel.totalesAnuales.value
 
@@ -63,39 +122,7 @@ fun GraficoScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Gráfico de Gasto",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        }
+        topBar = { CustomTopBar("Gráfico de Gasto", onBackClick) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -103,27 +130,19 @@ fun GraficoScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text("Resumen mensual", fontWeight = FontWeight.SemiBold)
-            BarChartGenerico(
+            GraficoSeccion(
+                titulo = "Resumen mensual",
                 datos = datosMensuales,
                 totalSelector = { it.total },
                 labelSelector = { it.mes },
-                barColor = Color(0xFF8BC34A),
-                modifier = Modifier.fillMaxWidth()
+                barColor = Color(0xFF8BC34A)
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text("Resumen anual", fontWeight = FontWeight.SemiBold)
-            BarChartGenerico(
+            GraficoSeccion(
+                titulo = "Resumen anual",
                 datos = datosAnuales,
                 totalSelector = { it.total },
                 labelSelector = { it.ano.toString() },
-                barColor = Color(0xFF03A9F4),
-                modifier = Modifier.fillMaxWidth()
+                barColor = Color(0xFF03A9F4)
             )
         }
     }

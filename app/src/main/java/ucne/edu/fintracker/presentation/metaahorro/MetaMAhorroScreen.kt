@@ -1,6 +1,6 @@
 package ucne.edu.fintracker.presentation.metaahorro
 
-import android.util.Log
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,64 +41,22 @@ fun MetaMAhorroScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
-
     var montoAhorrado by remember { mutableStateOf("") }
     var fechaMonto by remember { mutableStateOf(meta.fechaMontoAhorrado ?: OffsetDateTime.now(ZoneOffset.UTC)) }
-
     val fechaFormatter = DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy")
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Agregar Ahorro",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onCancel) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Cerrar",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        },
+        topBar = { MetaTopBar("Agregar Ahorro", onCancel) },
         bottomBar = {
-            Button(
-                onClick = {
-                    val monto = montoAhorrado.toDoubleOrNull()
-                    if (monto != null && monto > 0) {
-                        onGuardarMonto(monto, fechaMonto)
-                        Toast.makeText(context, "Ahorro guardado exitosamente", Toast.LENGTH_SHORT).show()
-                        navController.navigate("metaahorros/$usuarioId") {
-                            popUpTo("metaahorros/$usuarioId") { inclusive = true }
-                        }
-                    } else {
-                        Toast.makeText(context, "Ingrese un monto válido mayor a 0", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8BC34A)
-                )
-            ) {
-                Text("Guardar Ahorro", color = MaterialTheme.colorScheme.onPrimary)
-            }
+            GuardarButton(
+                monto = montoAhorrado,
+                fecha = fechaMonto,
+                context = context,
+                usuarioId = usuarioId,
+                onGuardarMonto = onGuardarMonto,
+                navController = navController
+            )
         }
     ) { padding ->
         Column(
@@ -110,43 +68,10 @@ fun MetaMAhorroScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (meta.imagen != null) {
-                Log.d("MetaMAhorroScreen", "Imagen recibida: ${meta.imagen}")
-                Image(
-                    painter = rememberAsyncImagePainter(meta.imagen),
-                    contentDescription = "Imagen meta",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Sin imagen", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
+            ImagenMeta(meta.imagen)
 
-            Text(
-                text = "Meta: RD$ ${meta.montoObjetivo}",
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = "Fecha límite: ${meta.fechaFinalizacion.format(fechaFormatter)}",
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
+            MetaInfoText("Meta: RD$ ${meta.montoObjetivo}")
+            MetaInfoText("Fecha límite: ${meta.fechaFinalizacion.format(fechaFormatter)}")
 
             OutlinedTextField(
                 value = montoAhorrado,
@@ -167,6 +92,102 @@ fun MetaMAhorroScreen(
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MetaTopBar(title: String, onCancel: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onCancel) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+        )
+    )
+}
+
+@Composable
+private fun ImagenMeta(imagenUrl: String?) {
+    if (imagenUrl != null) {
+        Image(
+            painter = rememberAsyncImagePainter(imagenUrl),
+            contentDescription = "Imagen meta",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Sin imagen", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun MetaInfoText(text: String) {
+    Text(
+        text = text,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+private fun GuardarButton(
+    monto: String,
+    fecha: OffsetDateTime,
+    context: Context,
+    usuarioId: Int,
+    onGuardarMonto: (Double, OffsetDateTime) -> Unit,
+    navController: NavController
+) {
+    Button(
+        onClick = {
+            val montoValido = monto.toDoubleOrNull()
+            if (montoValido != null && montoValido > 0) {
+                onGuardarMonto(montoValido, fecha)
+                Toast.makeText(context, "Ahorro guardado exitosamente", Toast.LENGTH_SHORT).show()
+                navController.navigate("metaahorros/$usuarioId") {
+                    popUpTo("metaahorros/$usuarioId") { inclusive = true }
+                }
+            } else {
+                Toast.makeText(context, "Ingrese un monto válido mayor a 0", Toast.LENGTH_SHORT).show()
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
+    ) {
+        Text("Guardar Ahorro", color = MaterialTheme.colorScheme.onPrimary)
+    }
+}
+
 
 @Composable
 private fun FechaSelector(
