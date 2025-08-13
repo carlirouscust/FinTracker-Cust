@@ -47,6 +47,7 @@ fun CategoriaListScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(usuarioId) {
+        viewModel.inicializarCategoriasPorDefecto(usuarioId)
         viewModel.fetchCategorias(usuarioId)
         if (tipoFiltro.isBlank()) {
             viewModel.inicializarSinFiltro()
