@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.dto.CambiarContrasenaRequest
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.dto.CambiarContrasenaRequest
 import javax.inject.Inject
 
 @HiltViewModel

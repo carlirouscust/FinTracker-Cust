@@ -1,4 +1,4 @@
-package ucne.edu.fintracker.presentation.remote
+package ucne.edu.fintracker.remote
 
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson

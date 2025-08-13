@@ -1,6 +1,6 @@
 package ucne.edu.fintracker.presentation.limitegasto
 
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
 
 data class LimiteUiState(
     val limites: List<LimiteGastoDto> = emptyList(),

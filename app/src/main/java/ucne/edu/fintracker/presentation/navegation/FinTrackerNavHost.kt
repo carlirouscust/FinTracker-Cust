@@ -21,8 +21,8 @@ import ucne.edu.fintracker.presentation.gasto.GastoListScreen
 import ucne.edu.fintracker.presentation.gasto.GastoScreen
 import ucne.edu.fintracker.presentation.login.LoginViewModel
 import ucne.edu.fintracker.presentation.login.LoginRegisterScreen
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.dto.TransaccionDto
 import androidx.navigation.NavType
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,9 +47,9 @@ import ucne.edu.fintracker.presentation.pagorecurrente.PagoScreen
 import ucne.edu.fintracker.presentation.pagorecurrente.PagoViewModel
 import ucne.edu.fintracker.presentation.gasto.GastoViewModel
 import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioScreen
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
-import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue

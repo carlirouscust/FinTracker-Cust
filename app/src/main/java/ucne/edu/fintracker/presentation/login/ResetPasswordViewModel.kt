@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.FinTrackerApi
 import javax.inject.Inject
 
 

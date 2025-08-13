@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.threeten.bp.format.DateTimeFormatter
-import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController

@@ -1,8 +1,8 @@
-package ucne.edu.fintracker.data.local.repository
+package ucne.edu.fintracker.repository
 
 import android.content.Context
-import ucne.edu.fintracker.presentation.remote.DataSource
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.DataSource
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.login.DataLogin
 import javax.inject.Inject
 

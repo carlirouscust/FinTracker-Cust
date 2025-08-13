@@ -17,15 +17,16 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import ucne.edu.fintracker.BuildConfig1
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.LocalDateTimeAdapter
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.LocalDateTimeAdapter
+import ucne.edu.fintracker.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
 import java.text.NumberFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.BuildConfig
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 
 class ChatIAViewModel : ViewModel() {
 
@@ -105,7 +106,7 @@ class ChatIAViewModel : ViewModel() {
     }
 
     private fun construirPromptCompleto(
-        usuario: ucne.edu.fintracker.presentation.remote.dto.UsuarioDto,
+        usuario: UsuarioDto,
         transacciones: List<TransaccionDto>,
         metas: List<MetaAhorroDto>
     ): String {

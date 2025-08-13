@@ -18,11 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ucne.edu.fintracker.presentation.gasto.GastoViewModel
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.dto.TransaccionDto
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.DayOfWeek
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
 
 @Composable
 fun LimiteListScreen(

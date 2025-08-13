@@ -1,7 +1,7 @@
 package ucne.edu.fintracker.presentation.pagorecurrente
 
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
 
 data class PagoUiState(
     val pagos: List<PagoRecurrenteDto> = emptyList(),

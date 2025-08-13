@@ -9,8 +9,8 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.LocalDateTimeAdapter
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.LocalDateTimeAdapter
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 

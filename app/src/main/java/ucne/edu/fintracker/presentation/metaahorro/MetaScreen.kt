@@ -26,8 +26,8 @@ import coil.compose.AsyncImage
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
-import ucne.edu.fintracker.presentation.remote.ImagenAdapter
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.ImagenAdapter
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
 import java.io.File
 import java.util.Calendar
 

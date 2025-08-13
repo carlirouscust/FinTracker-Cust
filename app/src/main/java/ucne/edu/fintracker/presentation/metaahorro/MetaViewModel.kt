@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.threeten.bp.OffsetDateTime
-import ucne.edu.fintracker.data.local.repository.MetaRepository
-import ucne.edu.fintracker.presentation.remote.DataSource
-import ucne.edu.fintracker.presentation.remote.Resource
-import ucne.edu.fintracker.presentation.remote.dto.AhorroRegistro
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.repository.MetaRepository
+import ucne.edu.fintracker.remote.DataSource
+import ucne.edu.fintracker.remote.Resource
+import ucne.edu.fintracker.remote.dto.AhorroRegistro
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
 import javax.inject.Inject
 
 @HiltViewModel

@@ -1,13 +1,13 @@
-package ucne.edu.fintracker.data.local.repository
+package ucne.edu.fintracker.repository
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.CategoriaDao
-import ucne.edu.fintracker.data.local.toEntity
-import ucne.edu.fintracker.presentation.remote.DataSource
-import ucne.edu.fintracker.presentation.remote.Resource
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.mappers.toEntity
+import ucne.edu.fintracker.remote.DataSource
+import ucne.edu.fintracker.remote.Resource
+import ucne.edu.fintracker.remote.dto.CategoriaDto
 import javax.inject.Inject
 
 

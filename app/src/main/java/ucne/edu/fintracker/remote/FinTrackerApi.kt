@@ -1,8 +1,17 @@
-package ucne.edu.fintracker.presentation.remote
+package ucne.edu.fintracker.remote
 
 import retrofit2.Response
 import retrofit2.http.*
-import ucne.edu.fintracker.presentation.remote.dto.*
+import ucne.edu.fintracker.remote.dto.*
+import ucne.edu.fintracker.remote.dto.CambiarContrasenaRequest
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.remote.dto.TotalAnual
+import ucne.edu.fintracker.remote.dto.TotalMes
+import ucne.edu.fintracker.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 
 interface FinTrackerApi {
 

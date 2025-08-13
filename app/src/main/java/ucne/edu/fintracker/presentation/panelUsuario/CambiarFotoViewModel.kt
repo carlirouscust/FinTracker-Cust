@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import ucne.edu.fintracker.data.local.repository.UsuarioRepository
-import ucne.edu.fintracker.presentation.remote.DataSource
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.Resource
+import ucne.edu.fintracker.repository.UsuarioRepository
+import ucne.edu.fintracker.remote.DataSource
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.Resource
 import javax.inject.Inject
 
 @HiltViewModel
