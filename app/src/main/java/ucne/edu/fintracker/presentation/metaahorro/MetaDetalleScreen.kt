@@ -117,15 +117,16 @@ fun MetaDetalleScreen(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
+
             val montoAhorrado = meta.montoAhorrado ?: 0.0
             val porcentajeProgreso = if (meta.montoObjetivo > 0) {
                 ((montoAhorrado / meta.montoObjetivo) * 100).coerceAtLeast(0.0)
             } else 0.0
 
             val colorProgreso = when {
-                porcentajeProgreso <= 100 -> Color(0xFFFF9800)
-                porcentajeProgreso <= 120 -> Color(0xFFFFC107)
-                else -> Color.Red
+                porcentajeProgreso <= 50 -> Color(0xFFFF9800)
+                porcentajeProgreso <= 90 -> Color(0xFFFFEB3B)
+                else -> Color(0xFF8BC34A)
             }
 
             Column(
@@ -155,7 +156,7 @@ fun MetaDetalleScreen(
                             text = "${porcentajeProgreso.toInt()}%",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -169,34 +170,6 @@ fun MetaDetalleScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center
                 )
-            }
-
-
-            Divider()
-            Text(text = "Ahorros registrados", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                meta.ahorros.forEach { ahorro ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "RD$ ${String.format("%.2f", ahorro.monto)}",
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = ahorro.fecha.format(fechaFormatter),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
             }
 
             Spacer(Modifier.height(24.dp))
