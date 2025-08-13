@@ -1,4 +1,4 @@
-package ucne.edu.fintracker.presentation.remote.dto
+package ucne.edu.fintracker.remote.dto
 
 data class LimiteGastoDto(
     val limiteGastoId: Int = 0,

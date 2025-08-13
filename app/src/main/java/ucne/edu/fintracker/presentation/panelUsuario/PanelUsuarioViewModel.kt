@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 import ucne.edu.fintracker.presentation.utils.SaldoCalculatorUtil
 import javax.inject.Inject
 

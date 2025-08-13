@@ -1,4 +1,4 @@
-package ucne.edu.fintracker.presentation.remote
+package ucne.edu.fintracker.remote
 
 import android.content.Context
 import android.net.Uri

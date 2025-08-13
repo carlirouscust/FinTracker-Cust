@@ -15,16 +15,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.threeten.bp.DayOfWeek
 import org.threeten.bp.OffsetDateTime
-import ucne.edu.fintracker.data.local.repository.CategoriaRepository
-import ucne.edu.fintracker.data.local.repository.TransaccionRepository
+import ucne.edu.fintracker.repository.CategoriaRepository
+import ucne.edu.fintracker.repository.TransaccionRepository
 import androidx.compose.runtime.State
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import ucne.edu.fintracker.presentation.remote.Resource
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
-import ucne.edu.fintracker.presentation.remote.dto.TotalMes
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.Resource
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.TotalAnual
+import ucne.edu.fintracker.remote.dto.TotalMes
+import ucne.edu.fintracker.remote.dto.TransaccionDto
 import ucne.edu.fintracker.presentation.utils.SaldoCalculatorUtil
 import javax.inject.Inject
 

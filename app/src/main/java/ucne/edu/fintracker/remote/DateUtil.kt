@@ -1,4 +1,4 @@
-package ucne.edu.fintracker.presentation.remote
+package ucne.edu.fintracker.remote
 
 import org.threeten.bp.LocalDate
 import org.threeten.bp.LocalDateTime

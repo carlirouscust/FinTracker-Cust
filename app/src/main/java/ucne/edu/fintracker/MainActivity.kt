@@ -12,7 +12,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ucne.edu.fintracker.presentation.navegation.FinTrackerNavHost
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.FinTrackerApi
 import ucne.edu.fintracker.presentation.theme.ThemeViewModel
 import ucne.edu.fintracker.ui.theme.FinTrackerTheme
 import javax.inject.Inject

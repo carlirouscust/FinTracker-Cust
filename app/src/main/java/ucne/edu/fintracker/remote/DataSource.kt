@@ -1,15 +1,15 @@
-package ucne.edu.fintracker.presentation.remote
+package ucne.edu.fintracker.remote
 
 import retrofit2.Response
-import ucne.edu.fintracker.presentation.remote.dto.CambiarContrasenaRequest
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
-import ucne.edu.fintracker.presentation.remote.dto.PagoRecurrenteDto
-import ucne.edu.fintracker.presentation.remote.dto.TotalAnual
-import ucne.edu.fintracker.presentation.remote.dto.TotalMes
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.dto.CambiarContrasenaRequest
+import ucne.edu.fintracker.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
+import ucne.edu.fintracker.remote.dto.TotalAnual
+import ucne.edu.fintracker.remote.dto.TotalMes
+import ucne.edu.fintracker.remote.dto.TransaccionDto
 import javax.inject.Inject
 
 class DataSource @Inject constructor(

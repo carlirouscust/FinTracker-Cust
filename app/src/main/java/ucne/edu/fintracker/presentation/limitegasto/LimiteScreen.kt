@@ -17,8 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.LimiteGastoDto
 
 data class TextFieldConfig(
     val value: String,

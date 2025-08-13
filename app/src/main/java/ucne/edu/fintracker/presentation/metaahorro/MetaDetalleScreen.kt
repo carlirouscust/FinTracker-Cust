@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import org.threeten.bp.format.DateTimeFormatter
-import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
+import ucne.edu.fintracker.remote.dto.MetaAhorroDto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

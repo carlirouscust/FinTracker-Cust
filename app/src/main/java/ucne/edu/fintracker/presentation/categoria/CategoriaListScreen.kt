@@ -33,7 +33,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.unit.sp
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
 import androidx.compose.material3.TextButton
 
 @Composable

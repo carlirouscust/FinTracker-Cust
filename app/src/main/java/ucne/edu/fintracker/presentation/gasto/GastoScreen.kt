@@ -28,8 +28,8 @@ import org.threeten.bp.LocalDate
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
-import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
-import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
+import ucne.edu.fintracker.remote.dto.CategoriaDto
+import ucne.edu.fintracker.remote.dto.TransaccionDto
 
 @Composable
 fun GastoScreen(

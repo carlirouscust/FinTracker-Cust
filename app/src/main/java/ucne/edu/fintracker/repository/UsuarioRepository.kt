@@ -1,11 +1,11 @@
-package ucne.edu.fintracker.data.local.repository
+package ucne.edu.fintracker.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
-import ucne.edu.fintracker.presentation.remote.FinTrackerApi
-import ucne.edu.fintracker.presentation.remote.Resource
-import ucne.edu.fintracker.presentation.remote.dto.UsuarioDto
+import ucne.edu.fintracker.remote.FinTrackerApi
+import ucne.edu.fintracker.remote.Resource
+import ucne.edu.fintracker.remote.dto.UsuarioDto
 import java.io.File
 import javax.inject.Inject
 
