@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.data.local.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -16,7 +17,9 @@ class PagoRepository @Inject constructor(
     private val dataSource: DataSource,
     private val pagoRecurrenteDao: PagoRecurrenteDao
 ) {
-
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
     fun getPagosRecurrentes(usuarioId: Int): Flow<Resource<List<PagoRecurrenteDto>>> = flow {
         emit(Resource.Loading())
 
@@ -35,7 +38,7 @@ class PagoRepository @Inject constructor(
 
             emit(Resource.Success(remotosDto))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al obtener pagos recurrentes: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al obtener pagos recurrentes: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -45,6 +48,7 @@ class PagoRepository @Inject constructor(
             val filtrados = remotos.filter { it.usuarioId == usuarioId }
             pagoRecurrenteDao.insertOrUpdateAll(filtrados.map { it.toEntity() })
         } catch (e: Exception) {
+            Log.e("syncPagosRecurrentes", "Error sincronizando pagos recurrentes", e)
         }
     }
 
@@ -57,7 +61,7 @@ class PagoRepository @Inject constructor(
             pagoRecurrenteDao.save(created.toEntity(syncPending = false))
             emit(Resource.Success(created))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al crear pago recurrente: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al crear pago recurrente: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -71,7 +75,7 @@ class PagoRepository @Inject constructor(
                 emit(Resource.Error("Error en la respuesta: ${response.code()}"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error("Error al actualizar pago recurrente: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al actualizar pago recurrente: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -82,7 +86,7 @@ class PagoRepository @Inject constructor(
             pagoRecurrenteDao.deleteById(id)
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al eliminar pago recurrente: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al eliminar pago recurrente: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 }

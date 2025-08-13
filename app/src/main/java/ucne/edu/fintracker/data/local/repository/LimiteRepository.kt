@@ -15,13 +15,17 @@ class LimiteRepository @Inject constructor(
     private val limiteGastoDao: LimiteGastoDao
 ) {
 
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
+
     fun getLimites(usuarioId: Int): Flow<Resource<List<LimiteGastoDto>>> = flow {
         emit(Resource.Loading())
         try {
             val limites = dataSource.getLimiteGastosPorUsuario(usuarioId)
             emit(Resource.Success(limites))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al obtener límites: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al obtener límites: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -34,7 +38,7 @@ class LimiteRepository @Inject constructor(
             limiteGastoDao.insert(created.toEntity(syncPending = false))
             emit(Resource.Success(created))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al crear límite: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al crear límite: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -44,7 +48,7 @@ class LimiteRepository @Inject constructor(
             val result = dataSource.updateLimiteGasto(id, limiteDto)
             emit(Resource.Success(result))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al actualizar límite: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al actualizar límite: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -54,7 +58,7 @@ class LimiteRepository @Inject constructor(
             dataSource.deleteLimiteGasto(id)
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al eliminar límite: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al eliminar límite: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 }

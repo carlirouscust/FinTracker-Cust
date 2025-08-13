@@ -24,6 +24,10 @@ class MetaViewModel @Inject constructor(
 
     private var usuarioId: Int = 0
 
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
+
     fun setUsuarioId(id: Int) {
         Log.d("MetaVM", "UsuarioId seteado a $id")
         usuarioId = id
@@ -104,7 +108,7 @@ class MetaViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -138,7 +142,7 @@ class MetaViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -204,7 +208,7 @@ class MetaViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }

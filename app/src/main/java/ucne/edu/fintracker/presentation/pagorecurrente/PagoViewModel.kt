@@ -23,6 +23,10 @@ class PagoViewModel @Inject constructor(
     private val categoriaRepository: CategoriaRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
+
     private val _uiState = MutableStateFlow(
         PagoUiState(
             pagos = emptyList(),
@@ -97,7 +101,7 @@ class PagoViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -132,7 +136,7 @@ class PagoViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -164,7 +168,7 @@ class PagoViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -195,7 +199,7 @@ class PagoViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }

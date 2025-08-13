@@ -126,7 +126,6 @@ class ChatIAViewModel : ViewModel() {
             .sortedByDescending { it.fecha }
             .take(5)
 
-        // Análisis de metas
         val metasActivas = metas.filter {
             val montoAhorrado = it.montoAhorrado ?: 0.0
             val montoObjetivo = it.montoObjetivo ?: 0.0
@@ -145,7 +144,7 @@ class ChatIAViewModel : ViewModel() {
             === INFORMACIÓN PERSONAL ===
             - Nombre: $nombreCompleto
             - Email: ${usuario.email}
-            - Saldo Total Actual: ${formatter.format(usuario.saldoTotal ?: 0.0)}
+            - Saldo Total Actual: ${formatter.format(usuario.saldoTotal)}
             - Divisa: ${usuario.divisa.ifEmpty { "RD$" }}
             
             === ANÁLISIS DE TRANSACCIONES ===
@@ -157,7 +156,7 @@ class ChatIAViewModel : ViewModel() {
             • Balance neto: ${formatter.format(balanceNeto)}
             
             TRANSACCIONES RECIENTES:
-            ${transaccionesRecientes.take(5).mapIndexed { index, t ->
+            ${transaccionesRecientes.take(5).mapIndexed { _, t ->
             "• ${t.fecha.format(dateFormatter)}: ${if (t.tipo == "Gasto") "-" else "+"}${formatter.format(t.monto ?: 0.0)} (${t.tipo})"
         }.joinToString("\n")}
             
