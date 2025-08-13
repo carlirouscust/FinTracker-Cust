@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
@@ -103,7 +104,7 @@ fun MetaDetalleScreen(
             }
 
             Text(
-                text = "Meta: RD$ ${meta.montoObjetivo}",
+                text = "RD$ ${String.format("%,.2f", meta.montoObjetivo)}",
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
@@ -164,12 +165,16 @@ fun MetaDetalleScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Progreso: RD$ ${String.format("%.2f", montoAhorrado)} / RD$ ${String.format("%.2f", meta.montoObjetivo)}",
+                    text = "Progreso: RD$ ${String.format("%,.2f", montoAhorrado)} / RD$ ${String.format("%,.2f", meta.montoObjetivo)}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+
             }
 
             Spacer(Modifier.height(24.dp))
