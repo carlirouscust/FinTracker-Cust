@@ -9,7 +9,6 @@ import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import ucne.edu.fintracker.data.local.entity.PagoRecurrenteEntity
-import ucne.edu.fintracker.data.local.entity.TransaccionEntity
 
 @Dao
 interface PagoRecurrenteDao {
