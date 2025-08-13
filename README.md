@@ -29,7 +29,8 @@ Su misión es ayudarte a **gestionar tus finanzas personales** de forma simple, 
 - **Diseño:** Material Design 3  
 - **Arquitectura:** MVVM  
 - **Async:** Kotlin Coroutines + Flow  
-- **DI:** Hilt  
+- **DI:** Hilt
+- **IA:** Gemini 2.5 flash lite  
 
 ---
 
@@ -49,7 +50,10 @@ Desarrollado por:
   
 El proyecto forma parte de la empresa emergente Ozcudi-Studios que estamos creando Carlos Custodio y Alma Bet. Rosa.
  
-![ozcudistudios](https://github.com/user-attachments/assets/8cdaf05d-c72e-4d11-bee0-3983ca93f425)
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/8cdaf05d-c72e-4d11-bee0-3983ca93f425" width="200">
+</div>
+
 
 ---
 
@@ -58,4 +62,4 @@ El proyecto forma parte de la empresa emergente Ozcudi-Studios que estamos crean
 
 1. Clona este repositorio:
    ```bash
-   git clone https://github.com/usuario/FinTracker.git
+   git clone (https://github.com/AlmaOzoria/FinTracker.git)
