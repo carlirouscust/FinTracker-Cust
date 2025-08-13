@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.PagoRecurrenteDao
-import ucne.edu.fintracker.mappers.toDto
-import ucne.edu.fintracker.mappers.toEntity
+import ucne.edu.fintracker.data.mappers.toDto
+import ucne.edu.fintracker.data.mappers.toEntity
 import ucne.edu.fintracker.remote.DataSource
 import ucne.edu.fintracker.remote.Resource
 import ucne.edu.fintracker.remote.dto.PagoRecurrenteDto
