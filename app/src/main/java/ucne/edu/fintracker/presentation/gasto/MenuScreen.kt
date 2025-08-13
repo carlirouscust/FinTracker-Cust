@@ -20,6 +20,9 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +37,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
-
+import androidx.hilt.navigation.compose.hiltViewModel
+import ucne.edu.fintracker.presentation.panelUsuario.PanelUsuarioViewModel
 
 data class DrawerItem(val label: String, val icon: ImageVector)
 
@@ -46,16 +50,30 @@ val drawerItems = listOf(
     DrawerItem("Limite de gastos", Icons.Default.Warning),
     DrawerItem("Ajustes", Icons.Default.Settings)
 )
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MenuScreen(
     drawerState: DrawerState,
     navController: NavController,
     content: @Composable () -> Unit,
-    userName: String = "Sofía Rodriguez",
-    usuarioId: Int
+    usuarioId: Int,
+    panelUsuarioViewModel: PanelUsuarioViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
+    val uiState by panelUsuarioViewModel.uiState.collectAsState()
+
+    LaunchedEffect(usuarioId) {
+        panelUsuarioViewModel.cargarUsuario(usuarioId)
+    }
+
+    val nombreCompleto = uiState.usuario?.let { usuario ->
+        if (usuario.apellido.isNotBlank()) {
+            "${usuario.nombre} ${usuario.apellido}"
+        } else {
+            usuario.nombre
+        }
+    } ?: "Usuario"
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -71,7 +89,7 @@ fun MenuScreen(
                         .padding(start = 12.dp, top = 24.dp, end = 12.dp, bottom = 24.dp)
                 ) {
                     Text(
-                        text = userName,
+                        text = nombreCompleto,
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -127,4 +145,3 @@ fun MenuScreen(
         content = content
     )
 }
-

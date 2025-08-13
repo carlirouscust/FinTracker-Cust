@@ -40,9 +40,19 @@ class PagoViewModel @Inject constructor(
     val categorias: StateFlow<List<CategoriaDto>> = _categorias
 
     fun inicializar(usuarioId: Int) {
-        Log.d("LimiteViewModel", "Inicializando datos para usuario $usuarioId")
-        usuarioIdActual = usuarioId
-        fetchCategorias(usuarioId)
+        if (usuarioId <= 0) return
+        if (usuarioIdActual != usuarioId) {
+            usuarioIdActual = usuarioId
+
+            fetchCategorias(usuarioId)
+
+            cargarPagosRecurrentes(usuarioId)
+
+            viewModelScope.launch {
+                pagoRecurrenteRepository.syncPagosRecurrentes(usuarioId)
+                cargarPagosRecurrentes(usuarioId)
+            }
+        }
     }
 
 
@@ -67,8 +77,6 @@ class PagoViewModel @Inject constructor(
         }
     }
 
-
-    /** 🔹 Cargar pagos recurrentes de un usuario */
     fun cargarPagosRecurrentes(usuarioId: Int) {
         viewModelScope.launch {
             pagoRecurrenteRepository.getPagosRecurrentes(usuarioId).collect { result ->
@@ -98,7 +106,6 @@ class PagoViewModel @Inject constructor(
         }
     }
 
-    // Crear pago recurrente
     fun crearPagoRecurrente(pagoRecurrenteDto: PagoRecurrenteDto) {
         Log.d("PagoRecurrenteVM", "Creando pago recurrente: $pagoRecurrenteDto")
         viewModelScope.launch {
@@ -134,7 +141,6 @@ class PagoViewModel @Inject constructor(
         }
     }
 
-    // 🔹 Actualizar pago recurrente
     fun actualizarPagoRecurrente(id: Int, pagoRecurrenteDto: PagoRecurrenteDto) {
         viewModelScope.launch {
             pagoRecurrenteRepository.updatePagoRecurrente(id, pagoRecurrenteDto).collect { result ->

@@ -6,7 +6,7 @@ data class UsuarioDto(
     val apellido: String = "",
     val email: String,
     val contraseña: String,
-    val fotoPerfil: String? = null,
+    val fotoPerfil: String?,
     val divisa: String = "",
     val saldoTotal: Double = 0.0
 )

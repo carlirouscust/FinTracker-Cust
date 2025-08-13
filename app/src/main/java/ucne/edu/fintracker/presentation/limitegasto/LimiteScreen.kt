@@ -3,6 +3,7 @@ package ucne.edu.fintracker.presentation.limitegasto
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -31,15 +32,19 @@ fun LimiteScreen(
     val categorias by viewModel.categorias.collectAsState()
     val context = LocalContext.current
 
+    val categoriasGasto = remember(categorias) {
+        categorias.filter { it.tipo.equals("Gasto", ignoreCase = true) }
+    }
+
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
     var montoLimite by remember { mutableStateOf(limiteParaEditar?.montoLimite?.toString() ?: "") }
     var periodoSeleccionado by remember { mutableStateOf(limiteParaEditar?.periodo ?: "") }
 
     val periodos = listOf("Diario", "Semanal", "Quincenal", "Mensual", "Anual")
 
-    LaunchedEffect(categorias, limiteParaEditar) {
-        if (limiteParaEditar != null && categorias.isNotEmpty()) {
-            categoriaSeleccionada = categorias.find { it.categoriaId == limiteParaEditar.categoriaId }
+    LaunchedEffect(categoriasGasto, limiteParaEditar) {
+        if (limiteParaEditar != null && categoriasGasto.isNotEmpty()) {
+            categoriaSeleccionada = categoriasGasto.find { it.categoriaId == limiteParaEditar.categoriaId }
         }
     }
 
@@ -121,19 +126,27 @@ fun LimiteScreen(
                     value = categoriaSeleccionada?.nombre ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Categoría") },
+                    label = { Text("Categoría (Solo Gastos)") },
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategoria)
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedCategoria,
                     onDismissRequest = { expandedCategoria = false }
                 ) {
-                    categorias.forEach { cat ->
+                    categoriasGasto.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.nombre) },
                             onClick = {
@@ -150,7 +163,15 @@ fun LimiteScreen(
                 onValueChange = { montoLimite = it },
                 label = { Text("Monto del Límite") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
 
             var expandedPeriodo by remember { mutableStateOf(false) }
@@ -168,7 +189,15 @@ fun LimiteScreen(
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedPeriodo,

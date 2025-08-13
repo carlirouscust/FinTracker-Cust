@@ -23,21 +23,22 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import org.threeten.bp.LocalDate
 import org.threeten.bp.OffsetDateTime
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
 import ucne.edu.fintracker.presentation.remote.dto.CategoriaDto
 import ucne.edu.fintracker.presentation.remote.dto.TransaccionDto
-import java.util.*
 
 @Composable
 fun GastoScreen(
+    gastoViewModel: GastoViewModel = hiltViewModel(),
     categorias: List<CategoriaDto>,
     usuarioId: Int,
     transaccionParaEditar: TransaccionDto? = null,
     tipoInicial: String = "Gasto",
-    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String, usuarioId: Int) -> Unit,
+    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: OffsetDateTime, notas: String, usuarioId: Int) -> Unit,
     onCancel: () -> Unit
 ) {
     var tipo by remember { mutableStateOf(transaccionParaEditar?.tipo ?: tipoInicial) }
@@ -45,19 +46,19 @@ fun GastoScreen(
     var expandedCategoria by remember { mutableStateOf(false) }
     var fechaSeleccionada by remember {
         mutableStateOf(
-            transaccionParaEditar?.fecha?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                ?: DateTimeFormatter.ofPattern("dd/MM/yyyy").format(OffsetDateTime.now())
+            transaccionParaEditar?.fecha ?: OffsetDateTime.now()
         )
     }
     var notas by remember { mutableStateOf(transaccionParaEditar?.notas ?: "") }
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
+
 
     LaunchedEffect(transaccionParaEditar, categorias) {
         categoriaSeleccionada = transaccionParaEditar?.let { trans ->
             categorias.find { it.categoriaId == trans.categoriaId }
         }
     }
-
+    val categorias by gastoViewModel.categorias.collectAsState()
     val context = LocalContext.current
     val categoriasFiltradas = categorias.filter { it.tipo.equals(tipo, ignoreCase = true) }
 
@@ -89,7 +90,9 @@ fun GastoScreen(
                 }
             )
 
-            FechaSelector(fechaSeleccionada) { nuevaFecha -> fechaSeleccionada = nuevaFecha }
+            FechaSelector(fechaSeleccionada) { nuevaFecha ->
+                fechaSeleccionada = nuevaFecha
+            }
 
             NotasInput(notas) { nuevasNotas -> notas = nuevasNotas }
 
@@ -159,7 +162,7 @@ private fun TipoSelector(tipo: String, onTipoChange: (String) -> Unit) {
 
 @Composable
 private fun MontoInput(monto: TextFieldValue, onValueChange: (TextFieldValue) -> Unit) {
-    val context = LocalContext.current
+//    val context = LocalContext.current
     OutlinedTextField(
         value = monto,
         onValueChange = onValueChange,
@@ -231,36 +234,62 @@ private fun CategoriaDropdown(
 }
 
 @Composable
-private fun FechaSelector(fechaSeleccionada: String, onFechaChange: (String) -> Unit) {
+fun FechaSelector(fechaSeleccionada: OffsetDateTime, onFechaChange: (OffsetDateTime) -> Unit) {
     val context = LocalContext.current
+
+    Text(
+        text = "Fecha seleccionada: ${fechaSeleccionada.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.fillMaxWidth()
+    )
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        listOf("Hoy", "Ayer").forEach { dia ->
-            val selected = fechaSeleccionada == dia
+        val hoy = OffsetDateTime.now()
+        val ayer = hoy.minusDays(1)
+
+        listOf(hoy, ayer).forEach { fecha ->
+            val selected = fechaSeleccionada.toLocalDate() == fecha.toLocalDate()
+
+            println("DEBUG - Comparando: fechaSeleccionada=${fechaSeleccionada.toLocalDate()} vs fecha=${fecha.toLocalDate()} = $selected")
+
             Button(
-                onClick = { onFechaChange(dia) },
+                onClick = {
+                    println("DEBUG - Botón clickeado: ${fecha.toLocalDate()}")
+                    onFechaChange(fecha)
+                },
                 colors = if (selected)
-                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
                 else
                     ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier.weight(1f)
             ) {
-                Text(dia, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = if (fecha.toLocalDate() == hoy.toLocalDate()) "Hoy" else "Ayer",
+                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
+
         IconButton(
             onClick = {
-                val calendario = Calendar.getInstance()
+                val fechaActual = fechaSeleccionada.toLocalDate()
                 DatePickerDialog(
                     context,
                     { _, year, month, dayOfMonth ->
-                        onFechaChange("$dayOfMonth/${month + 1}/$year")
+                        val nuevaFecha = LocalDate.of(year, month + 1, dayOfMonth)
+                            .atStartOfDay()
+                            .atOffset(ZoneOffset.UTC)
+
+                        println("DEBUG - DatePicker seleccionó: ${nuevaFecha.toLocalDate()}")
+                        onFechaChange(nuevaFecha)
                     },
-                    calendario.get(Calendar.YEAR),
-                    calendario.get(Calendar.MONTH),
-                    calendario.get(Calendar.DAY_OF_MONTH)
+                    fechaActual.year,
+                    fechaActual.monthValue - 1,
+                    fechaActual.dayOfMonth
                 ).show()
             }
         ) {
@@ -292,13 +321,13 @@ private fun NotasInput(notas: String, onValueChange: (String) -> Unit) {
 private fun GuardarBoton(
     monto: TextFieldValue,
     categoriaSeleccionada: CategoriaDto?,
-    fechaSeleccionada: String,
+    fechaSeleccionada: OffsetDateTime,
     tipo: String,
     notas: String,
     usuarioId: Int,
     transaccionParaEditar: TransaccionDto?,
     context: Context,
-    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: String, notas: String, usuarioId: Int) -> Unit
+    onGuardar: (tipo: String, monto: Double, categoriaNombre: String, fecha: OffsetDateTime, notas: String, usuarioId: Int) -> Unit
 ) {
     Button(
         onClick = {
@@ -310,29 +339,7 @@ private fun GuardarBoton(
                 return@Button
             }
 
-            val fecha = when (fechaSeleccionada) {
-                "Hoy" -> OffsetDateTime.now()
-                "Ayer" -> OffsetDateTime.now().minusDays(1)
-                else -> {
-                    try {
-                        val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
-                        val localDate = LocalDate.parse(fechaSeleccionada, formatter)
-                        localDate.atStartOfDay().atOffset(ZoneOffset.UTC)
-                    } catch (e: Exception) {
-                        OffsetDateTime.now()
-                    }
-                }
-            }
-
-            val transaccion = TransaccionDto(
-                transaccionId = transaccionParaEditar?.transaccionId ?: 0,
-                tipo = tipo,
-                monto = montoDouble,
-                categoriaId = categoriaId,
-                fecha = fecha,
-                notas = notas,
-                usuarioId = usuarioId
-            )
+//            val fechaFormateada = fechaSeleccionada.format(DateTimeFormatter.ofPattern("d/M/yyyy"))
 
             onGuardar(tipo, montoDouble, categoriaSeleccionada?.nombre ?: "", fechaSeleccionada, notas, usuarioId)
         },

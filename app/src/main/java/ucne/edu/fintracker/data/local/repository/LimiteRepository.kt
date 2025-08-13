@@ -2,6 +2,8 @@ package ucne.edu.fintracker.data.local.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import ucne.edu.fintracker.data.local.dao.LimiteGastoDao
+import ucne.edu.fintracker.data.local.toEntity
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
 import ucne.edu.fintracker.presentation.remote.dto.LimiteGastoDto
@@ -9,7 +11,8 @@ import javax.inject.Inject
 
 
 class LimiteRepository @Inject constructor(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val limiteGastoDao: LimiteGastoDao
 ) {
 
     // Obtener límites de gasto filtrados por usuarioId
@@ -25,10 +28,13 @@ class LimiteRepository @Inject constructor(
 
     // Crear un nuevo límite de gasto
     fun createLimite(limiteDto: LimiteGastoDto): Flow<Resource<LimiteGastoDto>> = flow {
+        val entity = limiteDto.toEntity(syncPending = true)
+        limiteGastoDao.insert(entity)
         emit(Resource.Loading())
         try {
-            val result = dataSource.createLimiteGasto(limiteDto)
-            emit(Resource.Success(result))
+            val created = dataSource.createLimiteGasto(limiteDto)
+            limiteGastoDao.insert(created.toEntity(syncPending = false))
+            emit(Resource.Success(created))
         } catch (e: Exception) {
             emit(Resource.Error("Error al crear límite: ${e.message ?: "Error desconocido"}"))
         }

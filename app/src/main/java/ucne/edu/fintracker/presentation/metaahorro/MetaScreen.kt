@@ -43,7 +43,12 @@ fun MetaScreen(
     val contexto = LocalContext.current
 
     var nombreMeta by remember { mutableStateOf(metaParaEditar?.nombreMeta ?: "") }
-    var montoObjetivo by remember { mutableStateOf(metaParaEditar?.montoObjetivo?.toString() ?: "") }
+    var montoObjetivo by remember {
+        mutableStateOf(
+            metaParaEditar?.montoObjetivo?.let { String.format("%,.2f", it) } ?: ""
+        )
+    }
+
     var fechaFinalizacion by remember {
         mutableStateOf(
             metaParaEditar?.fechaFinalizacion
@@ -141,6 +146,7 @@ fun MetaScreen(
                 value = nombreMeta,
                 onValueChange = { nombreMeta = it },
                 label = { Text("Nombre de la Meta") },
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -148,14 +154,21 @@ fun MetaScreen(
                 value = montoObjetivo,
                 onValueChange = { montoObjetivo = it },
                 label = { Text("Monto Objetivo (RD$)") },
+                shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth(),
+                singleLine = true,
+                maxLines = 1,
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Start)
             )
+
 
             FechaSelector(
                 label = "Fecha de Finalización",
                 fecha = fechaFinalizacion,
-                onFechaSeleccionada = { fechaFinalizacion = it }
+                onFechaSeleccionada = { fechaFinalizacion = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
 
             Text("Imagen de la Meta")
@@ -192,6 +205,7 @@ fun MetaScreen(
 private fun FechaSelector(
     label: String,
     fecha: OffsetDateTime?,
+    modifier: Modifier = Modifier,
     onFechaSeleccionada: (OffsetDateTime) -> Unit
 ) {
     val context = LocalContext.current
@@ -206,6 +220,7 @@ private fun FechaSelector(
             value = fecha?.format(formatter) ?: "",
             onValueChange = {},
             label = { Text(label) },
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.weight(1f),
             readOnly = true
         )

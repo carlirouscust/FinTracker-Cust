@@ -1,6 +1,7 @@
 package ucne.edu.fintracker.presentation.categoria
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -99,7 +101,7 @@ fun CategoriaScreen(
 
                     val iconosBase = listOf(
                         "🏠","🚗","🍽️","📱","💡","🛍️","💳","🛒",
-                        "❤️","🎓","🎮","🎬","🎉","💼"
+                        "❤️","🎓","🎮","🎬","🎉","💼", "⛽"
                     )
                     val iconosExtra = listOf(
                         "📺","🎵","🎧","📷","🧾","🚌","✈️","🛏️",
@@ -189,11 +191,24 @@ fun CategoriaScreen(
                         Text(if (mostrarMasColores) "−" else "➕")
                     }
                 }
-
+                val context = LocalContext.current
                 Button(
                     onClick = {
-                        Log.d("CategoriaScreen", "UsuarioId al guardar: $usuarioId")
-                        onGuardar(state.nombre, state.tipo, state.icono, state.colorFondo)
+                        when {
+                            state.nombre.isBlank() -> {
+                                Toast.makeText(context, "Ingresa un nombre para la categoría", Toast.LENGTH_SHORT).show()
+                            }
+                            state.icono.isBlank() -> {
+                                Toast.makeText(context, "Selecciona un icono", Toast.LENGTH_SHORT).show()
+                            }
+                            state.colorFondo.isBlank() -> {
+                                Toast.makeText(context, "Selecciona un color", Toast.LENGTH_SHORT).show()
+                            }
+                            else -> {
+                                Log.d("CategoriaScreen", "UsuarioId al guardar: $usuarioId")
+                                onGuardar(state.nombre, state.tipo, state.icono, state.colorFondo)
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,8 +23,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.presentation.components.MenuScreen
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +44,6 @@ fun PanelUsuarioScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Cargar datos del usuario cuando se crea el composable
     LaunchedEffect(usuarioId) {
         viewModel.cargarUsuario(usuarioId)
     }
@@ -188,7 +190,6 @@ fun PanelUsuarioScreen(
                         ) {
                             Spacer(modifier = Modifier.height(32.dp))
 
-                            // Foto de perfil
                             Box(
                                 modifier = Modifier
                                     .size(100.dp)
@@ -196,17 +197,27 @@ fun PanelUsuarioScreen(
                                     .background(MaterialTheme.colorScheme.secondaryContainer),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Foto de perfil",
-                                    modifier = Modifier.size(60.dp),
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
+                                if (!usuario.fotoPerfil.isNullOrEmpty()) {
+                                    AsyncImage(
+                                        model = File(usuario.fotoPerfil),
+                                        contentDescription = "Foto de perfil",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Foto de perfil",
+                                        modifier = Modifier.size(60.dp),
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
 
-                            // Nombre del usuario (nombre + apellido)
                             Text(
                                 text = "${usuario.nombre} ${usuario.apellido}".trim(),
                                 style = MaterialTheme.typography.headlineSmall.copy(
@@ -218,7 +229,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(4.dp))
 
-                            // Usuario Premium
                             Text(
                                 text = "Usuario Premium",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -229,7 +239,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Email del usuario real
                             Text(
                                 text = "Email: ${usuario.email}",
                                 style = MaterialTheme.typography.bodyMedium.copy(
@@ -240,7 +249,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(40.dp))
 
-                            // Sección Resumen Financiero
                             Column(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -254,7 +262,6 @@ fun PanelUsuarioScreen(
                                         .padding(bottom = 16.dp)
                                 )
 
-                                // Saldo Total del usuario real
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -316,7 +323,6 @@ fun PanelUsuarioScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // Transacciones
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -351,7 +357,6 @@ fun PanelUsuarioScreen(
 
                             Spacer(modifier = Modifier.height(40.dp))
 
-                            // Sección Opciones
                             Column(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -365,7 +370,6 @@ fun PanelUsuarioScreen(
                                         .padding(bottom = 16.dp)
                                 )
 
-                                // Cambiar Foto de Perfil
                                 OpcionItem(
                                     titulo = "Cambiar Foto de Perfil",
                                     icono = Icons.Default.PhotoCamera,
@@ -383,7 +387,6 @@ fun PanelUsuarioScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // Divisa
                                 OpcionItem(
                                     titulo = "Divisa",
                                     icono = Icons.Default.AttachMoney,
@@ -392,7 +395,6 @@ fun PanelUsuarioScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // Ajustes
                                 OpcionItem(
                                     titulo = "Ajustes",
                                     icono = Icons.Default.Settings,

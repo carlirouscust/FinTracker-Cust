@@ -1,12 +1,10 @@
 package ucne.edu.fintracker.presentation.panelUsuario
 
-import android.net.Uri
-
 data class CambiarFotoUiState(
     val usuarioId: Int? = null,
     val nombreUsuario: String = "",
     val apellidoUsuario: String = "",
-    val fotoPerfilUri: Uri? = null,
+    val fotoPerfilPath: String? = null,
     val fotoPerfilUrl: String? = null,
     val isLoading: Boolean = false,
     val isUploadingFoto: Boolean = false,

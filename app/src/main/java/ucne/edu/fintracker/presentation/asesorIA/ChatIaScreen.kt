@@ -57,6 +57,10 @@ fun ChatIaScreen(
         }
     }
 
+    LaunchedEffect(usuarioId) {
+        ChatIAViewModel.inicializarConUsuario(usuarioId)
+    }
+
     LaunchedEffect(messages.size) {
         coroutineScope.launch {
             if (messages.isNotEmpty()) {

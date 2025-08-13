@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -12,10 +13,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.threeten.bp.OffsetDateTime
@@ -35,7 +40,7 @@ fun PagoScreen(
     val categorias by viewModel.categorias.collectAsState()
     val context = LocalContext.current
 
-    var monto by remember { mutableStateOf(pagoParaEditar?.monto?.toString() ?: "") }
+    var monto by remember { mutableStateOf(TextFieldValue(pagoParaEditar?.monto?.toString() ?: "")) }
     var categoriaSeleccionada by remember { mutableStateOf<CategoriaDto?>(null) }
     var frecuencia by remember { mutableStateOf(pagoParaEditar?.frecuencia ?: "") }
     var fechaInicio by remember { mutableStateOf(pagoParaEditar?.fechaInicio?.toString() ?: "") }
@@ -48,7 +53,6 @@ fun PagoScreen(
             categoriaSeleccionada = categorias.find { it.categoriaId == pagoParaEditar.categoriaId }
         }
     }
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -81,27 +85,41 @@ fun PagoScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    categoriaSeleccionada?.let { cat ->
-                        if (monto.isNotBlank() && frecuencia.isNotBlank() && fechaInicio.isNotBlank()) {
+                    val montoVal = monto.text.toDoubleOrNull()
+                    when {
+                        monto.text.isBlank() -> {
+                            Toast.makeText(context, "El monto es obligatorio", Toast.LENGTH_SHORT).show()
+                        }
+                        montoVal == null || montoVal <= 0.0 -> {
+                            Toast.makeText(context, "El monto debe ser un número válido mayor que cero", Toast.LENGTH_SHORT).show()
+                        }
+                        categoriaSeleccionada == null -> {
+                            Toast.makeText(context, "Selecciona una categoría", Toast.LENGTH_SHORT).show()
+                        }
+                        frecuencia.isBlank() -> {
+                            Toast.makeText(context, "Selecciona una frecuencia", Toast.LENGTH_SHORT).show()
+                        }
+                        fechaInicio.isBlank() -> {
+                            Toast.makeText(context, "Selecciona una fecha de inicio", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
                             onGuardar(
-                                monto.toDoubleOrNull() ?: 0.0,
-                                cat.categoriaId,
+                                montoVal,
+                                categoriaSeleccionada!!.categoriaId,
                                 frecuencia,
                                 OffsetDateTime.parse(fechaInicio),
                                 fechaFin.takeIf { it.isNotBlank() }?.let { OffsetDateTime.parse(it) },
                                 usuarioId
                             )
                             if (pagoParaEditar == null) {
-                                monto = ""
+                                monto = TextFieldValue("")
                                 categoriaSeleccionada = null
                                 frecuencia = ""
                                 fechaInicio = ""
                                 fechaFin = ""
                             }
-                        } else {
-                            Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                         }
-                    } ?: Toast.makeText(context, "Selecciona una categoría", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -122,11 +140,34 @@ fun PagoScreen(
         ) {
             OutlinedTextField(
                 value = monto,
-                onValueChange = { monto = it },
+                onValueChange = { nuevoValor ->
+                    if (nuevoValor.text.matches(Regex("^\\d*(\\.\\d*)?$"))) {
+                        monto = nuevoValor
+                    }
+                },
                 label = { Text("Monto") },
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged { focusState ->
+                        if (focusState.isFocused) {
+                            monto = monto.copy(selection = TextRange(0, monto.text.length))
+                        } else {
+                            val numero = monto.text.toDoubleOrNull() ?: 0.0
+                            val redondeado = String.format("%.2f", numero)
+                            monto = TextFieldValue(redondeado, TextRange(redondeado.length))
+                        }
+                    },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
+
 
             var expandedCategoria by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
@@ -143,7 +184,14 @@ fun PagoScreen(
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedCategoria,
@@ -176,7 +224,15 @@ fun PagoScreen(
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expandedFrecuencia,
@@ -197,13 +253,15 @@ fun PagoScreen(
             FechaSelector(
                 label = "Fecha de Inicio",
                 fecha = fechaInicio,
-                onFechaSeleccionada = { fechaInicio = it }
+                onFechaSeleccionada = { fechaInicio = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
 
             FechaSelector(
                 label = "Fecha de Finalización (Opcional)",
                 fecha = fechaFin,
-                onFechaSeleccionada = { fechaFin = it }
+                onFechaSeleccionada = { fechaFin = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
         }
     }
@@ -211,7 +269,11 @@ fun PagoScreen(
 
 
 @Composable
-private fun FechaSelector(label: String, fecha: String, onFechaSeleccionada: (String) -> Unit) {
+private fun FechaSelector(
+label: String,
+ fecha: String,
+ modifier: Modifier = Modifier,
+ onFechaSeleccionada: (String) -> Unit) {
     val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -222,6 +284,7 @@ private fun FechaSelector(label: String, fecha: String, onFechaSeleccionada: (St
             value = fecha,
             onValueChange = {},
             label = { Text(label) },
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.weight(1f),
             readOnly = true
         )

@@ -12,6 +12,7 @@ import org.threeten.bp.OffsetDateTime
 import ucne.edu.fintracker.data.local.repository.MetaRepository
 import ucne.edu.fintracker.presentation.remote.DataSource
 import ucne.edu.fintracker.presentation.remote.Resource
+import ucne.edu.fintracker.presentation.remote.dto.AhorroRegistro
 import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 import javax.inject.Inject
 
@@ -27,6 +28,7 @@ class MetaViewModel @Inject constructor(
         Log.d("MetaVM", "UsuarioId seteado a $id")
         usuarioId = id
     }
+
     fun inicializar(usuarioId: Int) {
         setUsuarioId(usuarioId)
         cargarMetas(usuarioId)
@@ -116,7 +118,6 @@ class MetaViewModel @Inject constructor(
         }
     }
 
-
     fun actualizarMeta(id: Int, metaDto: MetaAhorroDto) {
         Log.d("MetaVM", "Iniciando actualización meta ID=$id con datos: $metaDto")
         viewModelScope.launch {
@@ -127,11 +128,12 @@ class MetaViewModel @Inject constructor(
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
                     is Resource.Success -> {
-                        cargarMetas(usuarioId)
+                        val currentMetaId = _uiState.value.metaSeleccionada?.metaAhorroId
+                        cargarMetas(usuarioId, currentMetaId)
+
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                metaSeleccionada = null,
                                 error = null
                             )
                         }
@@ -150,12 +152,39 @@ class MetaViewModel @Inject constructor(
         }
     }
 
-    fun actualizarMontoAhorrado(metaId: Int, montoAhorrado: Double, fechaMonto: OffsetDateTime) {
+    fun actualizarMontoAhorrado(metaId: Int, montoNuevo: Double, fechaMonto: OffsetDateTime) {
+        Log.d("MetaVM", "Actualizando monto ahorrado: metaId=$metaId, monto=$montoNuevo")
+
         val metaActual = obtenerMetas(metaId) ?: return
-        val metaActualizada = metaActual.copy(
-            montoAhorrado = montoAhorrado,
-            fechaMontoAhorrado = fechaMonto
+        val montoTotal = (metaActual.montoAhorrado ?: 0.0) + montoNuevo
+
+        val nuevoAhorro = AhorroRegistro(
+            monto = montoNuevo,
+            fecha = fechaMonto
         )
+
+        val nuevosAhorros = metaActual.ahorros + nuevoAhorro
+
+        val metaActualizada = metaActual.copy(
+            montoAhorrado = montoTotal,
+            fechaMontoAhorrado = fechaMonto,
+            ahorros = nuevosAhorros
+        )
+
+        Log.d("MetaVM", "Meta actualizada con ${nuevosAhorros.size} ahorros")
+
+        _uiState.update { currentState ->
+            val metasActualizadas = currentState.metas.map { meta ->
+                if (meta.metaAhorroId == metaId) metaActualizada else meta
+            }
+            currentState.copy(
+                metas = metasActualizadas,
+                metaSeleccionada = if (currentState.metaSeleccionada?.metaAhorroId == metaId) {
+                    metaActualizada
+                } else currentState.metaSeleccionada
+            )
+        }
+
         actualizarMeta(metaId, metaActualizada)
     }
 

@@ -1,9 +1,11 @@
 package ucne.edu.fintracker.presentation.metaahorro
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -12,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -19,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.OffsetDateTime
@@ -31,6 +35,8 @@ import ucne.edu.fintracker.presentation.remote.dto.MetaAhorroDto
 @Composable
 fun MetaMAhorroScreen(
     meta: MetaAhorroDto,
+    usuarioId: Int,
+    navController: NavController,
     onGuardarMonto: (Double, OffsetDateTime) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -42,7 +48,7 @@ fun MetaMAhorroScreen(
     val fechaFormatter = DateTimeFormatter.ofPattern("dd 'de' MMMM, yyyy")
 
     Scaffold(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -51,7 +57,7 @@ fun MetaMAhorroScreen(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -59,14 +65,14 @@ fun MetaMAhorroScreen(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Cerrar",
-                            tint = Color.Black
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black,
-                    navigationIconContentColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         },
@@ -74,10 +80,14 @@ fun MetaMAhorroScreen(
             Button(
                 onClick = {
                     val monto = montoAhorrado.toDoubleOrNull()
-                    if (monto != null) {
+                    if (monto != null && monto > 0) {
                         onGuardarMonto(monto, fechaMonto)
+                        Toast.makeText(context, "Ahorro guardado exitosamente", Toast.LENGTH_SHORT).show()
+                        navController.navigate("metaahorros/$usuarioId") {
+                            popUpTo("metaahorros/$usuarioId") { inclusive = true }
+                        }
                     } else {
-                        Toast.makeText(context, "Ingrese un monto válido", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Ingrese un monto válido mayor a 0", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -87,7 +97,7 @@ fun MetaMAhorroScreen(
                     containerColor = Color(0xFF8BC34A)
                 )
             ) {
-                Text("Guardar Ahorro", color = Color.White)
+                Text("Guardar Ahorro", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     ) { padding ->
@@ -95,12 +105,13 @@ fun MetaMAhorroScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (meta.imagen != null) {
+                Log.d("MetaMAhorroScreen", "Imagen recibida: ${meta.imagen}")
                 Image(
                     painter = rememberAsyncImagePainter(meta.imagen),
                     contentDescription = "Imagen meta",
@@ -114,17 +125,17 @@ fun MetaMAhorroScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .background(Color(0xFFEFEFEF)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Sin imagen", color = Color.Gray)
+                    Text("Sin imagen", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
             Text(
                 text = "Meta: RD$ ${meta.montoObjetivo}",
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -132,7 +143,7 @@ fun MetaMAhorroScreen(
             Text(
                 text = "Fecha límite: ${meta.fechaFinalizacion.format(fechaFormatter)}",
                 fontWeight = FontWeight.Medium,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -140,15 +151,18 @@ fun MetaMAhorroScreen(
             OutlinedTextField(
                 value = montoAhorrado,
                 onValueChange = { montoAhorrado = it },
-                label = { Text("Monto Ahorrado (RD$)") },
+                label = { Text("Monto Ahorrado (RD$)", color = MaterialTheme.colorScheme.onSurface) },
+                shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Ej: 1000", color = MaterialTheme.colorScheme.onSurfaceVariant) }
             )
 
             FechaSelector(
                 label = "Fecha de Monto Ahorrado",
                 fecha = fechaMonto,
-                onFechaSeleccionada = { fechaMonto = it }
+                onFechaSeleccionada = { fechaMonto = it },
+                modifier = Modifier.clip(RoundedCornerShape(16.dp))
             )
         }
     }
@@ -158,6 +172,7 @@ fun MetaMAhorroScreen(
 private fun FechaSelector(
     label: String,
     fecha: OffsetDateTime?,
+    modifier: Modifier = Modifier,
     onFechaSeleccionada: (OffsetDateTime) -> Unit
 ) {
     val context = LocalContext.current
@@ -171,8 +186,9 @@ private fun FechaSelector(
         OutlinedTextField(
             value = fecha?.format(formatter) ?: "",
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(label, color = MaterialTheme.colorScheme.onSurface) },
             modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(16.dp),
             readOnly = true
         )
         IconButton(
@@ -196,7 +212,8 @@ private fun FechaSelector(
         ) {
             Icon(
                 imageVector = Icons.Default.DateRange,
-                contentDescription = "Seleccionar fecha"
+                contentDescription = "Seleccionar fecha",
+                tint = Color(0xFF8BC34A)
             )
         }
     }
