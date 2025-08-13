@@ -99,7 +99,6 @@ fun DivisasScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Mostrar error si existe
             uiState.error?.let { error ->
                 Card(
                     modifier = Modifier
@@ -117,7 +116,6 @@ fun DivisasScreen(
                 }
             }
 
-            // Lista de divisas
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = 8.dp)
