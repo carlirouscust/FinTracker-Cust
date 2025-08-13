@@ -67,7 +67,7 @@ data class AjusteItem(
     val colorIcono: Color? = null
 )
 
-data class NavItem(
+data class AjustesNavItem(
     val route: String,
     val icon: ImageVector,
     val label: String,
@@ -153,13 +153,13 @@ private fun AjustesBottomBar(navController: NavController, usuarioId: Int) {
         val currentRoute = navBackStackEntry?.destination?.route
 
         val navItems = listOf(
-            NavItem("gastos", Icons.Default.Home, "Home") {
+            AjustesNavItem("gastos", Icons.Default.Home, "Home") {
                 navController.navigate("gastos")
             },
-            NavItem("chatIA", Icons.Default.Assistant, "IA Asesor") {
+            AjustesNavItem("chatIA", Icons.Default.Assistant, "IA Asesor") {
                 navController.navigate("chatIA/$usuarioId")
             },
-            NavItem("metaahorros/$usuarioId", Icons.Default.Star, "Metas") {
+            AjustesNavItem("metaahorros/$usuarioId", Icons.Default.Star, "Metas") {
                 navController.navigate("metaahorros/$usuarioId") {
                     launchSingleTop = true
                     restoreState = true
