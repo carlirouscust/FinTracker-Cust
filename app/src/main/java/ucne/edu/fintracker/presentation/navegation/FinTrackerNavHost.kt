@@ -1323,7 +1323,9 @@ fun ResetPasswordRoute(
     navHostController: NavHostController
 ) {
     ResetPasswordScreen(
-        onBackClick = { navHostController.popBackStack() }
+        onBackClick = {
+            navHostController.popBackStack()
+        }
     )
 }
 @Composable
@@ -1333,11 +1335,10 @@ private fun ChatIARoute(
 ) {
     val usuarioId = backStackEntry.arguments?.getInt("usuarioId") ?: 0
 
-    Log.d("ChatIARoute", "Usuario ID recibido: $usuarioId") // Debug temporal
+    Log.d("ChatIARoute", "Usuario ID recibido: $usuarioId")
 
 
     if (usuarioId == 0) {
-        // Manejar caso de usuario no válido
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Error: Usuario no válido")
         }
