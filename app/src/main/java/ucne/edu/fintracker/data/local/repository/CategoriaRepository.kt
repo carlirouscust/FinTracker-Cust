@@ -2,6 +2,7 @@ package ucne.edu.fintracker.data.local.repository
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import ucne.edu.fintracker.data.local.dao.CategoriaDao
 import ucne.edu.fintracker.data.local.toEntity
@@ -17,15 +18,13 @@ class CategoriaRepository @Inject constructor(
 ) {
     fun getCategorias(usuarioId: Int): Flow<Resource<List<CategoriaDto>>> = flow {
         emit(Resource.Loading())
-        try {
-            Log.d("CategoriaRepository", "Llamando api.getCategoriasPorUsuario con usuarioId=$usuarioId")
-            val categorias = dataSource.getCategoriasPorUsuario(usuarioId)
-            Log.d("CategoriaRepository", "Categorias recibidas: $categorias")
-            emit(Resource.Success(categorias))
-        } catch (e: Exception) {
-            Log.e("CategoriaRepository", "Error en api.getCategoriasPorUsuario", e)
-            emit(Resource.Error("Error al obtener categorías: ${e.message ?: "Error desconocido"}"))
-        }
+        Log.d("CategoriaRepository", "Llamando api.getCategoriasPorUsuario con usuarioId=$usuarioId")
+        val categorias = dataSource.getCategoriasPorUsuario(usuarioId)
+        Log.d("CategoriaRepository", "Categorias recibidas: $categorias")
+        emit(Resource.Success(categorias))
+    }.catch { e ->
+        Log.e("CategoriaRepository", "Error en api.getCategoriasPorUsuario", e)
+        emit(Resource.Error("Error al obtener categorías: ${e.message ?: "Error desconocido"}"))
     }
 
 
