@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,7 +22,6 @@ class CategoriaViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CategoriaUiState())
     val uiState = _uiState.asStateFlow()
-
 
     fun setUsuarioId(id: Int) {
         Log.d("CategoriaViewModel", "setUsuarioId: $id")
@@ -46,30 +44,25 @@ class CategoriaViewModel @Inject constructor(
             _uiState.update { it.copy(error = "Usuario inválido", isLoading = false) }
             return
         }
-
         viewModelScope.launch {
             repository.getCategorias(usuarioId).collect { result ->
                 when (result) {
                     is Resource.Success -> {
                         result.data?.let { categorias ->
-                            val categoriasSinDuplicados = categorias
-                                .distinctBy { "${it.nombre}-${it.tipo}-${it.usuarioId}" }
-
                             _uiState.update {
                                 it.copy(
-                                    categorias = categoriasSinDuplicados,
+                                    categorias = categorias,
                                     isLoading = false,
-                                    error = null
+                                    error = null,
+                                    filtroTipo = ""
                                 )
                             }
-                            Log.d("CategoriaViewModel", "Categorías cargadas: ${categoriasSinDuplicados.size}")
                         } ?: run {
-                            _uiState.update { it.copy(isLoading = false) }
+                            _uiState.update { it.copy(isLoading = false, filtroTipo = "") }
                         }
                     }
                     is Resource.Error -> {
                         _uiState.update { it.copy(error = result.message, isLoading = false) }
-                        Log.e("CategoriaViewModel", "Error cargando categorías: ${result.message}")
                     }
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true) }
@@ -86,18 +79,6 @@ class CategoriaViewModel @Inject constructor(
         }
 
         val current = _uiState.value
-
-        val yaExiste = current.categorias.any {
-            it.nombre.equals(current.nombre, ignoreCase = true) &&
-                    it.tipo == current.tipo &&
-                    it.usuarioId == usuarioId
-        }
-
-        if (yaExiste) {
-            _uiState.update { it.copy(error = "Ya existe una categoría con ese nombre y tipo") }
-            return
-        }
-
         val nuevaCategoria = CategoriaDto(
             nombre = current.nombre,
             tipo = current.tipo,
@@ -124,6 +105,7 @@ class CategoriaViewModel @Inject constructor(
                                 )
                             }
                         }
+                        fetchCategorias(usuarioId)
                         onSuccess()
                     }
                     is Resource.Error -> {
@@ -137,7 +119,6 @@ class CategoriaViewModel @Inject constructor(
         }
     }
 
-    // Resto de funciones sin cambios...
     fun onTabSelected(index: Int) {
         _uiState.update { it.copy(selectedTabIndex = index) }
     }
