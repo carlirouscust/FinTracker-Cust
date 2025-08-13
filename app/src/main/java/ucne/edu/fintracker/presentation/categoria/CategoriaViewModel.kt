@@ -4,13 +4,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ucne.edu.fintracker.data.local.repository.CategoriaRepository
@@ -28,98 +24,11 @@ class CategoriaViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CategoriaUiState())
     val uiState = _uiState.asStateFlow()
 
-    val usuarioId: StateFlow<Int?> = _usuarioId
-
-    // Control de usuarios inicializados - MEJORADO
-    private val usuariosInicializados = mutableSetOf<Int>()
-    private val inicializacionEnProceso = mutableSetOf<Int>()
-
-    init {
-        viewModelScope.launch {
-            _usuarioId
-                .filter { it != null && it != 0 }
-                .collectLatest { id ->
-                    // Solo inicializar si no se ha hecho antes y no está en proceso
-                    if (!usuariosInicializados.contains(id!!) && !inicializacionEnProceso.contains(id)) {
-                        inicializacionEnProceso.add(id)
-                        try {
-                            inicializarCategoriasPorDefecto(id)
-                            usuariosInicializados.add(id)
-                        } finally {
-                            inicializacionEnProceso.remove(id)
-                        }
-                    }
-                    fetchCategorias(id)
-                }
-        }
-    }
 
     fun setUsuarioId(id: Int) {
         Log.d("CategoriaViewModel", "setUsuarioId: $id")
         if (id != 0) {
             _usuarioId.value = id
-        }
-    }
-
-    // FUNCIÓN CORREGIDA - Evita duplicados
-    private suspend fun inicializarCategoriasPorDefecto(usuarioId: Int) = coroutineScope {
-        Log.d("CategoriaViewModel", "Inicializando categorías para usuario: $usuarioId")
-
-        // Verificar doble que no se haya inicializado
-        if (usuariosInicializados.contains(usuarioId)) {
-            Log.d("CategoriaViewModel", "Usuario $usuarioId ya inicializado, saltando...")
-            return@coroutineScope
-        }
-
-        try {
-            // Obtener categorías existentes
-            repository.getCategorias(usuarioId)
-                .filter { it is Resource.Success }
-                .firstOrNull()
-                ?.let { result ->
-                    val categoriasExistentes = (result as Resource.Success).data ?: emptyList()
-                    Log.d("CategoriaViewModel", "Categorías existentes: ${categoriasExistentes.size}")
-
-                    // Solo crear si no hay categorías para este usuario
-                    if (categoriasExistentes.isEmpty()) {
-                        val categoriasDefault = listOf(
-                            CategoriaDto(nombre = "Gasolina", tipo = "Gasto", icono = "⛽", colorFondo = "FF9800", usuarioId = usuarioId),
-                            CategoriaDto(nombre = "Casa", tipo = "Gasto", icono = "🏠", colorFondo = "4CAF50", usuarioId = usuarioId),
-                            CategoriaDto(nombre = "Comida", tipo = "Gasto", icono = "🍽", colorFondo = "F44336", usuarioId = usuarioId),
-                            CategoriaDto(nombre = "Viajes", tipo = "Gasto", icono = "✈", colorFondo = "2196F3", usuarioId = usuarioId),
-                            CategoriaDto(nombre = "Celular", tipo = "Gasto", icono = "📱", colorFondo = "9C27B0", usuarioId = usuarioId),
-                            CategoriaDto(nombre = "Salario", tipo = "Ingreso", icono = "💰", colorFondo = "4CAF50", usuarioId = usuarioId),
-                            CategoriaDto(nombre = "Freelance", tipo = "Ingreso", icono = "💻", colorFondo = "2196F3", usuarioId = usuarioId)
-                        )
-
-                        Log.d("CategoriaViewModel", "Creando ${categoriasDefault.size} categorías por defecto")
-
-                        // Crear categorías de forma secuencial para evitar conflictos
-                        categoriasDefault.forEach { categoria ->
-                            try {
-                                repository.createCategoria(categoria).collect { createResult ->
-                                    when (createResult) {
-                                        is Resource.Success -> {
-                                            Log.d("CategoriaViewModel", "Categoría creada: ${categoria.nombre}")
-                                        }
-                                        is Resource.Error -> {
-                                            Log.e("CategoriaViewModel", "Error creando categoría ${categoria.nombre}: ${createResult.message}")
-                                        }
-                                        is Resource.Loading -> {
-                                            // No hacer nada durante loading
-                                        }
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                Log.e("CategoriaViewModel", "Excepción creando categoría ${categoria.nombre}: ${e.message}")
-                            }
-                        }
-                    } else {
-                        Log.d("CategoriaViewModel", "Usuario $usuarioId ya tiene categorías, no se crean por defecto")
-                    }
-                }
-        } catch (e: Exception) {
-            Log.e("CategoriaViewModel", "Error en inicializarCategoriasPorDefecto: ${e.message}")
         }
     }
 
@@ -143,7 +52,6 @@ class CategoriaViewModel @Inject constructor(
                 when (result) {
                     is Resource.Success -> {
                         result.data?.let { categorias ->
-                            // Filtrar duplicados por nombre y tipo para el mismo usuario
                             val categoriasSinDuplicados = categorias
                                 .distinctBy { "${it.nombre}-${it.tipo}-${it.usuarioId}" }
 
@@ -179,7 +87,6 @@ class CategoriaViewModel @Inject constructor(
 
         val current = _uiState.value
 
-        // Verificar que no exista una categoría con el mismo nombre y tipo
         val yaExiste = current.categorias.any {
             it.nombre.equals(current.nombre, ignoreCase = true) &&
                     it.tipo == current.tipo &&
