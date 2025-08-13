@@ -12,7 +12,7 @@ data class TransaccionEntity(
     val categoriaId: Int,
     val fecha: OffsetDateTime,
     val notas: String? = null,
-    val tipo: String, // "Gasto" o "Ingreso"
+    val tipo: String,
     val usuarioId: Int,
     val syncPending: Boolean = true
 )
