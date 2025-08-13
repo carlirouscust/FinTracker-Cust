@@ -20,8 +20,11 @@ import javax.inject.Inject
 class LimiteViewModel @Inject constructor(
     private val limiteRepository: LimiteRepository,
     private val categoriaRepository: CategoriaRepository,
-
     ) : ViewModel() {
+
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
 
     private var usuarioIdActual: Int? = null
     private val _uiState = MutableStateFlow(
@@ -86,7 +89,7 @@ class LimiteViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -119,7 +122,7 @@ class LimiteViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -151,7 +154,7 @@ class LimiteViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -181,7 +184,7 @@ class LimiteViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }

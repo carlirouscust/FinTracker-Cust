@@ -12,6 +12,9 @@ import javax.inject.Inject
 class MetaRepository @Inject constructor(
     private val dataSource: DataSource
 ) {
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
 
     fun getMetas(usuarioId: Int, metaId: Int): Flow<Resource<MetaAhorroDto?>> = flow {
         emit(Resource.Loading())
@@ -20,7 +23,7 @@ class MetaRepository @Inject constructor(
             val meta = metas.find { it.metaAhorroId == metaId }
             emit(Resource.Success(meta))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al obtener la meta: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al obtener la meta: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -30,7 +33,7 @@ class MetaRepository @Inject constructor(
             val result = dataSource.createMetaAhorro(metaDto)
             emit(Resource.Success(result))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al crear meta: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al crear meta: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -43,7 +46,7 @@ class MetaRepository @Inject constructor(
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
             Log.e("RepoMeta", "Error en updateMeta: ${e.message}", e)
-            emit(Resource.Error("Error al actualizar meta: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al actualizar meta: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -53,7 +56,7 @@ class MetaRepository @Inject constructor(
             dataSource.deleteMetaAhorro(id)
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al eliminar meta: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al eliminar meta: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 }

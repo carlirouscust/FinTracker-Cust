@@ -99,7 +99,7 @@ fun LimiteGastoEntity.toDto() = LimiteGastoDto(
 
 fun CategoriaDto.toEntity(syncPending: Boolean = false): CategoriaEntity {
     return CategoriaEntity(
-        categoriaId = this.categoriaId ?: 0,
+        categoriaId = this.categoriaId,
         nombre = this.nombre,
         tipo = this.tipo,
         icono = this.icono,

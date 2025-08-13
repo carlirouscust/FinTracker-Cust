@@ -34,7 +34,9 @@ class GastoViewModel @Inject constructor(
     private val categoriaRepository: CategoriaRepository,
     private val saldoCalculator: SaldoCalculatorUtil
 ) : ViewModel() {
-
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
     private val _filtroState = MutableStateFlow("Día")
     val filtroState: StateFlow<String> = _filtroState.asStateFlow()
     private val _fechaSeleccionadaState = MutableStateFlow(OffsetDateTime.now())
@@ -187,7 +189,7 @@ class GastoViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
-                                    error = result.message ?: "Error desconocido"
+                                    error = result.message ?: ERROR_DESCONOCIDO
                                 )
                             }
                         }
@@ -225,7 +227,7 @@ class GastoViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }
@@ -351,7 +353,7 @@ class GastoViewModel @Inject constructor(
                             it.copy(
                                 isLoading = false,
                                 transacciones = listaOriginal,
-                                error = result.message ?: "Error desconocido"
+                                error = result.message ?: ERROR_DESCONOCIDO
                             )
                         }
                     }

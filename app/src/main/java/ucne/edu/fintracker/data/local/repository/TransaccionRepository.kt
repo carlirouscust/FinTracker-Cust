@@ -1,5 +1,6 @@
 package ucne.edu.fintracker.data.local.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import ucne.edu.fintracker.presentation.remote.DataSource
@@ -19,6 +20,9 @@ class TransaccionRepository @Inject constructor(
     private val dataSource: DataSource,
     private val transaccionDao: TransaccionDao
 ) {
+    companion object {
+        private const val ERROR_DESCONOCIDO = "Error desconocido"
+    }
 
     fun getTransacciones(usuarioId: Int): Flow<Resource<List<TransaccionDto>>> = flow {
         emit(Resource.Loading())
@@ -37,7 +41,7 @@ class TransaccionRepository @Inject constructor(
 
             emit(Resource.Success(remotas))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al obtener transacciones: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al obtener transacciones: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -47,7 +51,7 @@ class TransaccionRepository @Inject constructor(
             val filtradas = remotas.filter { it.usuarioId == usuarioId }
             transaccionDao.insertOrUpdateAll(filtradas.map { it.toEntity() })
         } catch (e: Exception) {
-
+            Log.e("syncTransacciones", "Error sincronizando transacciones para usuarioId=$usuarioId", e)
         }
     }
 
@@ -60,7 +64,7 @@ class TransaccionRepository @Inject constructor(
             transaccionDao.save(created.toEntity().copy(syncPending = false))
             emit(Resource.Success(created))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al crear transacción: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al crear transacción: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -70,7 +74,7 @@ class TransaccionRepository @Inject constructor(
             val result = dataSource.updateTransaccion(id, transaccionDto)
             emit(Resource.Success(result))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al actualizar transacción: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al actualizar transacción: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
@@ -81,7 +85,7 @@ class TransaccionRepository @Inject constructor(
             transaccionDao.deleteById(id)
             emit(Resource.Success(Unit))
         } catch (e: Exception) {
-            emit(Resource.Error("Error al eliminar transacción: ${e.message ?: "Error desconocido"}"))
+            emit(Resource.Error("Error al eliminar transacción: ${e.message ?: ERROR_DESCONOCIDO}"))
         }
     }
 
