@@ -63,12 +63,10 @@ fun MenuScreen(
     val scope = rememberCoroutineScope()
     val uiState by panelUsuarioViewModel.uiState.collectAsState()
 
-    // Cargar datos del usuario cuando se inicializa
     LaunchedEffect(usuarioId) {
         panelUsuarioViewModel.cargarUsuario(usuarioId)
     }
 
-    // Obtener el nombre completo del usuario
     val nombreCompleto = uiState.usuario?.let { usuario ->
         if (usuario.apellido.isNotBlank()) {
             "${usuario.nombre} ${usuario.apellido}"
